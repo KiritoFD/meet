@@ -188,6 +188,53 @@
             color: #666;
             vertical-align: middle;
         }
+
+        .model-list {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .model-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .model-name {
+            flex: 1;
+            margin-right: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .model-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .model-controls button {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .render-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -260,11 +307,62 @@
                 <button class="outline" style="margin-bottom: 12px;">上传背景</button>
                 <button>移除背景</button>
             </div>
+
+            <div class="controls-group">
+                <h3>模型管理</h3>
+                <button id="modelUploadBtn" class="outline">上传模型</button>
+                <div id="modelList" class="model-list">
+                    <!-- 模型列表将由 JavaScript 动态填充 -->
+                </div>
+            </div>
+
+            <div class="controls-group">
+                <h3>渲染设置</h3>
+                <div class="render-controls">
+                    <div class="control-item">
+                        <label>渲染质量</label>
+                        <select id="renderQuality">
+                            <option value="low">低</option>
+                            <option value="medium">中</option>
+                            <option value="high" selected>高</option>
+                        </select>
+                    </div>
+                    <div class="control-item">
+                        <label>阴影</label>
+                        <input type="checkbox" id="enableShadows" checked>
+                    </div>
+                    <div class="control-item">
+                        <label>抗锯齿</label>
+                        <input type="checkbox" id="enableAntialiasing" checked>
+                    </div>
+                </div>
+                <div class="render-preview">
+                    <div class="preview-controls">
+                        <button id="startRender">开始渲染</button>
+                        <button id="pauseRender">暂停</button>
+                        <button id="exportVideo">导出视频</button>
+                    </div>
+                    <div class="render-progress">
+                        <div class="progress-bar">
+                            <div id="renderProgress" style="width: 0%"></div>
+                        </div>
+                        <span id="renderStatus">就绪</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
+    <div class="video-container">
+        <!-- 原始视频预览 -->
+        <video id="videoPreview" autoplay muted></video>
+        
+        <!-- 渲染画布 -->
+        <canvas id="renderCanvas" class="render-overlay"></canvas>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html> 

@@ -60,6 +60,11 @@ python run.py
 - 姿态数据记录
 - 截图功能
 - 状态监控
+- 视频重新生成
+  - 3D模型驱动
+  - 实时渲染
+  - 视频录制
+  - 场景合成
 
 ## 开发说明
 
@@ -69,6 +74,11 @@ python run.py
 - `static/js/app.js`: 前端交互逻辑
 - `static/css/style.css`: 页面样式
 - `templates/index.html`: 页面模板
+- `static/js/modules/`: 功能模块
+  - `pose-recorder.js`: 姿态录制
+  - `model-preview.js`: 模型预览
+  - `video-renderer.js`: 视频渲染
+  - `scene-composer.js`: 场景合成
 
 ### 2. 主要依赖
 
@@ -78,6 +88,7 @@ python run.py
   - Pose: 姿态检测
   - Hands: 手部识别
   - FaceMesh: 面部网格
+- Three.js: 3D渲染
 - NumPy: 数据处理
 
 ### 3. 开发模式

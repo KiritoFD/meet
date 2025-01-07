@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 import time
 import logging
 from collections import deque
+import json
 
 # 获取项目根目录的绝对路径
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -301,6 +302,150 @@ def get_pose():
 def index():
     """主页"""
     return render_template('index.html')
+
+@app.route('/api/room/<room_id>/models', methods=['GET'])
+def get_room_models(room_id):
+    """获取房间内的所有模型"""
+    try:
+        model_dir = os.path.join(MODEL_FOLDER, room_id)
+        if not os.path.exists(model_dir):
+            return jsonify({
+                'status': 'success',
+                'models': []
+            })
+            
+        models = []
+        for filename in os.listdir(model_dir):
+            if filename.endswith(('.gltf', '.glb')):
+                model_path = os.path.join('/static/models', room_id, filename)
+                models.append({
+                    'name': filename,
+                    'url': model_path
+                })
+                
+        return jsonify({
+            'status': 'success',
+            'models': models
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/room/<room_id>/models', methods=['POST'])
+def upload_room_model(room_id):
+    """上传模型到房间"""
+    try:
+        if 'model' not in request.files:
+            return jsonify({
+                'status': 'error',
+                'message': '没有上传文件'
+            }), 400
+            
+        file = request.files['model']
+        if file.filename == '':
+            return jsonify({
+                'status': 'error', 
+                'message': '未选择文件'
+            }), 400
+            
+        if not file.filename.endswith(('.gltf', '.glb')):
+            return jsonify({
+                'status': 'error',
+                'message': '不支持的文件格式'
+            }), 400
+            
+        # 确保房间目录存在
+        room_dir = os.path.join(MODEL_FOLDER, room_id)
+        os.makedirs(room_dir, exist_ok=True)
+        
+        # 保存文件
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(room_dir, filename)
+        file.save(file_path)
+        
+        # 广播新模型通知
+        # TODO: 实现WebSocket广播
+        
+        return jsonify({
+            'status': 'success',
+            'message': '模型上传成功',
+            'model': {
+                'name': filename,
+                'url': os.path.join('/static/models', room_id, filename)
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/calibration', methods=['POST'])
+def handle_calibration():
+    """处理校准请求"""
+    try:
+        data = request.get_json()
+        pose_type = data.get('pose_type')
+        
+        if not pose_type:
+            return jsonify({
+                'status': 'error',
+                'message': '缺少姿势类型'
+            }), 400
+            
+        # 获取当前帧的姿态数据
+        pose_data = get_current_pose_data()  # 需要实现这个函数
+        
+        # 添加校准数据
+        model_manager.add_calibration_pose(session['user_id'], pose_type, pose_data)
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'已捕获 {pose_type} 姿势'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/recording/start', methods=['POST'])
+def start_recording():
+    """开始录制"""
+    try:
+        model_manager.start_recording(session['user_id'])
+        return jsonify({
+            'status': 'success',
+            'message': '开始录制'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/api/recording/stop', methods=['POST'])
+def stop_recording():
+    """停止录制"""
+    try:
+        recording_data = model_manager.stop_recording(session['user_id'])
+        return jsonify({
+            'status': 'success',
+            'message': '录制完成',
+            'data': recording_data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True) 

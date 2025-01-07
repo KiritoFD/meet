@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import time
 import json
 import os
+import uuid
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -49,6 +50,13 @@ class ModelManager:
         
         # 创建缓存目录
         os.makedirs(self.cache_dir, exist_ok=True)
+        
+        self.recording_data = {}  # 存储录制数据
+        self.calibration_poses = {
+            'T': None,  # T-pose数据
+            'A': None,  # A-pose数据
+            'N': None   # 自然站姿数据
+        }
         
     def load_model(self, model_id: str, config: ModelConfig) -> Model:
         """加载3D模型"""
@@ -284,3 +292,185 @@ class ModelManager:
                 self._save_to_cache(model)
             except:
                 pass 
+        
+    def start_recording(self, user_id: str) -> None:
+        """开始录制用户动作"""
+        self.recording_data[user_id] = {
+            'frames': [],
+            'start_time': time.time(),
+            'calibrated': False
+        }
+        logger.info(f"开始录制用户动作: {user_id}")
+        
+    def stop_recording(self, user_id: str) -> Dict:
+        """停止录制并返回录制数据"""
+        try:
+            if user_id not in self.recording_data:
+                raise ValueError(f"未找到用户录制数据: {user_id}")
+                
+            recording = self.recording_data[user_id]
+            duration = time.time() - recording['start_time']
+            
+            # 处理录制数据
+            processed_data = self._process_recording(recording['frames'])
+            
+            # 清理录制数据
+            del self.recording_data[user_id]
+            
+            return {
+                'status': 'success',
+                'frames': processed_data,
+                'duration': duration
+            }
+            
+        except Exception as e:
+            logger.error(f"停止录制失败: {e}")
+            raise
+            
+    def add_calibration_pose(self, user_id: str, pose_type: str, pose_data: Dict) -> None:
+        """添加校准姿势数据"""
+        try:
+            if pose_type not in ['T', 'A', 'N']:
+                raise ValueError(f"不支持的姿势类型: {pose_type}")
+                
+            if user_id not in self.recording_data:
+                self.start_recording(user_id)
+                
+            # 保存校准数据
+            self.calibration_poses[pose_type] = pose_data
+            
+            # 检查是否完成所有校准
+            if all(pose is not None for pose in self.calibration_poses.values()):
+                self.recording_data[user_id]['calibrated'] = True
+                logger.info(f"用户校准完成: {user_id}")
+                
+        except Exception as e:
+            logger.error(f"添加校准姿势失败: {e}")
+            raise
+            
+    def add_frame(self, user_id: str, frame_data: Dict) -> None:
+        """添加录制帧"""
+        try:
+            if user_id not in self.recording_data:
+                raise ValueError(f"未开始录制: {user_id}")
+                
+            # 添加时间戳
+            frame_data['timestamp'] = time.time()
+            
+            # 保存帧数据
+            self.recording_data[user_id]['frames'].append(frame_data)
+            
+        except Exception as e:
+            logger.error(f"添加录制帧失败: {e}")
+            raise
+            
+    def _process_recording(self, frames: List[Dict]) -> List[Dict]:
+        """处理录制数据"""
+        try:
+            # 1. 数据平滑
+            smoothed_frames = self._smooth_frames(frames)
+            
+            # 2. 关键帧提取
+            key_frames = self._extract_key_frames(smoothed_frames)
+            
+            # 3. 动作规范化
+            normalized_frames = self._normalize_frames(key_frames)
+            
+            return normalized_frames
+            
+        except Exception as e:
+            logger.error(f"处理录制数据失败: {e}")
+            raise
+            
+    def _smooth_frames(self, frames: List[Dict]) -> List[Dict]:
+        """平滑帧数据"""
+        try:
+            window_size = 5
+            smoothed = []
+            
+            for i in range(len(frames)):
+                # 获取窗口范围内的帧
+                start = max(0, i - window_size // 2)
+                end = min(len(frames), i + window_size // 2 + 1)
+                window = frames[start:end]
+                
+                # 计算平均值
+                smoothed_frame = self._average_frames(window)
+                smoothed.append(smoothed_frame)
+                
+            return smoothed
+            
+        except Exception as e:
+            logger.error(f"平滑帧数据失败: {e}")
+            raise 
+
+    def _convert_recording_to_model(self, recording_data: Dict) -> Dict:
+        """将录制数据转换为3D模型数据"""
+        try:
+            # 1. 从校准数据构建基础骨骼
+            skeleton = self._build_skeleton_from_calibration()
+            
+            # 2. 从录制帧生成顶点和面片
+            vertices, faces = self._generate_mesh_from_frames(recording_data['frames'])
+            
+            # 3. 生成动画数据
+            animations = self._generate_animations(recording_data['frames'], skeleton)
+            
+            return {
+                'model_id': str(uuid.uuid4()),
+                'vertices': vertices,
+                'faces': faces,
+                'skeleton': skeleton,
+                'animations': animations
+            }
+            
+        except Exception as e:
+            logger.error(f"转换模型数据失败: {e}")
+            raise
+
+    def _build_skeleton_from_calibration(self) -> Dict:
+        """从校准数据构建骨骼结构"""
+        try:
+            # 使用T-pose作为基准姿势
+            t_pose = self.calibration_poses['T']
+            
+            # 定义关节层级
+            joint_hierarchy = {
+                'hips': ['spine', 'left_hip', 'right_hip'],
+                'spine': ['chest', 'neck'],
+                'neck': ['head', 'left_shoulder', 'right_shoulder'],
+                # ... 更多关节定义
+            }
+            
+            # 计算关节位置和方向
+            joints = self._calculate_joints(t_pose['pose'])
+            
+            return {
+                'joints': joints,
+                'hierarchy': joint_hierarchy
+            }
+            
+        except Exception as e:
+            logger.error(f"构建骨骼失败: {e}")
+            raise
+
+    def _generate_mesh_from_frames(self, frames: List[Dict]) -> Tuple[List[float], List[int]]:
+        """从录制帧生成网格数据"""
+        try:
+            # 1. 合并所有帧的点云数据
+            point_cloud = self._merge_frame_points(frames)
+            
+            # 2. 点云降采样和平滑
+            filtered_points = self._filter_point_cloud(point_cloud)
+            
+            # 3. 生成三角面片
+            vertices, faces = self._triangulate_points(filtered_points)
+            
+            # 4. 优化网格
+            vertices, faces = self._optimize_mesh(vertices, faces)
+            
+            return vertices, faces
+            
+        except Exception as e:
+            logger.error(f"生成网格失败: {e}")
+            raise 
