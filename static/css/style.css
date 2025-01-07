@@ -1,0 +1,151 @@
+/* 基础样式 */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 头部样式 */
+header {
+    background: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    margin: 0;
+    color: #333;
+}
+
+.status-bar {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.status-bar span {
+    margin-right: 20px;
+}
+
+/* 主要内容区域 */
+main {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+/* 视频容器 */
+.video-container {
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+#video-feed {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: rgba(0,0,0,0.5);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* 按钮样式 */
+button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* 信息面板 */
+.info-panel {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-panel h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.system-status {
+    margin-bottom: 20px;
+}
+
+#status-content {
+    font-size: 14px;
+    color: #666;
+}
+
+.recording-list {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+#recordings {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#recordings li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    color: #666;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+    
+    .controls {
+        padding: 5px;
+    }
+    
+    button {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+} 
