@@ -31,24 +31,22 @@ pose = mp_pose.Pose(
     model_complexity=2,
     enable_segmentation=True,
     smooth_landmarks=True,
-    min_detection_confidence=0.7,
-    min_tracking_confidence=0.7
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5
 )
 
 hands = mp_hands.Hands(
     static_image_mode=False,
     max_num_hands=2,
-    model_complexity=1,
-    min_detection_confidence=0.7,
-    min_tracking_confidence=0.7
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5
 )
 
 face_mesh = mp_face_mesh.FaceMesh(
     static_image_mode=False,
     max_num_faces=1,
-    refine_landmarks=True,
-    min_detection_confidence=0.7,
-    min_tracking_confidence=0.7
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5
 )
 
 # 全局变量
@@ -65,27 +63,17 @@ def start_capture():
     global camera
     try:
         if camera is not None:
-            camera.release()
-            
+            camera.release()  # 确保先释放之前的摄像头
+        
         camera = cv2.VideoCapture(0)
-        
-        # 调整摄像头参数以获得更好的画质
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # 增加分辨率
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        camera.set(cv2.CAP_PROP_FPS, 30)
-        camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
-        camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.75)  # 自动曝光
-        camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-        
         if not camera.isOpened():
             raise Exception("无法打开摄像头")
             
-        # 预热摄像头
-        for _ in range(5):
-            ret, _ = camera.read()
-            if not ret:
-                raise Exception("摄像头预热失败")
-                
+        # 设置摄像头参数
+        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        camera.set(cv2.CAP_PROP_FPS, 30)
+        
         logger.info("摄像头已成功启动")
         return jsonify({"message": "摄像头已启动", "status": "success"}), 200
     except Exception as e:
@@ -187,67 +175,219 @@ def generate_frames():
         try:
             if camera is None or not camera.isOpened():
                 logger.warning("摄像头未打开或已断开")
+                frame = np.zeros((480, 640, 3), dtype=np.uint8)
+                ret, buffer = cv2.imencode('.jpg', frame)
+                if ret:
+                    frame_bytes = buffer.tobytes()
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
                 continue
 
             success, frame = camera.read()
             if not success or frame is None:
                 continue
 
-            # 调整图像大小以提高性能
-            frame = cv2.resize(frame, (1280, 720))
-            
-            # 镜像翻转，使显示更自然
-            frame = cv2.flip(frame, 1)
-            
-            # 提高图像对比度
-            frame = cv2.convertScaleAbs(frame, alpha=1.2, beta=10)
-            
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
             # 处理姿势
             pose_results = pose.process(frame_rgb)
             
-            # 创建一个半透明的遮罩层用于绘制
-            overlay = frame.copy()
-            
+            # 处理手部
+            hands_results = hands.process(frame_rgb)
+
+            # 处理面部
+            face_results = face_mesh.process(frame_rgb)
+
             # 绘制姿势关键点
             if pose_results.pose_landmarks:
                 h, w, c = frame.shape
                 
-                # 绘制连接线，使用更粗的线条和更鲜艳的颜色
+                # 绘制连接线
                 for connection in POSE_CONNECTIONS:
                     try:
                         start_point = pose_results.pose_landmarks.landmark[connection[0]]
                         end_point = pose_results.pose_landmarks.landmark[connection[1]]
                         
-                        if start_point.visibility > 0.7 and end_point.visibility > 0.7:
+                        if start_point.visibility > 0.5 and end_point.visibility > 0.5:
                             start_x = int(start_point.x * w)
                             start_y = int(start_point.y * h)
                             end_x = int(end_point.x * w)
                             end_y = int(end_point.y * h)
                             
-                            # 使用更鲜艳的颜色
-                            cv2.line(overlay, 
-                                   (start_x, start_y), 
-                                   (end_x, end_y),
-                                   (0, 255, 255), 
-                                   3)  # 加粗线条
+                            # 根据连接类型使用不同颜色
+                            if connection[0] <= 10:  # 面部连接
+                                color = (255, 0, 0)  # 蓝色
+                                thickness = 1
+                            elif connection[0] >= 15 and connection[0] <= 22:  # 手指连接
+                                color = (0, 255, 255)  # 黄色
+                                thickness = 1
+                                # 添加手指关节点
+                                cv2.circle(frame, (start_x, start_y), 2, color, -1)
+                                cv2.circle(frame, (end_x, end_y), 2, color, -1)
+                            else:  # 其他连接
+                                color = (0, 255, 0)  # 绿色
+                                thickness = 2
                             
-                            # 在关键点处添加光晕效果
-                            cv2.circle(overlay, (start_x, start_y), 5, (255, 255, 0), -1)
-                            cv2.circle(overlay, (end_x, end_y), 5, (255, 255, 0), -1)
+                            cv2.line(frame, (start_x, start_y), (end_x, end_y), 
+                                   color=color, thickness=thickness)
                     except Exception as e:
                         continue
-            
-            # 将遮罩层与原始帧混合
-            cv2.addWeighted(overlay, 0.4, frame, 0.6, 0, frame)
-            
-            # 添加帧率显示
-            fps = camera.get(cv2.CAP_PROP_FPS)
-            cv2.putText(frame, f"FPS: {int(fps)}", (10, 30),
-                       cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            
-            ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+
+                # 绘制关键点
+                for idx in upper_body_points:
+                    try:
+                        landmark = pose_results.pose_landmarks.landmark[idx]
+                        if landmark.visibility > 0.5:
+                            cx = int(landmark.x * w)
+                            cy = int(landmark.y * h)
+                            
+                            if idx <= 10:  # 面部关键点
+                                color = (255, 0, 0)  # 蓝色
+                                radius = 2
+                            elif idx in [11, 12, 13, 14, 15, 16]:  # 手臂关键点
+                                color = (0, 0, 255)  # 红色
+                                radius = 3
+                            elif idx >= 17:  # 手部关键点
+                                color = (0, 255, 255)  # 黄色
+                                radius = 2
+                            else:  # 躯干关键点
+                                color = (255, 255, 0)  # 青色
+                                radius = 3
+                            
+                            cv2.circle(frame, (cx, cy), radius, color, -1)
+                            cv2.circle(frame, (cx, cy), radius + 1, color, 1)
+                    except Exception as e:
+                        continue
+
+            # 绘制手部关键点和连接
+            if hands_results.multi_hand_landmarks:
+                for hand_landmarks in hands_results.multi_hand_landmarks:
+                    # 绘制手部关键点和连接线
+                    mp_drawing.draw_landmarks(
+                        frame,
+                        hand_landmarks,
+                        mp_hands.HAND_CONNECTIONS,
+                        mp_drawing_styles.get_default_hand_landmarks_style(),
+                        mp_drawing_styles.get_default_hand_connections_style()
+                    )
+                    
+                    # 自定义手指连接线
+                    h, w, c = frame.shape
+                    
+                    # 定义手指关键点组
+                    fingers = [
+                        [4, 3, 2, 1],    # 拇指
+                        [8, 7, 6, 5],    # 食指
+                        [12, 11, 10, 9],  # 中指
+                        [16, 15, 14, 13], # 无名指
+                        [20, 19, 18, 17]  # 小指
+                    ]
+                    
+                    # 绘制每个手指的连接线
+                    for finger in fingers:
+                        for i in range(len(finger)-1):
+                            start = hand_landmarks.landmark[finger[i]]
+                            end = hand_landmarks.landmark[finger[i+1]]
+                            
+                            start_x = int(start.x * w)
+                            start_y = int(start.y * h)
+                            end_x = int(end.x * w)
+                            end_y = int(end.y * h)
+                            
+                            # 绘制连接线
+                            cv2.line(frame, 
+                                   (start_x, start_y), 
+                                   (end_x, end_y),
+                                   (0, 255, 255),  # 黄色
+                                   2)
+                            
+                            # 绘制关节点
+                            cv2.circle(frame, (start_x, start_y), 3, (0, 255, 255), -1)
+                            cv2.circle(frame, (end_x, end_y), 3, (0, 255, 255), -1)
+                    
+                    # 绘制手指横向连接
+                    knuckles = [5, 9, 13, 17]  # 指关节点
+                    for i in range(len(knuckles)-1):
+                        start = hand_landmarks.landmark[knuckles[i]]
+                        end = hand_landmarks.landmark[knuckles[i+1]]
+                        
+                        start_x = int(start.x * w)
+                        start_y = int(start.y * h)
+                        end_x = int(end.x * w)
+                        end_y = int(end.y * h)
+                        
+                        cv2.line(frame, 
+                               (start_x, start_y), 
+                               (end_x, end_y),
+                               (0, 255, 255),  # 黄色
+                               1)
+
+            # 绘制面部网格
+            if face_results.multi_face_landmarks:
+                for face_landmarks in face_results.multi_face_landmarks:
+                    h, w, c = frame.shape
+                    
+                    # 绘制所有面部关键点，使用更柔和的颜色
+                    for i in range(468):  # MediaPipe Face Mesh 有468个关键点
+                        landmark = face_landmarks.landmark[i]
+                        x = int(landmark.x * w)
+                        y = int(landmark.y * h)
+                        
+                        # 使用更柔和的颜色方案
+                        if i in range(0, 68):  # 轮廓点
+                            color = (200, 180, 130)  # 淡金色
+                        elif i in range(68, 136):  # 眉毛点
+                            color = (180, 120, 90)  # 深棕色
+                        elif i in range(136, 204):  # 眼睛点
+                            color = (120, 150, 230)  # 淡蓝色
+                        elif i in range(204, 272):  # 鼻子点
+                            color = (150, 200, 180)  # 青绿色
+                        else:  # 嘴唇和其他点
+                            color = (140, 160, 210)  # 淡紫色
+                        
+                        # 绘制更小的点，提高精致感
+                        cv2.circle(frame, (x, y), 1, color, -1)
+                    
+                    # 主要特征连接线使用更优雅的颜色
+                    feature_colors = {
+                        'eyebrow': (160, 140, 110),   # 眉毛：深金色
+                        'eye': (130, 160, 220),       # 眼睛：天蓝色
+                        'nose': (140, 190, 170),      # 鼻子：青色
+                        'mouth': (170, 150, 200),     # 嘴唇：淡紫色
+                        'face': (190, 170, 120)       # 轮廓：金棕色
+                    }
+                    
+                    # 绘制主要连接线
+                    for points, _ in FACE_CONNECTIONS:
+                        points_coords = []
+                        for point_idx in points:
+                            landmark = face_landmarks.landmark[point_idx]
+                            x = int(landmark.x * w)
+                            y = int(landmark.y * h)
+                            points_coords.append((x, y))
+                            
+                            # 根据点的位置选择颜色
+                            if point_idx in range(68, 136):  # 眉毛区域
+                                color = feature_colors['eyebrow']
+                            elif point_idx in range(136, 204):  # 眼睛区域
+                                color = feature_colors['eye']
+                            elif point_idx in range(204, 272):  # 鼻子区域
+                                color = feature_colors['nose']
+                            elif point_idx > 272:  # 嘴唇区域
+                                color = feature_colors['mouth']
+                            else:  # 面部轮廓
+                                color = feature_colors['face']
+                            
+                            # 绘制稍大的关键点
+                            cv2.circle(frame, (x, y), 2, color, -1)
+                        
+                        # 绘制连接线
+                        for i in range(len(points_coords)-1):
+                            cv2.line(frame, points_coords[i], points_coords[i+1], color, 1)
+                    
+                    # 移除文字标注，保持界面简洁
+
+            ret, buffer = cv2.imencode('.jpg', frame)
             if not ret:
                 continue
 
