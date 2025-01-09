@@ -1,233 +1,759 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meeting Scene Saver</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <style>
-        .video-container {
-            margin: 20px;
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
         }
 
-        .video-frame {
-            width: 640px;
-            height: 480px;
-            border: 2px solid #333;
-            border-radius: 8px;
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e3e5e7;
+            padding: 16px 0;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
 
-        .controls {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
+        h1 {
+            color: #00aeec;
+            margin: 0;
+            font-size: 26px;
+        }
+
+        main {
+            display: flex;
+            gap: 50px;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 0 50px;
+        }
+
+        .left-panel {
+            flex: 1;
+            background: black;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 800px;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .right-panel {
+            width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        #preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .controls-group {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .controls-group h3 {
+            color: #00aeec;
+            font-size: 15px;
+            margin: 0 0 16px 0;
+            font-weight: normal;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .status-active {
+            background-color: #4CAF50;
+        }
+
+        /* 按钮样式 */
+        button {
+            background: #00aeec;
             color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            height: 36px;
+            line-height: 20px;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
-        .controls button {
-            display: block;
-            margin: 5px 0;
-            padding: 5px 10px;
+        button.full-width {
             width: 100%;
         }
 
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
+        button.outline {
+            background: white;
+            color: #00aeec;
+            border: 1px solid #00aeec;
         }
 
-        .status-active { background-color: #4CAF50; }
-        .status-inactive { background-color: #f44336; }
+        button.outline:hover {
+            background: #f6fdff;
+            border-color: #33bef0;
+            color: #33bef0;
+            box-shadow: 0 2px 8px rgba(0,174,236,0.15);
+        }
 
-        .room-info {
+        button:hover {
+            background: #33bef0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,174,236,0.3);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .single-button {
+            width: auto;
+            min-width: unset;
+            display: inline-block;
+            margin-right: 16px;
+        }
+
+        .single-button-container {
+            margin-bottom: 20px;
+        }
+
+        /* 滑块样式 */
+        .slider-container {
+            margin: 16px 0;
+            background: #f5f5f5;
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            height: 3px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin: 12px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 4px;
+            height: 16px;
+            background: #00aeec;
+            border-radius: 2px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Firefox样式 */
+        input[type="range"]::-moz-range-thumb {
+            width: 4px;
+            height: 16px;
+            background: #00aeec;
+            border-radius: 2px;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* 添加刻度标记 */
+        input[type="range"] {
+            background: linear-gradient(to right, 
+                #e0e0e0 0%, #e0e0e0 25%, 
+                #00aeec 25%, #00aeec 26%,
+                #e0e0e0 26%, #e0e0e0 50%,
+                #00aeec 50%, #00aeec 51%,
+                #e0e0e0 51%, #e0e0e0 75%,
+                #00aeec 75%, #00aeec 76%,
+                #e0e0e0 76%, #e0e0e0 100%
+            );
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .value-display {
+            float: right;
+            color: #666;
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: #666;
+            vertical-align: middle;
+        }
+
+        .bandwidth-panel {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            width: 300px;
+        }
+
+        .bandwidth-info {
+            margin-bottom: 15px;
+        }
+
+        .bandwidth-info h3 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }
+
+        .bandwidth-control select,
+        .bandwidth-control input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .slider-container {
+            margin-top: 15px;
+        }
+
+        #currentBandwidth,
+        #currentFps,
+        #dataPoints {
+            font-family: monospace;
+            margin: 5px 0;
+        }
+
+        .error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .error-message button {
+            margin-top: 10px;
+            padding: 5px 15px;
+            background: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .error-message button:hover {
+            background: #eee;
+        }
+
+        #videoContainer {
+            width: 640px;
+            height: 480px;
+            margin: 0 auto;
+            position: relative;
+            background: #000;
+        }
+
+        #preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .bandwidth-monitor {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            width: 300px;
+        }
+
+        .stat-item {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .bandwidth-graph {
+            height: 150px;
+            margin-top: 15px;
+        }
+
+        .bandwidth-control {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        #testStatus {
+            margin-top: 10px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        #testStatus.warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        #testStatus.error {
+            background: #f44336;
+            color: white;
+        }
+
+        #testStatus.success {
+            background: #4caf50;
             color: white;
         }
     </style>
 </head>
 <body>
-    <div class="room-info">
-        <input type="text" id="roomId" placeholder="输入房间ID">
-        <button onclick="createRoom()">创建房间</button>
-        <div id="currentRoom"></div>
-    </div>
+    <header>
+        <h1>Meeting Scene Saver</h1>
+    </header>
 
-    <div class="video-container">
-        <img id="video-preview" class="video-frame" src="{{ url_for('video_feed') }}?stream=original" alt="Camera Feed">
-    </div>
-
-    <div class="controls">
-        <div class="status-container">
-            <span class="status-indicator status-inactive"></span>
-            <span>已停止</span>
+    <main>
+        <div class="left-panel">
+            <div id="videoContainer">
+                <img id="preview" src="" style="display: none;">
+            </div>
         </div>
-        <button onclick="startCapture()">启动摄像头</button>
-        <button onclick="stopCapture()">停止摄像头</button>
-        <button onclick="captureInitialFrame()">捕获初始帧</button>
+
+        <div class="right-panel">
+            <div class="controls-group">
+                <h3>摄像头状态</h3>
+                <div style="margin-bottom: 10px;">
+                    <span class="status-indicator status-active"></span>
+                    <span>运行中</span>
+                </div>
+                <div class="controls">
+                    <button onclick="startCapture()" id="startBtn">启动摄像头</button>
+                    <button onclick="stopCapture()" id="stopBtn">停止摄像头</button>
+                </div>
+            </div>
+
+            <div class="controls-group">
+                <h3>显示设置</h3>
+                <div class="button-group">
+                    <button>切换预览</button>
+                    <button>切换骨骼显示</button>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>骨骼线条粗细</span>
+                        <span>2</span>
+                    </div>
+                    <input type="range" id="lineWidthSlider" min="1" max="10" value="2">
+                </div>
+            </div>
+
+            <div class="controls-group">
+                <h3>模型设置</h3>
+                <button class="outline" style="margin-bottom: 12px;">上传模型</button>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>模型大小</span>
+                        <span>1.0</span>
+                    </div>
+                    <input type="range" id="modelSizeSlider" min="0.1" max="2" value="1.0" step="0.1">
+                </div>
+            </div>
+
+            <div class="controls-group">
+                <h3>背景设置</h3>
+                <button class="outline" style="margin-bottom: 12px;">上传背景</button>
+                <button>移除背景</button>
+            </div>
+
+            <div class="bandwidth-panel">
+                <div class="bandwidth-info">
+                    <h3>带宽监控</h3>
+                    <div id="currentBandwidth">当前带宽: -- Kbps</div>
+                    <div id="currentFps">当前帧率: -- fps</div>
+                    <div id="dataPoints">关键点数量: -- 个</div>
+                </div>
+                
+                <div class="bandwidth-control">
+                    <label for="bandwidthLimit">带宽限制:</label>
+                    <select id="bandwidthLimit">
+                        <option value="2000">卫星语音模式 (2Kbps)</option>
+                        <option value="4000">卫星通话模式 (4Kbps)</option>
+                        <option value="5000000">卫星数据模式 (5Mbps)</option>
+                        <option value="0">无限制</option>
+                    </select>
+                    
+                    <div class="slider-container">
+                        <label for="customBandwidth">自定义带宽限制 (Kbps):</label>
+                        <input type="range" id="customBandwidth" 
+                               min="1000" max="5000000" step="1000" value="4000">
+                        <span id="customBandwidthValue">4000 Kbps</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bandwidth-monitor">
+                <h3>带宽监控</h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <label>当前带宽:</label>
+                        <span id="currentBandwidth">0 Kbps</span>
+                    </div>
+                    <div class="stat-item">
+                        <label>平均带宽:</label>
+                        <span id="averageBandwidth">0 Kbps</span>
+                    </div>
+                    <div class="stat-item">
+                        <label>帧率:</label>
+                        <span id="currentFps">0 fps</span>
+                    </div>
+                    <div class="bandwidth-graph">
+                        <canvas id="bandwidthChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bandwidth-control">
+                    <h4>带宽测试</h4>
+                    <select id="bandwidthTest">
+                        <option value="200">超低带宽 (0.2Kbps)</option>
+                        <option value="500">低带宽 (0.5Kbps)</option>
+                        <option value="1000">标准带宽 (1Kbps)</option>
+                        <option value="2000">高带宽 (2Kbps)</option>
+                    </select>
+                    <button onclick="startBandwidthTest()">开始测试</button>
+                    <div id="testStatus"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="cameraError" class="error-message" style="display: none;">
+        <div class="error-content">
+            <h3>摄像头错误</h3>
+            <p id="errorText"></p>
+            <button onclick="retryCamera()">重试</button>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let socket = io();
-        
-        // 连接状态处理
-        socket.on('connect', () => {
-            console.log('WebSocket 已连接');
-            const roomId = document.getElementById('roomId').value;
-            if (roomId) {
-                socket.emit('join_room', { room: roomId, role: 'sender' });
-            }
-        });
+        let isVideoStarted = false;
 
-        socket.on('disconnect', () => {
-            console.log('WebSocket 已断开');
-            updateCameraStatus(false);
-        });
-
-        // 摄像头控制
-        async function startCapture() {
+        async function startCamera() {
+            if (isVideoStarted) return;
+            
             try {
-                const response = await fetch('/start_capture', { 
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                const data = await response.json();
-                if (response.ok) {
-                    updateCameraStatus(true);
-                    refreshVideoPreview();
-                }
-            } catch (error) {
-                console.error('启动摄像头错误:', error);
-                alert('启动摄像头失败');
-            }
-        }
-
-        async function stopCapture() {
-            try {
-                const response = await fetch('/stop_capture', { 
+                const response = await fetch('/start_capture', {
                     method: 'POST'
                 });
+                
                 if (response.ok) {
-                    updateCameraStatus(false);
-                    document.getElementById('video-preview').src = '';
+                    const preview = document.getElementById('preview');
+                    preview.style.display = 'block';
+                    preview.src = '/video_feed?' + new Date().getTime();
+                    isVideoStarted = true;
                 }
             } catch (error) {
-                console.error('停止摄像头错误:', error);
+                console.error('Camera error:', error);
             }
         }
 
-        async function captureInitialFrame() {
+        async function stopCamera() {
+            if (!isVideoStarted) return;
+            
             try {
-                // 检查是否已加入房间
-                const roomId = sessionStorage.getItem('currentRoom');
-                if (!roomId) {
-                    throw new Error('请先创建或加入房间');
-                }
+                await fetch('/stop_capture', { method: 'POST' });
+                const preview = document.getElementById('preview');
+                preview.style.display = 'none';
+                preview.src = '';
+                isVideoStarted = false;
+            } catch (error) {
+                console.error('Stop camera error:', error);
+            }
+        }
 
-                console.log('正在捕获初始帧...');
-                const response = await fetch('/capture_initial_frame', {
+        // 自动重连机制
+        function checkVideoStream() {
+            const preview = document.getElementById('preview');
+            if (isVideoStarted && (!preview.src || preview.naturalWidth === 0)) {
+                startCamera();
+            }
+        }
+
+        // 定期检查视频流
+        setInterval(checkVideoStream, 5000);
+
+        // 页面加载时启动摄像头
+        document.addEventListener('DOMContentLoaded', startCamera);
+
+        // 页面关闭时停止摄像头
+        window.addEventListener('beforeunload', stopCamera);
+
+        // 更新摄像头状态显示
+        function updateCameraStatus(isRunning) {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            if (startBtn && stopBtn) {
+                startBtn.disabled = isRunning;
+                stopBtn.disabled = !isRunning;
+            }
+            
+            console.log('摄像头状态:', isRunning ? '运行中' : '已停止');
+        }
+
+        // 带宽监控和控制
+        let bandwidthHistory = [];
+        const maxHistoryPoints = 30;
+
+        function updateBandwidthDisplay(bandwidth, fps, points) {
+            // 添加数值检查
+            if (typeof bandwidth !== 'number' || isNaN(bandwidth)) {
+                console.error('无效的带宽数据:', bandwidth);
+                bandwidth = 0;
+            }
+            
+            if (typeof fps !== 'number' || isNaN(fps)) {
+                console.error('无效的帧率数据:', fps);
+                fps = 0;
+            }
+            
+            if (typeof points !== 'number' || isNaN(points)) {
+                console.error('无效的关键点数据:', points);
+                points = 0;
+            }
+
+            // 更新显示
+            document.getElementById('currentBandwidth').textContent = 
+                `当前带宽: ${(bandwidth/1000).toFixed(2)} Kbps`;
+            document.getElementById('currentFps').textContent = 
+                `当前帧率: ${fps} fps`;
+            document.getElementById('dataPoints').textContent = 
+                `关键点数量: ${points} 个`;
+            
+            // 打印调试信息
+            console.debug('带宽更新:', {bandwidth, fps, points});
+            
+            // 更新历史数据
+            bandwidthHistory.push(bandwidth);
+            if (bandwidthHistory.length > maxHistoryPoints) {
+                bandwidthHistory.shift();
+            }
+        }
+
+        // 定期获取带宽信息
+        async function updateBandwidthInfo() {
+            try {
+                const response = await fetch('/bandwidth_status');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    updateBandwidthDisplay(
+                        data.current_bandwidth,
+                        data.current_fps,
+                        data.points_count
+                    );
+                } else {
+                    console.error('带宽状态获取失败:', data.error);
+                }
+            } catch (error) {
+                console.error('获取带宽信息失败:', error);
+            }
+        }
+
+        // 每秒更新一次带宽信息
+        setInterval(updateBandwidthInfo, 1000);
+
+        // 立即执行一次更新
+        updateBandwidthInfo();
+
+        // 带宽限制控制
+        document.getElementById('bandwidthLimit').addEventListener('change', function(e) {
+            const limit = parseInt(e.target.value);
+            setBandwidthLimit(limit);
+        });
+
+        document.getElementById('customBandwidth').addEventListener('input', function(e) {
+            const value = parseInt(e.target.value);
+            document.getElementById('customBandwidthValue').textContent = 
+                `${(value/1000).toFixed(0)} Kbps`;
+            setBandwidthLimit(value);
+        });
+
+        function setBandwidthLimit(limit) {
+            fetch('/set_bandwidth_limit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ limit: limit })
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('cameraError');
+            const errorText = document.getElementById('errorText');
+            // 只在视频未显示时显示错误
+            const preview = document.getElementById('preview');
+            if (!preview || !preview.currentTime) {
+                errorDiv.style.display = 'block';
+                errorText.textContent = message;
+            }
+        }
+
+        function hideError() {
+            const errorDiv = document.getElementById('cameraError');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+        }
+
+        async function retryCamera() {
+            hideError();
+            await startCamera();
+        }
+
+        let bandwidthChart;
+        let bandwidthData = [];
+        const maxDataPoints = 30;
+
+        // 初始化图表
+        function initBandwidthChart() {
+            const ctx = document.getElementById('bandwidthChart').getContext('2d');
+            bandwidthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(maxDataPoints).fill(''),
+                    datasets: [{
+                        label: '带宽使用',
+                        data: Array(maxDataPoints).fill(0),
+                        borderColor: '#4CAF50',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 5
+                        }
+                    },
+                    animation: false
+                }
+            });
+        }
+
+        // 更新带宽数据
+        async function updateBandwidth() {
+            try {
+                const response = await fetch('/bandwidth_stats');
+                const data = await response.json();
+                
+                document.getElementById('currentBandwidth').textContent = 
+                    `${data.current.toFixed(2)} Kbps`;
+                document.getElementById('averageBandwidth').textContent = 
+                    `${data.average.toFixed(2)} Kbps`;
+                document.getElementById('currentFps').textContent = 
+                    `${data.fps.toFixed(1)} fps`;
+                    
+                // 更新图表
+                bandwidthData.push(data.current);
+                if (bandwidthData.length > maxDataPoints) {
+                    bandwidthData.shift();
+                }
+                
+                bandwidthChart.data.datasets[0].data = bandwidthData;
+                bandwidthChart.update();
+                
+            } catch (error) {
+                console.error('带宽数据更新失败:', error);
+            }
+        }
+
+        // 带宽测试
+        async function startBandwidthTest() {
+            const limit = document.getElementById('bandwidthTest').value;
+            const statusDiv = document.getElementById('testStatus');
+            
+            try {
+                statusDiv.className = '';
+                statusDiv.textContent = '测试中...';
+                
+                const response = await fetch('/start_bandwidth_test', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ room_id: roomId })
+                    body: JSON.stringify({ limit: parseInt(limit) })
                 });
                 
-                const data = await response.json();
-                if (data.status === 'success') {
-                    console.log('初始帧捕获成功');
-                    alert('初始帧已捕获');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    statusDiv.className = 'success';
+                    statusDiv.textContent = '测试成功: ' + result.message;
                 } else {
-                    throw new Error(data.message || '捕获初始帧失败');
+                    statusDiv.className = 'warning';
+                    statusDiv.textContent = '测试警告: ' + result.message;
                 }
-            } catch (error) {
-                console.error('捕获初始帧错误:', error);
-                alert('捕获初始帧失败: ' + error.message);
-            }
-        }
-
-        // 房间管理
-        async function createRoom() {
-            try {
-                const roomId = document.getElementById('roomId').value || generateRoomId();
-                document.getElementById('roomId').value = roomId;
-                
-                // 等待加入房间
-                await new Promise((resolve, reject) => {
-                    socket.emit('join_room', { room: roomId, role: 'sender' });
-                    socket.once('room_joined', (data) => {
-                        document.getElementById('currentRoom').textContent = 
-                            `当前房间: ${data.room}`;
-                        resolve();
-                    });
-                    socket.once('error', (error) => {
-                        reject(new Error(error.message));
-                    });
-                    // 设置超时
-                    setTimeout(() => reject(new Error('加入房间超时')), 5000);
-                });
-                
-                console.log('成功加入房间:', roomId);
-                // 存储房间ID到会话存储
-                sessionStorage.setItem('currentRoom', roomId);
                 
             } catch (error) {
-                console.error('创建/加入房间失败:', error);
-                alert('创建房间失败: ' + error.message);
+                statusDiv.className = 'error';
+                statusDiv.textContent = '测试失败: ' + error.message;
             }
-        }
-
-        function generateRoomId() {
-            return Math.random().toString(36).substr(2, 6);
-        }
-
-        socket.on('room_joined', (data) => {
-            document.getElementById('currentRoom').textContent = 
-                `当前房间: ${data.room}`;
-        });
-
-        socket.on('error', (data) => {
-            alert(data.message);
-        });
-
-        // 辅助函数
-        function updateCameraStatus(isRunning) {
-            const statusIndicator = document.querySelector('.status-indicator');
-            const statusText = statusIndicator.nextElementSibling;
-            
-            if (isRunning) {
-                statusIndicator.classList.remove('status-inactive');
-                statusIndicator.classList.add('status-active');
-                statusText.textContent = '运行中';
-            } else {
-                statusIndicator.classList.remove('status-active');
-                statusIndicator.classList.add('status-inactive');
-                statusText.textContent = '已停止';
-            }
-        }
-
-        function refreshVideoPreview() {
-            const preview = document.getElementById('video-preview');
-            preview.src = `${preview.src}&t=${Date.now()}`;
         }
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            const roomId = sessionStorage.getItem('currentRoom');
-            if (roomId) {
-                document.getElementById('roomId').value = roomId;
-                socket.emit('join_room', { room: roomId, role: 'sender' });
-            }
-            updateCameraStatus(false);
+            initBandwidthChart();
+            // 每秒更新带宽数据
+            setInterval(updateBandwidth, 1000);
         });
     </script>
 </body>
