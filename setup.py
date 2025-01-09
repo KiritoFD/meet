@@ -39,12 +39,12 @@ setup(
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
-        "flask>=3.0.2",
-        "flask-cors>=4.0.0",
-        "opencv-python>=4.9.0",
-        "numpy>=1.26.4",
-        "pyyaml>=6.0.1",
-        "cmake>=3.28.3",
+        "flask>=2.0.0",
+        "flask-cors>=3.0.0",
+        "opencv-python>=4.5.0",
+        "numpy>=1.19.0",
+        "pyyaml>=5.4.0",
+        "cmake>=3.26.0",  # 添加 CMake 依赖
     ],
     author="Your Name",
     author_email="your.email@example.com",

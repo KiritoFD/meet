@@ -1,30 +1,32 @@
-# 使用通用基础镜像
-FROM ubuntu:latest
+FROM python:3.7-slim
 
-# 设置工作目录
+# TODO: 多阶段构建
+# TODO: 添加健康检查
+# TODO: 优化镜像大小
+# TODO: 添加非root用户
+# TODO: 添加缓存清理
+
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# 复制打包好的环境
-COPY ./pytorch-12.4.tar.gz /tmp/env.tar.gz
-
-# 解压环境并设置
-RUN mkdir /opt/conda && \
-    tar -xzf /tmp/env.tar.gz -C /opt/conda && \
-    rm /tmp/env.tar.gz
-
-# 初始化环境
-SHELL ["/bin/bash", "-c"]
-RUN source /opt/conda/bin/activate
+# 复制依赖文件
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制项目文件
-COPY . /app/
+COPY . .
+
+# 创建必要的目录
+RUN mkdir -p static/img/uploads logs
 
 # 设置环境变量
-ENV PATH /opt/conda/bin:$PATH
-ENV FLASK_APP=run.py
-ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
-ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=run.py
 
 # 暴露端口
 EXPOSE 5000

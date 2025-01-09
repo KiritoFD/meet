@@ -1,23 +1,14 @@
-version: '3.8'
-
+version: '3'
 services:
   web:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "5000:5000"
     volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
+      - .:/app
+      - /app/venv
+      - /app/__pycache__
     environment:
-      - FLASK_APP=run.py
-      - FLASK_ENV=production
+      - FLASK_ENV=development
       - PYTHONPATH=/app
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
