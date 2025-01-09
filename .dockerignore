@@ -1,11 +1,55 @@
-__pycache__
-*.pyc
-*.pyo
-*.pyd
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
 .Python
 env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
 venv/
+ENV/
 .env
+.venv
+.conda/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 日志和缓存
 *.log
-.git
-.gitignore 
+.cache/
+.pytest_cache/
+
+# 数据和模型文件
+data/
+models/
+*.pth
+*.onnx
+*.pt
+
+# 其他
+.DS_Store
+Thumbs.db 
