@@ -1,0 +1,24 @@
+name: pytorch-12.4
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12.8
+  - pytorch=2.5.1
+  - pytorch-cuda=12.4
+  - cudatoolkit=12.4
+  - numpy=1.26.4
+  - pip
+  - pip:
+    - flask==3.1.0
+    - flask-socketio==5.5.1
+    - python-socketio==5.12.1
+    - mediapipe==0.10.20
+    - opencv-python==4.10.0.84
+    - python-dotenv==1.0.1
+    - werkzeug==3.1.3
+    - eventlet
+    - bidict==0.23.1
+    - protobuf==4.25.5 

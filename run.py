@@ -10,6 +10,12 @@ import zlib
 import base64
 import uuid
 import sys
+# 依赖版本要求：
+# Flask==3.0.2
+# flask-socketio==5.3.6
+# mediapipe==0.10.9
+# opencv-python-headless==4.9.0.80
+# numpy==1.26.4
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,

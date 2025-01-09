@@ -24,6 +24,14 @@ output_frame = None
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# 依赖版本要求：
+# Flask==3.0.2
+# flask-socketio==5.3.6
+# python-socketio==5.12.0
+# eventlet==0.35.3
+# opencv-python-headless==4.9.0.80
+# numpy==1.26.4
+
 class PoseTransformManager:
     def __init__(self, max_cache_size=30):
         self.last_matrix = None
