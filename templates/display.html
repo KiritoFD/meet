@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meeting Scene Saver</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        .video-container {
+            margin: 20px;
+        }
+
+        .video-frame {
+            width: 640px;
+            height: 480px;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+
+        .controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .controls button {
+            display: block;
+            margin: 5px 0;
+            padding: 5px 10px;
+            width: 100%;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-active { background-color: #4CAF50; }
+        .status-inactive { background-color: #f44336; }
+
+        .room-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="room-info">
+        <input type="text" id="roomId" placeholder="输入房间ID">
+        <button onclick="createRoom()">创建房间</button>
+        <div id="currentRoom"></div>
+    </div>
+
+    <div class="video-container">
+        <img id="video-preview" class="video-frame" src="{{ url_for('video_feed') }}?stream=original" alt="Camera Feed">
+    </div>
+
+    <div class="controls">
+        <div class="status-container">
+            <span class="status-indicator status-inactive"></span>
+            <span>已停止</span>
+        </div>
+        <button onclick="startCapture()">启动摄像头</button>
+        <button onclick="stopCapture()">停止摄像头</button>
+        <button onclick="captureInitialFrame()">捕获初始帧</button>
+    </div>
+
+    <script>
+        let socket = io();
+        
+        // 连接状态处理
+        socket.on('connect', () => {
+            console.log('WebSocket 已连接');
+            const roomId = document.getElementById('roomId').value;
+            if (roomId) {
+                socket.emit('join_room', { room: roomId, role: 'sender' });
+            }
+        });
+
+        socket.on('disconnect', () => {
+            console.log('WebSocket 已断开');
+            updateCameraStatus(false);
+        });
+
+        // 摄像头控制
+        async function startCapture() {
+            try {
+                const response = await fetch('/start_capture', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    updateCameraStatus(true);
+                    refreshVideoPreview();
+                }
+            } catch (error) {
+                console.error('启动摄像头错误:', error);
+                alert('启动摄像头失败');
+            }
+        }
+
+        async function stopCapture() {
+            try {
+                const response = await fetch('/stop_capture', { 
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    updateCameraStatus(false);
+                    document.getElementById('video-preview').src = '';
+                }
+            } catch (error) {
+                console.error('停止摄像头错误:', error);
+            }
+        }
+
+        async function captureInitialFrame() {
+            try {
+                // 检查是否已加入房间
+                const roomId = sessionStorage.getItem('currentRoom');
+                if (!roomId) {
+                    throw new Error('请先创建或加入房间');
+                }
+
+                console.log('正在捕获初始帧...');
+                const response = await fetch('/capture_initial_frame', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ room_id: roomId })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    console.log('初始帧捕获成功');
+                    alert('初始帧已捕获');
+                } else {
+                    throw new Error(data.message || '捕获初始帧失败');
+                }
+            } catch (error) {
+                console.error('捕获初始帧错误:', error);
+                alert('捕获初始帧失败: ' + error.message);
+            }
+        }
+
+        // 房间管理
+        async function createRoom() {
+            try {
+                const roomId = document.getElementById('roomId').value || generateRoomId();
+                document.getElementById('roomId').value = roomId;
+                
+                // 等待加入房间
+                await new Promise((resolve, reject) => {
+                    socket.emit('join_room', { room: roomId, role: 'sender' });
+                    socket.once('room_joined', (data) => {
+                        document.getElementById('currentRoom').textContent = 
+                            `当前房间: ${data.room}`;
+                        resolve();
+                    });
+                    socket.once('error', (error) => {
+                        reject(new Error(error.message));
+                    });
+                    // 设置超时
+                    setTimeout(() => reject(new Error('加入房间超时')), 5000);
+                });
+                
+                console.log('成功加入房间:', roomId);
+                // 存储房间ID到会话存储
+                sessionStorage.setItem('currentRoom', roomId);
+                
+            } catch (error) {
+                console.error('创建/加入房间失败:', error);
+                alert('创建房间失败: ' + error.message);
+            }
+        }
+
+        function generateRoomId() {
+            return Math.random().toString(36).substr(2, 6);
+        }
+
+        socket.on('room_joined', (data) => {
+            document.getElementById('currentRoom').textContent = 
+                `当前房间: ${data.room}`;
+        });
+
+        socket.on('error', (data) => {
+            alert(data.message);
+        });
+
+        // 辅助函数
+        function updateCameraStatus(isRunning) {
+            const statusIndicator = document.querySelector('.status-indicator');
+            const statusText = statusIndicator.nextElementSibling;
+            
+            if (isRunning) {
+                statusIndicator.classList.remove('status-inactive');
+                statusIndicator.classList.add('status-active');
+                statusText.textContent = '运行中';
+            } else {
+                statusIndicator.classList.remove('status-active');
+                statusIndicator.classList.add('status-inactive');
+                statusText.textContent = '已停止';
+            }
+        }
+
+        function refreshVideoPreview() {
+            const preview = document.getElementById('video-preview');
+            preview.src = `${preview.src}&t=${Date.now()}`;
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            const roomId = sessionStorage.getItem('currentRoom');
+            if (roomId) {
+                document.getElementById('roomId').value = roomId;
+                socket.emit('join_room', { room: roomId, role: 'sender' });
+            }
+            updateCameraStatus(false);
+        });
+    </script>
+</body>
+</html>

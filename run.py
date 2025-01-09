@@ -1,451 +1,428 @@
-from flask import Flask, Response, jsonify, request, send_from_directory, render_template
+from flask import Flask, Response, render_template, jsonify, request, session
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import cv2
-import numpy as np
 import mediapipe as mp
-import os
-from werkzeug.utils import secure_filename
-import time
+import numpy as np
 import logging
-from collections import deque
+import time
 import json
+import zlib
+import base64
+import uuid
+import sys
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
-# 获取项目根目录的绝对路径
-project_root = os.path.dirname(os.path.abspath(__file__))
-template_dir = os.path.join(project_root, 'templates')
-static_dir = os.path.join(project_root, 'static')
-
+# 应用配置
 app = Flask(__name__, 
-           template_folder=template_dir,
-           static_folder=static_dir)
-
-# 配置上传文件的存储路径
-UPLOAD_FOLDER = 'uploads'
-MODEL_FOLDER = os.path.join('static', 'models')
-BACKGROUND_FOLDER = os.path.join('static', 'backgrounds')
-ALLOWED_EXTENSIONS = {'gltf', 'glb', 'png', 'jpg', 'jpeg'}
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max-limit
-
-# 确保必要的目录存在
-for folder in [UPLOAD_FOLDER, MODEL_FOLDER, BACKGROUND_FOLDER]:
-    os.makedirs(folder, exist_ok=True)
-
-# MediaPipe 初始化
-mp_pose = mp.solutions.pose
-mp_hands = mp.solutions.hands
-mp_face_mesh = mp.solutions.face_mesh
-mp_draw = mp.solutions.drawing_utils
-mp_draw_styles = mp.solutions.drawing_styles
-
-# 定义面部点的颜色映射（使用浅色系）
-FACE_COLORS = {
-    'contour': [(255, 200, 200), (255, 220, 180), (255, 240, 160)],     # 浅蓝粉渐变
-    'eyebrows': [(255, 180, 220), (255, 200, 200), (255, 220, 180)],    # 浅紫粉渐变
-    'eyes': [(255, 220, 180), (255, 240, 160), (255, 255, 140)],        # 浅金蓝渐变
-    'nose': [(255, 200, 180), (255, 220, 160), (255, 240, 140)],        # 浅橙蓝渐变
-    'lips': [(255, 180, 200), (255, 200, 180), (255, 220, 160)],        # 浅红蓝渐变
-    'general': [(255, 220, 200), (255, 240, 180), (255, 255, 160)]      # 浅青蓝渐变
-}
-
-# 定义手部连线样式
-HAND_LANDMARKS_STYLE = mp_draw.DrawingSpec(
-    color=(255, 220, 180),  # 浅蓝色点 (BGR)
-    thickness=1,
-    circle_radius=1
+    static_folder='static',
+    static_url_path='/static'
 )
-HAND_CONNECTIONS_STYLE = mp_draw.DrawingSpec(
-    color=(255, 200, 160),  # 浅蓝线 (BGR)
-    thickness=1
-)
-
-# 定义姿态连线样式
-POSE_LANDMARKS_STYLE = mp_draw.DrawingSpec(
-    color=(255, 240, 200),  # 浅天蓝点 (BGR)
-    thickness=1,
-    circle_radius=1
-)
-POSE_CONNECTIONS_STYLE = mp_draw.DrawingSpec(
-    color=(255, 220, 180),  # 浅蓝线 (BGR)
-    thickness=1
-)
-
-# 定义面部网格样式
-FACE_MESH_STYLE = mp_draw.DrawingSpec(
-    color=(255, 255, 255),  # 白色 (BGR)
-    thickness=1,
-    circle_radius=1
-)
-FACE_MESH_CONNECTIONS_STYLE = mp_draw.DrawingSpec(
-    color=(255, 255, 255),  # 白色 (BGR)
-    thickness=1
-)
-
-# 面部区域定义
-FACE_REGIONS = {
-    'contour': list(range(0, 17)),          # 脸部轮廓
-    'right_eyebrow': list(range(17, 22)),   # 右眉毛
-    'left_eyebrow': list(range(22, 27)),    # 左眉毛
-    'nose': list(range(27, 36)),            # 鼻子
-    'right_eye': list(range(36, 42)),       # 右眼
-    'left_eye': list(range(42, 48)),        # 左眼
-    'outer_lips': list(range(48, 60)),      # 外嘴唇
-    'inner_lips': list(range(60, 68))       # 内嘴唇
-}
-
-pose = mp_pose.Pose(
-    static_image_mode=False,
-    model_complexity=2,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-)
-
-hands = mp_hands.Hands(
-    static_image_mode=False,
-    max_num_hands=2,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-)
-
-face_mesh = mp_face_mesh.FaceMesh(
-    static_image_mode=False,
-    max_num_faces=1,
-    refine_landmarks=True,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-)
+app.config['SECRET_KEY'] = 'your_secret_key_here'
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # 全局变量
 camera = None
-current_frame = None
-current_pose = None
-current_hands = None
-current_face = None
+initial_frame = None
+last_pose_update = 0
+current_room = None
 
-# 定义关键点连接
-POSE_CONNECTIONS = [
-    (mp_pose.PoseLandmark.NOSE, mp_pose.PoseLandmark.LEFT_EYE_INNER),
-    (mp_pose.PoseLandmark.LEFT_EYE_INNER, mp_pose.PoseLandmark.LEFT_EYE),
-    (mp_pose.PoseLandmark.LEFT_EYE, mp_pose.PoseLandmark.LEFT_EYE_OUTER),
-    (mp_pose.PoseLandmark.RIGHT_EYE_INNER, mp_pose.PoseLandmark.RIGHT_EYE),
-    (mp_pose.PoseLandmark.RIGHT_EYE, mp_pose.PoseLandmark.RIGHT_EYE_OUTER),
-    (mp_pose.PoseLandmark.LEFT_SHOULDER, mp_pose.PoseLandmark.RIGHT_SHOULDER),
-    (mp_pose.PoseLandmark.LEFT_SHOULDER, mp_pose.PoseLandmark.LEFT_ELBOW),
-    (mp_pose.PoseLandmark.RIGHT_SHOULDER, mp_pose.PoseLandmark.RIGHT_ELBOW),
-    (mp_pose.PoseLandmark.LEFT_ELBOW, mp_pose.PoseLandmark.LEFT_WRIST),
-    (mp_pose.PoseLandmark.RIGHT_ELBOW, mp_pose.PoseLandmark.RIGHT_WRIST),
-    (mp_pose.PoseLandmark.LEFT_SHOULDER, mp_pose.PoseLandmark.LEFT_HIP),
-    (mp_pose.PoseLandmark.RIGHT_SHOULDER, mp_pose.PoseLandmark.RIGHT_HIP),
-    (mp_pose.PoseLandmark.LEFT_HIP, mp_pose.PoseLandmark.RIGHT_HIP),
-    (mp_pose.PoseLandmark.LEFT_HIP, mp_pose.PoseLandmark.LEFT_KNEE),
-    (mp_pose.PoseLandmark.RIGHT_HIP, mp_pose.PoseLandmark.RIGHT_KNEE),
-    (mp_pose.PoseLandmark.LEFT_KNEE, mp_pose.PoseLandmark.LEFT_ANKLE),
-    (mp_pose.PoseLandmark.RIGHT_KNEE, mp_pose.PoseLandmark.RIGHT_ANKLE),
-]
+# 配置
+CAMERA_CONFIG = {
+    'index': 0,
+    'width': 640,
+    'height': 480,
+    'fps': 30
+}
 
-# 定义面部点的样式（与手部保持一致）
-FACE_LANDMARKS_STYLE = mp_draw.DrawingSpec(
-    color=(255, 220, 180),  # 浅蓝色点 (BGR)
-    thickness=1,
-    circle_radius=1
-)
+POSE_CONFIG = {
+    'update_interval': 100,  # ms
+    'smoothing_factor': 0.5
+}
 
-# 定义面部网格连线样式（与手部保持一致）
-FACE_CONNECTIONS_STYLE = mp_draw.DrawingSpec(
-    color=(255, 200, 160),  # 浅蓝线 (BGR)
-    thickness=1,
-    circle_radius=1
-)
+# 房间管理
+class Room:
+    def __init__(self, room_id):
+        self.id = room_id
+        self.sender = None
+        self.receiver = None
+        self.initial_frame = None
+        self.ready = False
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+rooms = {}
 
-def init_camera():
-    """摄像头初始化"""
+# 添加 MediaPipe 管理器
+class MediaPipeManager:
+    def __init__(self):
+        self.pose = None
+        self.initialized = False
+        
+    def get_pose(self):
+        if not self.initialized:
+            self.pose = mp.solutions.pose.Pose(
+                static_image_mode=False,
+                model_complexity=0,  # 降低模型复杂度，加快处理速度
+                enable_segmentation=False,
+                smooth_landmarks=True,
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5
+            )
+            self.initialized = True
+        return self.pose
+
+mp_manager = MediaPipeManager()
+
+# 添加视频相关函数
+def initialize_camera():
+    """优化的摄像头初始化"""
     global camera
     try:
         if camera is not None:
             camera.release()
-            
-        camera = cv2.VideoCapture(0)
+        
+        logger.info("正在初始化摄像头...")
+        camera = cv2.VideoCapture(CAMERA_CONFIG['index'])
+        
         if not camera.isOpened():
+            logger.error("无法打开摄像头")
             return False
             
-        # 设置视频参数
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        camera.set(cv2.CAP_PROP_FPS, 30)
+        # 设置摄像头参数
+        camera.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_CONFIG['width'])
+        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_CONFIG['height'])
+        camera.set(cv2.CAP_PROP_FPS, CAMERA_CONFIG['fps'])
+        camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         
-        # TODO: 添加更多视频参数配置
-        # camera.set(cv2.CAP_PROP_AUTOFOCUS, 1)  # 自动对焦
-        # camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)  # 自动曝光
-        # camera.set(cv2.CAP_PROP_BRIGHTNESS, 1)  # 亮度
+        # 读取一帧测试
+        success, frame = camera.read()
+        if not success:
+            logger.error("无法读取摄像头帧")
+            return False
             
+        logger.info(f"摄像头初始化成功: {frame.shape}")
         return True
+        
     except Exception as e:
-        logging.error(f"摄像头初始化错误: {str(e)}")
+        logger.error(f"摄像头初始化失败: {str(e)}")
         return False
+
+def process_pose_data(landmarks, image_shape):
+    """处理姿态数据"""
+    h, w = image_shape[:2]
+    pose_data = []
+    
+    try:
+        for idx in range(33):  # MediaPipe Pose 提供33个关键点
+            landmark = landmarks[idx]
+            if landmark.visibility > 0.5:
+                pose_data.append([
+                    float(landmark.x * w),  # 确保数据类型正确
+                    float(landmark.y * h),
+                    float(landmark.z * w),
+                    float(landmark.visibility)
+                ])
+        
+        if len(pose_data) >= 8:
+            logger.debug(f"处理了 {len(pose_data)} 个关键点")
+            return pose_data
+        return None
+    except Exception as e:
+        logger.error(f"处理姿态数据失败: {e}")
+        return None
+
+def generate_frames(stream_type='original'):
+    """优化的视频帧生成"""
+    global camera, initial_frame, last_pose_update
+    frame_count = 0
+    last_frame_time = time.time()
+
+    while True:
+        try:
+            if camera is None or not camera.isOpened():
+                time.sleep(0.1)
+                continue
+
+            # 读取帧
+            success, frame = camera.read()
+            if not success:
+                logger.error("读取摄像头帧失败")
+                time.sleep(0.1)
+                continue
+
+            # 控制帧率
+            current_time = time.time()
+            if current_time - last_frame_time < 1.0 / CAMERA_CONFIG['fps']:
+                continue
+                
+            last_frame_time = current_time
+            frame_count += 1
+
+            # 原始视频流
+            if stream_type == 'original':
+                try:
+                    # 调整大小以提高性能
+                    display_frame = cv2.resize(frame, (640, 480))
+                    ret, buffer = cv2.imencode('.jpg', display_frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                    if ret:
+                        frame_bytes = buffer.tobytes()
+                        yield (b'--frame\r\n'
+                               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                    else:
+                        logger.error("编码视频帧失败")
+                except Exception as e:
+                    logger.error(f"处理视频帧失败: {e}")
+
+            # 处理姿态数据
+            if current_time - last_pose_update >= POSE_CONFIG['update_interval']:
+                try:
+                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    results = mp_manager.get_pose().process(frame_rgb)
+                    
+                    if results and results.pose_landmarks:
+                        pose_data = process_pose_data(results.pose_landmarks.landmark, frame.shape)
+                        if pose_data:
+                            room_id = session.get('room')
+                            if room_id and room_id in rooms:
+                                logger.debug(f"发送姿态数据到房间: {room_id}")
+                                socketio.emit('pose_data', {'data': pose_data}, room=room_id)
+                                last_pose_update = current_time
+                except Exception as e:
+                    logger.error(f"处理姿态数据失败: {e}")
+
+        except Exception as e:
+            logger.error(f"生成帧失败: {e}")
+            time.sleep(0.1)
+
+# 基本路由
+@app.route('/')
+def index():
+    """发送端页面"""
+    return render_template('index.html')
+
+@app.route('/receiver')
+def receiver():
+    """接收端页面"""
+    room_id = request.args.get('room')
+    if not room_id or room_id not in rooms:
+        return "房间不存在", 404
+    return render_template('receiver.html', room_id=room_id)
+
+# Socket.IO 事件处理
+@socketio.on('connect')
+def handle_connect():
+    logger.info(f'客户端已连接: {request.sid}')
+
+@socketio.on('join_room')
+def handle_join_room(data):
+    try:
+        room_id = data.get('room')
+        role = data.get('role', 'receiver')
+        
+        logger.info(f"尝试加入房间: {room_id}, 角色: {role}, sid: {request.sid}")
+        
+        if not room_id:
+            logger.error("未提供房间ID")
+            emit('error', {'message': '未提供房间ID'})
+            return
+            
+        if room_id not in rooms:
+            if role == 'sender':
+                logger.info(f"创建新房间: {room_id}")
+                rooms[room_id] = Room(room_id)
+            else:
+                logger.error(f"房间不存在: {room_id}")
+                emit('error', {'message': '房间不存在'})
+                return
+                
+        room = rooms[room_id]
+        
+        # 如果是相同角色重新连接，先清除旧连接
+        if role == 'sender' and room.sender:
+            if room.sender == request.sid:
+                logger.info(f"发送端重新连接: {room_id}")
+            else:
+                logger.error(f"房间已有发送端: {room_id}")
+                emit('error', {'message': '房间已有发送端'})
+                return
+        elif role == 'receiver' and room.receiver:
+            if room.receiver == request.sid:
+                logger.info(f"接收端重新连接: {room_id}")
+            else:
+                logger.error(f"房间已有接收端: {room_id}")
+                emit('error', {'message': '房间已有接收端'})
+                return
+        
+        # 更新连接信息
+        if role == 'sender':
+            room.sender = request.sid
+            logger.info(f"发送端加入房间: {room_id}")
+        else:
+            room.receiver = request.sid
+            logger.info(f"接收端加入房间: {room_id}")
+            
+        join_room(room_id)
+        session['room'] = room_id
+        session['role'] = role
+        
+        # 如果是接收端且房间已经准备好，直接发送初始帧
+        if role == 'receiver' and room.ready and room.initial_frame:
+            logger.info(f"向新接收端发送已有初始帧")
+            emit('initial_frame', {'image': room.initial_frame})
+        
+        emit('room_joined', {'room': room_id, 'role': role})
+        logger.info(f"成功加入房间: {room_id}, 角色: {role}")
+        
+    except Exception as e:
+        logger.error(f"加入房间失败: {str(e)}")
+        emit('error', {'message': f'加入房间失败: {str(e)}'})
+
+@socketio.on('initial_frame')
+def handle_initial_frame(data):
+    room_id = session.get('room')
+    if not room_id or room_id not in rooms:
+        return
+        
+    room = rooms[room_id]
+    room.initial_frame = data['image']
+    emit('initial_frame', {'image': data['image']}, room=room_id)
+
+@socketio.on('pose_data')
+def handle_pose_data(data):
+    room_id = session.get('room')
+    if not room_id or room_id not in rooms:
+        return
+        
+    emit('pose_data', data, room=room_id)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    logger.info(f'客户端断开连接: {request.sid}')
+    room_id = session.get('room')
+    if room_id and room_id in rooms:
+        room = rooms[room_id]
+        if request.sid == room.sender:
+            logger.info(f'发送端离开房间: {room_id}')
+            room.sender = None
+        elif request.sid == room.receiver:
+            logger.info(f'接收端离开房间: {room_id}')
+            room.receiver = None
+            
+        if not room.sender and not room.receiver:
+            logger.info(f'删除空房间: {room_id}')
+            del rooms[room_id]
+            
+        leave_room(room_id)
+
+# 添加视频相关路由
+@app.route('/video_feed')
+def video_feed():
+    """视频流路由"""
+    stream_type = request.args.get('stream', 'original')
+    return Response(
+        generate_frames(stream_type),
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
 
 @app.route('/start_capture', methods=['POST'])
 def start_capture():
     """启动摄像头"""
-    global camera
-    if camera is not None and camera.isOpened():
-        return jsonify({"status": "success"}), 200
-        
-    if init_camera():
-        return jsonify({"status": "success"}), 200
-    else:
-        return jsonify({"status": "error"}), 500
+    if initialize_camera():
+        return jsonify({"status": "success", "message": "摄像头已启动"})
+    return jsonify({"status": "error", "message": "摄像头启动失败"}), 500
 
 @app.route('/stop_capture', methods=['POST'])
 def stop_capture():
     """停止摄像头"""
     global camera
-    if camera is not None:
-        camera.release()
-        camera = None
-    return jsonify({"status": "success"}), 200
-
-@app.route('/video_feed')
-def video_feed():
-    """视频流处理"""
-    def generate():
-        global camera, current_frame, current_pose, current_hands, current_face
-        while True:
-            if camera is None or not camera.isOpened():
-                if not init_camera():
-                    time.sleep(1)
-                    continue
-                    
-            success, frame = camera.read()
-            if not success:
-                continue
-                
-            # 处理帧
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-            # 姿态检测
-            pose_results = pose.process(frame_rgb)
-            if pose_results.pose_landmarks:
-                current_pose = [[lm.x, lm.y, lm.z] for lm in pose_results.pose_landmarks.landmark]
-                # 绘制姿态关键点和连线
-                mp_draw.draw_landmarks(
-                    frame,
-                    pose_results.pose_landmarks,
-                    mp_pose.POSE_CONNECTIONS,
-                    POSE_LANDMARKS_STYLE,
-                    POSE_CONNECTIONS_STYLE
-                )
-            
-            # 手部检测
-            hands_results = hands.process(frame_rgb)
-            if hands_results.multi_hand_landmarks:
-                current_hands = []
-                for hand_landmarks in hands_results.multi_hand_landmarks:
-                    current_hands.append([[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark])
-                    # 绘制手部关键点和连线
-                    mp_draw.draw_landmarks(
-                        frame,
-                        hand_landmarks,
-                        mp_hands.HAND_CONNECTIONS,
-                        HAND_LANDMARKS_STYLE,
-                        HAND_CONNECTIONS_STYLE
-                    )
-            
-            # 面部网格检测
-            face_results = face_mesh.process(frame_rgb)
-            if face_results.multi_face_landmarks:
-                current_face = [[lm.x, lm.y, lm.z] for lm in face_results.multi_face_landmarks[0].landmark]
-                for face_landmarks in face_results.multi_face_landmarks:
-                    # 绘制面部主要特征
-                    mp_draw.draw_landmarks(
-                        image=frame,
-                        landmark_list=face_landmarks,
-                        connections=mp_face_mesh.FACEMESH_TESSELATION,  # 使用网格连接
-                        landmark_drawing_spec=FACE_LANDMARKS_STYLE,  # 显示关键点
-                        connection_drawing_spec=FACE_CONNECTIONS_STYLE  # 显示连接线
-                    )
-                    # 额外绘制眼睛和嘴巴轮廓
-                    mp_draw.draw_landmarks(
-                        image=frame,
-                        landmark_list=face_landmarks,
-                        connections=mp_face_mesh.FACEMESH_IRISES,  # 眼睛轮廓
-                        landmark_drawing_spec=None,  # 不显示额外的点
-                        connection_drawing_spec=FACE_CONNECTIONS_STYLE
-                    )
-
-            current_frame = frame
-            ret, buffer = cv2.imencode('.jpg', frame)
-            if not ret:
-                continue
-                
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-                   
-    return Response(generate(),
-                   mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/pose')
-def get_pose():
-    """获取当前姿态数据"""
-    global current_pose, current_hands, current_face
-    data = {
-        "status": "success",
-        "pose": current_pose if current_pose else None,
-        "hands": current_hands if current_hands else None,
-        "face": current_face if current_face else None
-    }
-    return jsonify(data)
-
-@app.route('/')
-def index():
-    """主页"""
-    return render_template('index.html')
-
-@app.route('/api/room/<room_id>/models', methods=['GET'])
-def get_room_models(room_id):
-    """获取房间内的所有模型"""
     try:
-        model_dir = os.path.join(MODEL_FOLDER, room_id)
-        if not os.path.exists(model_dir):
-            return jsonify({
-                'status': 'success',
-                'models': []
-            })
-            
-        models = []
-        for filename in os.listdir(model_dir):
-            if filename.endswith(('.gltf', '.glb')):
-                model_path = os.path.join('/static/models', room_id, filename)
-                models.append({
-                    'name': filename,
-                    'url': model_path
-                })
-                
-        return jsonify({
-            'status': 'success',
-            'models': models
-        })
-        
+        if camera is not None:
+            camera.release()
+            camera = None
+        return jsonify({"status": "success", "message": "摄像头已停止"})
     except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/api/room/<room_id>/models', methods=['POST'])
-def upload_room_model(room_id):
-    """上传模型到房间"""
-    try:
-        if 'model' not in request.files:
-            return jsonify({
-                'status': 'error',
-                'message': '没有上传文件'
-            }), 400
-            
-        file = request.files['model']
-        if file.filename == '':
-            return jsonify({
-                'status': 'error', 
-                'message': '未选择文件'
-            }), 400
-            
-        if not file.filename.endswith(('.gltf', '.glb')):
-            return jsonify({
-                'status': 'error',
-                'message': '不支持的文件格式'
-            }), 400
-            
-        # 确保房间目录存在
-        room_dir = os.path.join(MODEL_FOLDER, room_id)
-        os.makedirs(room_dir, exist_ok=True)
-        
-        # 保存文件
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(room_dir, filename)
-        file.save(file_path)
-        
-        # 广播新模型通知
-        # TODO: 实现WebSocket广播
-        
-        return jsonify({
-            'status': 'success',
-            'message': '模型上传成功',
-            'model': {
-                'name': filename,
-                'url': os.path.join('/static/models', room_id, filename)
-            }
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-
-@app.route('/api/calibration', methods=['POST'])
-def handle_calibration():
-    """处理校准请求"""
+@app.route('/capture_initial_frame', methods=['POST'])
+def capture_initial_frame():
+    """捕获初始帧"""
+    global camera, initial_frame
     try:
         data = request.get_json()
-        pose_type = data.get('pose_type')
+        room_id = data.get('room_id')
         
-        if not pose_type:
-            return jsonify({
-                'status': 'error',
-                'message': '缺少姿势类型'
-            }), 400
+        if not room_id:
+            logger.error("请求中未包含房间ID")
+            return jsonify({"status": "error", "message": "请求中未包含房间ID"}), 400
             
-        # 获取当前帧的姿态数据
-        pose_data = get_current_pose_data()  # 需要实现这个函数
-        
-        # 添加校准数据
-        model_manager.add_calibration_pose(session['user_id'], pose_type, pose_data)
-        
-        return jsonify({
-            'status': 'success',
-            'message': f'已捕获 {pose_type} 姿势'
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+        if room_id not in rooms:
+            logger.error(f"房间不存在: {room_id}")
+            return jsonify({"status": "error", "message": "房间不存在"}), 404
 
-@app.route('/api/recording/start', methods=['POST'])
-def start_recording():
-    """开始录制"""
+        room = rooms[room_id]
+        if not room.sender:
+            logger.error(f"房间 {room_id} 没有发送端")
+            return jsonify({"status": "error", "message": "房间没有发送端"}), 400
+
+        if camera is None or not camera.isOpened():
+            logger.error("摄像头未启动")
+            return jsonify({"status": "error", "message": "摄像头未启动"}), 400
+            
+        success, frame = camera.read()
+        if not success:
+            logger.error("无法读取帧")
+            return jsonify({"status": "error", "message": "无法读取帧"}), 500
+            
+        initial_frame = frame.copy()
+        ret, buffer = cv2.imencode('.jpg', frame)
+        if ret:
+            img_data = base64.b64encode(buffer.tobytes()).decode()
+            logger.info(f"发送初始帧到房间: {room_id}, 大小: {len(img_data)} bytes")
+            
+            # 保存到房间数据中并标记为就绪
+            room.initial_frame = img_data
+            room.ready = True
+            logger.info("初始帧已保存到房间数据")
+            
+            # 发送给所有接收端
+            socketio.emit('initial_frame', {'image': img_data}, room=room_id)
+            
+        return jsonify({"status": "success", "message": "初始帧已捕获"})
+    except Exception as e:
+        logger.error(f"捕获初始帧失败: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@socketio.on('get_initial_frame')
+def handle_get_initial_frame(data):
+    """处理获取初始帧请求"""
+    room_id = data.get('room')
+    if not room_id or room_id not in rooms:
+        logger.error(f"获取初始帧失败: 房间 {room_id} 不存在")
+        emit('error', {'message': '房间不存在'})
+        return
+        
+    room = rooms[room_id]
+    if room.ready and room.initial_frame:
+        logger.info(f"发送初始帧到房间: {room_id}")
+        emit('initial_frame', {'image': room.initial_frame})
+    else:
+        logger.info(f"房间 {room_id} 等待初始帧")
+        emit('waiting_initial_frame')
+
+if __name__ == "__main__":
     try:
-        model_manager.start_recording(session['user_id'])
-        return jsonify({
-            'status': 'success',
-            'message': '开始录制'
-        })
-        
+        logger.info("正在启动服务器...")
+        socketio.run(
+            app,
+            debug=False,
+            host='0.0.0.0',
+            port=5000,
+            allow_unsafe_werkzeug=True
+        )
     except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-
-@app.route('/api/recording/stop', methods=['POST'])
-def stop_recording():
-    """停止录制"""
-    try:
-        recording_data = model_manager.stop_recording(session['user_id'])
-        return jsonify({
-            'status': 'success',
-            'message': '录制完成',
-            'data': recording_data
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+        logger.error(f"服务器启动失败: {str(e)}")
+        sys.exit(1)

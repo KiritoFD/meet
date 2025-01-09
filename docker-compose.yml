@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    devices:
+      - "/dev/video0:/dev/video0"
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=production
+    restart: unless-stopped

@@ -4,238 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meeting Scene Saver</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            min-height: 100vh;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 24px;
-            border-bottom: 1px solid #e3e5e7;
-            padding: 16px 0;
-            background: #fff;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-        }
-
-        h1 {
-            color: #00aeec;
-            margin: 0;
-            font-size: 26px;
-        }
-
-        main {
-            display: flex;
-            gap: 50px;
-            max-width: 1500px;
-            margin: 0 auto;
-            padding: 0 50px;
-        }
-
-        .left-panel {
-            flex: 1;
-            background: black;
-            border-radius: 12px;
-            overflow: hidden;
-            height: 800px;
-            position: relative;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .right-panel {
-            width: 380px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        #preview {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .controls-group {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .controls-group h3 {
-            color: #00aeec;
-            font-size: 15px;
-            margin: 0 0 16px 0;
-            font-weight: normal;
-        }
-
-        /* 状态指示器 */
-        .status-indicator {
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            margin-right: 5px;
-            vertical-align: middle;
-        }
-
-        .status-active {
-            background-color: #4CAF50;
-        }
-
-        /* 按钮样式 */
-        button {
-            background: #00aeec;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 20px;
-            cursor: pointer;
-            font-size: 14px;
-            height: 36px;
-            line-height: 20px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        button.full-width {
-            width: 100%;
-        }
-
-        button.outline {
-            background: white;
-            color: #00aeec;
-            border: 1px solid #00aeec;
-        }
-
-        button.outline:hover {
-            background: #f6fdff;
-            border-color: #33bef0;
-            color: #33bef0;
-            box-shadow: 0 2px 8px rgba(0,174,236,0.15);
-        }
-
-        button:hover {
-            background: #33bef0;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,174,236,0.3);
-        }
-
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 12px 0;
-        }
-
-        .feature-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .feature-item {
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #00aeec;
-            transition: transform 0.2s ease;
-        }
-
-        .feature-item:hover {
-            transform: translateX(5px);
-        }
-
-        .feature-item h4 {
-            margin: 0 0 8px 0;
-            color: #2c3e50;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .feature-item p {
-            margin: 0;
-            color: #666;
-            font-size: 13px;
-            line-height: 1.4;
-        }
-
-        #3d-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        #preview {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            opacity: 0.5;
-        }
-
-        .status-text {
-            font-size: 13px;
-            color: #666;
-            vertical-align: middle;
-        }
-
-        .model-list {
-            margin-top: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .model-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .model-name {
-            flex: 1;
-            margin-right: 10px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .model-controls {
-            display: flex;
-            gap: 5px;
-        }
-
-        .model-controls button {
-            padding: 4px 8px;
-            font-size: 12px;
-        }
-
-        .video-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-
-        .render-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
     <header>
@@ -244,125 +13,188 @@
 
     <main>
         <div class="left-panel">
-            <div id="3d-container"></div>
             <img id="preview" src="{{ url_for('video_feed') }}" alt="Camera Preview">
         </div>
 
         <div class="right-panel">
             <div class="controls-group">
-                <h3>功能说明</h3>
-                <div class="feature-list">
-                    <div class="feature-item">
-                        <h4>📹 实时姿态捕捉</h4>
-                        <p>通过摄像头实时捕捉人体动作，支持面部、手部和身体姿态识别</p>
-                    </div>
-                    <div class="feature-item">
-                        <h4>🎯 模型校准</h4>
-                        <p>通过三个标准姿势（T、A、自然站姿）完成个人模型校准</p>
-                    </div>
-                    <div class="feature-item">
-                        <h4>🎥 动作录制</h4>
-                        <p>录制个人动作序列，自动生成专属3D模型</p>
-                    </div>
-                    <div class="feature-item">
-                        <h4>🔄 实时同步</h4>
-                        <p>支持多端实时同步显示，适合远程会议场景</p>
-                    </div>
+                <h3>房间信息</h3>
+                <div class="room-controls">
+                    <input type="text" id="roomId" placeholder="输入房间ID">
+                    <button onclick="createRoom()" class="outline">创建房间</button>
+                    <div id="currentRoom"></div>
                 </div>
             </div>
 
             <div class="controls-group">
                 <h3>摄像头状态</h3>
                 <div style="margin-bottom: 10px;">
-                    <span id="cameraStatus" class="status-indicator"></span>
-                    <span id="cameraStatusText" class="status-text">未启动</span>
+                    <span class="status-indicator"></span>
+                    <span class="status-text">已停止</span>
                 </div>
-                <div class="button-group">
-                    <button id="startButton" onclick="startCapture()">启动摄像头</button>
-                    <button id="stopButton" onclick="stopCapture()" disabled>停止摄像头</button>
-                </div>
-            </div>
-
-            <div class="controls-group">
-                <h3>模型设置</h3>
-                <div class="button-group">
-                    <button id="calibrateButton" onclick="startCalibration()">开始校准</button>
-                    <button id="recordButton" onclick="startRecording()" disabled>录制模型</button>
-                </div>
-                <div class="calibration-guide" id="calibrationGuide" style="display: none;">
-                    <p class="guide-text">请按照以下动作进行校准：</p>
-                    <ol id="poseGuide">
-                        <li>T-pose (双手平举)</li>
-                        <li>A-pose (双手45度)</li>
-                        <li>自然站姿</li>
-                    </ol>
-                    <div class="progress-bar">
-                        <div id="calibrationProgress" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="controls-group">
-                <h3>背景设置</h3>
-                <button class="outline" style="margin-bottom: 12px;">上传背景</button>
-                <button>移除背景</button>
-            </div>
-
-            <div class="controls-group">
-                <h3>模型管理</h3>
-                <button id="modelUploadBtn" class="outline">上传模型</button>
-                <div id="modelList" class="model-list">
-                    <!-- 模型列表将由 JavaScript 动态填充 -->
-                </div>
-            </div>
-
-            <div class="controls-group">
-                <h3>渲染设置</h3>
-                <div class="render-controls">
-                    <div class="control-item">
-                        <label>渲染质量</label>
-                        <select id="renderQuality">
-                            <option value="low">低</option>
-                            <option value="medium">中</option>
-                            <option value="high" selected>高</option>
-                        </select>
-                    </div>
-                    <div class="control-item">
-                        <label>阴影</label>
-                        <input type="checkbox" id="enableShadows" checked>
-                    </div>
-                    <div class="control-item">
-                        <label>抗锯齿</label>
-                        <input type="checkbox" id="enableAntialiasing" checked>
-                    </div>
-                </div>
-                <div class="render-preview">
-                    <div class="preview-controls">
-                        <button id="startRender">开始渲染</button>
-                        <button id="pauseRender">暂停</button>
-                        <button id="exportVideo">导出视频</button>
-                    </div>
-                    <div class="render-progress">
-                        <div class="progress-bar">
-                            <div id="renderProgress" style="width: 0%"></div>
-                        </div>
-                        <span id="renderStatus">就绪</span>
-                    </div>
+                <div class="controls">
+                    <button onclick="startCapture()" id="startBtn">启动摄像头</button>
+                    <button onclick="stopCapture()" id="stopBtn">停止摄像头</button>
+                    <button onclick="captureInitialFrame()" id="captureBtn">捕获初始帧</button>
                 </div>
             </div>
         </div>
     </main>
 
-    <div class="video-container">
-        <!-- 原始视频预览 -->
-        <video id="videoPreview" autoplay muted></video>
-        
-        <!-- 渲染画布 -->
-        <canvas id="renderCanvas" class="render-overlay"></canvas>
-    </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        let socket = io();
+        
+        // Socket.IO 事件处理
+        socket.on('connect', () => {
+            console.log('WebSocket 已连接');
+            const roomId = document.getElementById('roomId').value;
+            if (roomId) {
+                socket.emit('join_room', { room: roomId, role: 'sender' });
+            }
+        });
+
+        // 房间管理
+        async function createRoom() {
+            try {
+                const roomId = document.getElementById('roomId').value || generateRoomId();
+                document.getElementById('roomId').value = roomId;
+                
+                // 等待加入房间
+                await new Promise((resolve, reject) => {
+                    socket.emit('join_room', { room: roomId, role: 'sender' });
+                    socket.once('room_joined', (data) => {
+                        document.getElementById('currentRoom').textContent = 
+                            `当前房间: ${data.room}`;
+                        resolve();
+                    });
+                    socket.once('error', (error) => {
+                        reject(new Error(error.message));
+                    });
+                    setTimeout(() => reject(new Error('加入房间超时')), 5000);
+                });
+                
+                console.log('成功加入房间:', roomId);
+                sessionStorage.setItem('currentRoom', roomId);
+                
+            } catch (error) {
+                console.error('创建/加入房间失败:', error);
+                alert('创建房间失败: ' + error.message);
+            }
+        }
+
+        function generateRoomId() {
+            return Math.random().toString(36).substr(2, 6);
+        }
+
+        // 摄像头控制
+        async function startCapture() {
+            try {
+                const response = await fetch('/start_capture', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    console.log('摄像头启动成功');
+                    updateCameraStatus(true);
+                    refreshVideoPreview();
+                    
+                    // 定期刷新预览
+                    window.previewInterval = setInterval(refreshVideoPreview, 5000);
+                } else {
+                    throw new Error(data.message || '启动摄像头失败');
+                }
+            } catch (error) {
+                console.error('启动摄像头错误:', error);
+                alert('启动摄像头失败: ' + error.message);
+            }
+        }
+
+        async function stopCapture() {
+            try {
+                const response = await fetch('/stop_capture', { 
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    console.log('摄像头已停止');
+                    updateCameraStatus(false);
+                    clearInterval(window.previewInterval);
+                    const preview = document.getElementById('preview');
+                    if (preview) {
+                        preview.src = '';
+                    }
+                }
+            } catch (error) {
+                console.error('停止摄像头错误:', error);
+            }
+        }
+
+        async function captureInitialFrame() {
+            try {
+                // 检查是否已加入房间
+                const roomId = sessionStorage.getItem('currentRoom');
+                if (!roomId) {
+                    throw new Error('请先创建或加入房间');
+                }
+
+                console.log('正在捕获初始帧...');
+                const response = await fetch('/capture_initial_frame', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ room_id: roomId })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    console.log('初始帧捕获成功');
+                    alert('初始帧已捕获');
+                } else {
+                    throw new Error(data.message || '捕获初始帧失败');
+                }
+            } catch (error) {
+                console.error('捕获初始帧错误:', error);
+                alert('捕获初始帧失败: ' + error.message);
+            }
+        }
+
+        // 辅助函数
+        function updateCameraStatus(isRunning) {
+            const statusIndicator = document.querySelector('.status-indicator');
+            const statusText = document.querySelector('.status-text');
+            
+            if (isRunning) {
+                statusIndicator.classList.remove('status-inactive');
+                statusIndicator.classList.add('status-active');
+                statusText.textContent = '运行中';
+            } else {
+                statusIndicator.classList.remove('status-active');
+                statusIndicator.classList.add('status-inactive');
+                statusText.textContent = '已停止';
+            }
+        }
+
+        function refreshVideoPreview() {
+            const preview = document.getElementById('preview');
+            if (preview) {
+                const timestamp = new Date().getTime();
+                preview.src = `/video_feed?stream=original&t=${timestamp}`;
+                console.log('刷新视频预览');
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            const roomId = sessionStorage.getItem('currentRoom');
+            if (roomId) {
+                document.getElementById('roomId').value = roomId;
+                socket.emit('join_room', { room: roomId, role: 'sender' });
+            }
+            updateCameraStatus(false);
+        });
+    </script>
 </body>
 </html> 
