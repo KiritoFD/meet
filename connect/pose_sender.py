@@ -3,6 +3,7 @@ import zlib
 import numpy as np
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
+from utils.compression import compress_data
 
 @dataclass
 class PoseData:
@@ -35,8 +36,7 @@ class PoseSender:
     
     def _compress_data(self, data: dict) -> bytes:
         """压缩姿态数据"""
-        json_str = json.dumps(data)
-        return zlib.compress(json_str.encode())
+        return compress_data(data)
     
     def _has_significant_change(self, new_pose: PoseData) -> bool:
         """检查姿态是否有显著变化"""

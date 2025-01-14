@@ -16,12 +16,13 @@ logger = logging.getLogger(__name__)
 
 # 获取项目根目录的绝对路径
 project_root = os.path.dirname(os.path.abspath(__file__))
-template_dir = os.path.join(project_root, 'templates')
-static_dir = os.path.join(project_root, 'static')
+template_dir = os.path.join(project_root, 'frontend', 'pages')
+static_dir = os.path.join(project_root, 'frontend', 'static')
 
 app = Flask(__name__, 
            template_folder=template_dir,
-           static_folder=static_dir)
+           static_folder=static_dir,
+           static_url_path='/static')
 
 # MediaPipe 初始化
 mp_pose = mp.solutions.pose
