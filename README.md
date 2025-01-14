@@ -19,6 +19,35 @@
   - 材质优化
   - 后期特效
 
+## 快速开始
+
+### 方法1：使用打包好的环境（推荐）
+
+1. 解压环境：
+先安装anaconda https://www.anaconda.com/download/success 下载
+
+win+r 打开cmd ,输入自己的anaconda安装路径
+
+    cd anaconda3\envs
+
+    mkdir -p meet6
+
+    cd meet6
+复制当前路径
+
+用anaconda prompt 进入项目根目录，输入以下命令：
+
+    tar -xvf meet6.tar.gz -C 
+在这一行后粘贴刚才复制的路径，enter
+
+    conda activate meet6
+运行代码时解释器选择meet6环境
+
+    cd meet
+
+运行run.py
+程序运行后，打开浏览器访问 `http://127.0.0.1:5000/`。
+
 ## 项目结构
 
 ```
@@ -65,58 +94,7 @@ project/
     └── videos/         # 视频文件
 ```
 
-## 环境配置
 
-### 1. 系统要求
-- CUDA 11.0+ (推荐)
-- OpenGL 4.3+
-- WebGL 2.0 支持的浏览器
-- 8GB+ 内存
-
-### 2. Conda环境配置
-```bash
-# 创建conda环境
-conda create -n meeting python=3.8
-
-# 激活环境
-conda activate meeting
-
-# 安装基础依赖
-conda install -c conda-forge \
-    numpy=1.23.5 \
-    opencv=4.7.0 \
-    flask=2.0.1 \
-    pytorch=1.9.0 \
-    cudatoolkit=11.0
-
-# 安装其他依赖
-pip install -r requirements.txt
-```
-
-### 3. Node.js环境配置
-```bash
-# 安装Node.js (推荐使用nvm)
-nvm install 14
-nvm use 14
-
-# 安装依赖
-npm install
-
-# 开发模式
-npm run dev
-
-# 构建
-npm run build
-```
-
-### 4. 开发服务器启动
-```bash
-# 激活conda环境
-conda activate meeting
-
-# 启动Flask服务器
-python run.py
-```
 
 ## 开发任务 (TODO)
 
