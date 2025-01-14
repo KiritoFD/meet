@@ -5,6 +5,10 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import logging
+import time
+from flask_socketio import SocketIO, emit
+from connect.pose_sender import PoseSender
+from connect.socket_manager import SocketManager
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -53,6 +57,11 @@ face_mesh = mp_face_mesh.FaceMesh(
 camera = None
 current_frame = None
 current_pose = None
+
+# 初始化
+socketio = SocketIO(app, cors_allowed_origins="*")
+socket_manager = SocketManager(socketio)
+pose_sender = PoseSender(socketio, socket_manager.room_manager)
 
 @app.route('/')
 def index():
@@ -197,6 +206,15 @@ def generate_frames():
 
             # 处理面部
             face_results = face_mesh.process(frame_rgb)
+
+            # 发送姿态数据到房间
+            pose_sender.send_pose_data(
+                room="default_room",  # 或从session获取当前房间
+                pose_results=pose_results,
+                face_results=face_results,
+                hands_results=hands_results,
+                timestamp=time.time()
+            )
 
             # 绘制姿势关键点
             if pose_results.pose_landmarks:

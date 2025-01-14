@@ -235,9 +235,9 @@
         <div class="right-panel">
             <div class="controls-group">
                 <h3>摄像头状态</h3>
-                <div style="margin-bottom: 10px;">
-                    <span class="status-indicator status-active"></span>
-                    <span>运行中</span>
+                <div class="room-controls">
+                    <input type="text" id="roomInput" placeholder="输入房间号">
+                    <button onclick="joinRoom()" id="joinBtn">加入房间</button>
                 </div>
                 <div class="controls">
                     <button onclick="startCapture()" id="startBtn">启动摄像头</button>
@@ -367,6 +367,29 @@
             console.log('页面加载完成');
             updateCameraStatus(false);
         };
+
+        // 加入房间
+        async function joinRoom() {
+            const roomId = document.getElementById('roomInput').value;
+            if (!roomId) {
+                alert('请输入房间号');
+                return;
+            }
+            
+            socket.emit('join_room', { room_id: roomId });
+        }
+        
+        // 监听Socket.IO事件
+        socket.on('room_joined', (data) => {
+            console.log('成功加入房间:', data);
+            document.getElementById('joinBtn').disabled = true;
+            document.getElementById('roomInput').disabled = true;
+        });
+        
+        socket.on('error', (data) => {
+            console.error('错误:', data.message);
+            alert(data.message);
+        });
     </script>
 </body>
 </html>
