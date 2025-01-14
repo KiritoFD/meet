@@ -1,12 +1,16 @@
+import cv2
+
 # 摄像头配置
 CAMERA_CONFIG = {
-    'index': 0,
-    'width': 640,
-    'height': 480,
-    'fps': 24,
-    'buffer_size': 1,
-    'retry_interval': 0.05,
-    'max_retries': 2
+    'api_preference': cv2.CAP_DSHOW,  # Windows上使用DirectShow
+    'buffersize': 1,  # 减少缓冲
+    'params': {
+        cv2.CAP_PROP_FRAME_WIDTH: 640,
+        cv2.CAP_PROP_FRAME_HEIGHT: 480,
+        cv2.CAP_PROP_FPS: 30,
+        cv2.CAP_PROP_FOURCC: cv2.VideoWriter_fourcc(*'MJPG'),
+        cv2.CAP_PROP_BUFFERSIZE: 1
+    }
 }
 
 # Flask 配置
