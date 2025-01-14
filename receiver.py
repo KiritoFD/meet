@@ -7,6 +7,8 @@ import zlib
 import base64
 from flask import Flask, render_template, Response
 from flask_socketio import SocketIO
+from connect.pose_drawer import PoseDrawer
+import time
 
 # 配置日志
 logging.basicConfig(
@@ -20,6 +22,7 @@ logger = logging.getLogger(__name__)
 initial_image = None
 current_pose = None
 output_frame = None
+pose_drawer = PoseDrawer()
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -65,14 +68,13 @@ class PoseTransformManager:
 # 创建全局管理器实例
 pose_manager = PoseTransformManager()
 
-def decompress_pose_data(compressed_data):
+def decompress_pose_data(compressed_data: bytes) -> dict:
     """解压缩姿态数据"""
     try:
-        binary_data = base64.b64decode(compressed_data)
-        decompressed = zlib.decompress(binary_data)
-        return json.loads(decompressed.decode())
+        json_str = zlib.decompress(compressed_data).decode()
+        return json.loads(json_str)
     except Exception as e:
-        logger.error(f"解压缩姿态数据失败: {e}")
+        logger.error(f"解压缩数据失败: {e}")
         return None
 
 def apply_pose_transform(image, pose_data):
@@ -171,28 +173,20 @@ def generate_frames():
     while True:
         if initial_image is not None and current_pose is not None:
             try:
-                # 应用姿态变换
-                frame = apply_pose_transform(initial_image, current_pose)
-                if frame is not None:
-                    output_frame = frame
-                    
-                    # 编码并发送帧
-                    ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
-                    if ret:
-                        frame_bytes = buffer.tobytes()
-                        yield (b'--frame\r\n'
-                               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                # 使用PoseDrawer绘制姿态
+                output_frame = pose_drawer.draw_pose(initial_image, current_pose)
+                
+                # 编码并yield帧
+                ret, buffer = cv2.imencode('.jpg', output_frame)
+                if ret:
+                    frame = buffer.tobytes()
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
             except Exception as e:
-                logger.error(f"生成帧失败: {e}")
+                logger.error(f"生成帧错误: {e}")
         
-        # 如果没有数据，显示黑屏
-        if output_frame is None:
-            black_frame = np.zeros((480, 640, 3), dtype=np.uint8)
-            ret, buffer = cv2.imencode('.jpg', black_frame)
-            if ret:
-                frame_bytes = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        # 添加适当的延迟
+        time.sleep(1/30)  # 30 FPS
 
 @app.route('/')
 def index():

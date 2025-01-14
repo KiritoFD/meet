@@ -1,8 +1,0 @@
-flask>=2.0.1
-opencv-python>=4.5.3.56
-numpy>=1.21.2
-mediapipe>=0.8.9.1
-Werkzeug>=2.0.1
-pillow>=8.3.2
-flask-cors>=3.0.10
-python-dotenv>=0.19.0
