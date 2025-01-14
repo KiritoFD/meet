@@ -11,15 +11,29 @@
 
 希望我们的项目能让你轻松而放心地以最佳的真实面貌地出现在正式的视频会议里。
 
-
 ## 快速开始
 
-### 1. 安装依赖
-提示：要使用mediapipe,应使用python3.10
+### 方法1：使用打包好的环境（推荐）
 
-         pip install -r requirements.txt
-### 2. 运行
-          py run.py
+1. 解压环境：
+先安装anaconda https://www.anaconda.com/download/success 下载
+
+win+r 打开cmd ,输入自己的anaconda安装路径
+
+    cd anaconda3\envs
+
+    mkdir -p meet6
+
+    cd meet6
+复制当前路径
+
+用anaconda prompt 进入项目根目录，输入以下命令：
+
+    tar -xvf meet6.tar.gz -C 
+在这一行后粘贴刚才复制的路径，enter
+
+    conda activate meet6
+运行代码时解释器选择meet6环境
 
 程序运行后，打开浏览器访问 `http://127.0.0.1:5000/`。
 
