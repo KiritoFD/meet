@@ -18,30 +18,29 @@ class CameraManager:
         os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'   # 禁用MSMF
         os.environ['OPENCV_VIDEOIO_PRIORITY_DSHOW'] = '1'  # 优先DirectShow
         
-        # 高质量参数设置
+        # 基本参数设置
         self._camera_params = {
-            cv2.CAP_PROP_FRAME_WIDTH: 1280,    # 更高分辨率
-            cv2.CAP_PROP_FRAME_HEIGHT: 720,    # 720p
-            cv2.CAP_PROP_FPS: 60,              # 更高帧率
+            cv2.CAP_PROP_FRAME_WIDTH: 640,     # 基础分辨率
+            cv2.CAP_PROP_FRAME_HEIGHT: 480,
+            cv2.CAP_PROP_FPS: 30,              # 标准帧率
             cv2.CAP_PROP_FOURCC: cv2.VideoWriter_fourcc(*'MJPG'),  # MJPG格式
-            cv2.CAP_PROP_EXPOSURE: -5,         # 稍微提高曝光
-            cv2.CAP_PROP_BRIGHTNESS: 128,      # 亮度
-            cv2.CAP_PROP_CONTRAST: 128,        # 对比度
-            cv2.CAP_PROP_SATURATION: 128,      # 饱和度
-            cv2.CAP_PROP_SHARPNESS: 128,       # 锐度
+            cv2.CAP_PROP_EXPOSURE: 0,          # 自动曝光
+            cv2.CAP_PROP_BRIGHTNESS: 128,      # 标准亮度
+            cv2.CAP_PROP_CONTRAST: 128,        # 标准对比度
+            cv2.CAP_PROP_SATURATION: 128,      # 标准饱和度
             cv2.CAP_PROP_AUTO_WB: 1,           # 自动白平衡
-            cv2.CAP_PROP_AUTOFOCUS: 1          # 启用自动对焦
+            cv2.CAP_PROP_AUTOFOCUS: 0          # 禁用自动对焦
         }
         
     def _init_camera(self):
         """初始化摄像头设备"""
         try:
-            # 快速初始化 - 使用默认参数
+            # 快速初始化
             self.camera = cv2.VideoCapture(CAMERA_CONFIG['device_id'], cv2.CAP_DSHOW)
             if not self.camera.isOpened():
                 return False
             
-            # 优先设置分辨率和帧率
+            # 优先设置基本参数
             success = True
             critical_params = {
                 cv2.CAP_PROP_FRAME_WIDTH: self._camera_params[cv2.CAP_PROP_FRAME_WIDTH],
@@ -53,14 +52,7 @@ class CameraManager:
             # 设置关键参数
             for prop, value in critical_params.items():
                 if not self.camera.set(prop, value):
-                    # 如果设置失败，尝试降级
-                    if prop == cv2.CAP_PROP_FRAME_WIDTH:
-                        self.camera.set(prop, 640)
-                    elif prop == cv2.CAP_PROP_FRAME_HEIGHT:
-                        self.camera.set(prop, 480)
-                    elif prop == cv2.CAP_PROP_FPS:
-                        self.camera.set(prop, 30)
-                    logger.warning(f"设置高质量参数失败，使用降级参数: {prop}")
+                    logger.warning(f"设置参数失败: {prop}={value}")
                     success = False
             
             # 快速测试读取
@@ -68,7 +60,7 @@ class CameraManager:
             if not ret or frame is None:
                 return False
                 
-            # 后台设置图像质量参数
+            # 后台设置其他参数
             threading.Thread(target=self._set_quality_params, daemon=True).start()
             
             return success
@@ -85,7 +77,6 @@ class CameraManager:
                 cv2.CAP_PROP_BRIGHTNESS: self._camera_params[cv2.CAP_PROP_BRIGHTNESS],
                 cv2.CAP_PROP_CONTRAST: self._camera_params[cv2.CAP_PROP_CONTRAST],
                 cv2.CAP_PROP_SATURATION: self._camera_params[cv2.CAP_PROP_SATURATION],
-                cv2.CAP_PROP_SHARPNESS: self._camera_params[cv2.CAP_PROP_SHARPNESS],
                 cv2.CAP_PROP_AUTO_WB: self._camera_params[cv2.CAP_PROP_AUTO_WB],
                 cv2.CAP_PROP_EXPOSURE: self._camera_params[cv2.CAP_PROP_EXPOSURE],
                 cv2.CAP_PROP_AUTOFOCUS: self._camera_params[cv2.CAP_PROP_AUTOFOCUS]
