@@ -2,14 +2,22 @@ import cv2
 
 # 摄像头配置
 CAMERA_CONFIG = {
-    'api_preference': cv2.CAP_DSHOW,  # Windows上使用DirectShow
-    'buffersize': 1,  # 减少缓冲
+    'api_preference': cv2.CAP_DSHOW,
+    'device_id': 0,
     'params': {
-        cv2.CAP_PROP_FRAME_WIDTH: 640,
+        cv2.CAP_PROP_SETTINGS: 0,     # 禁用设置弹窗
+        cv2.CAP_PROP_EXPOSURE: -6,    # 自动曝光
+        cv2.CAP_PROP_AUTOFOCUS: 0,    # 禁用自动对焦
+        cv2.CAP_PROP_BUFFERSIZE: 1,   # 最小缓冲
+        cv2.CAP_PROP_FPS: 30,         # 帧率
+        cv2.CAP_PROP_FRAME_WIDTH: 640,  # 分辨率
         cv2.CAP_PROP_FRAME_HEIGHT: 480,
-        cv2.CAP_PROP_FPS: 30,
-        cv2.CAP_PROP_FOURCC: cv2.VideoWriter_fourcc(*'MJPG'),
-        cv2.CAP_PROP_BUFFERSIZE: 1
+        cv2.CAP_PROP_FOURCC: cv2.VideoWriter_fourcc(*'MJPG')
+    },
+    'retry': {
+        'max_attempts': 3,    # 最大重试次数
+        'timeout': 3,         # 超时时间(秒)
+        'interval': 0.1       # 重试间隔(秒)
     }
 }
 
