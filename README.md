@@ -35,6 +35,10 @@ win+r 打开cmd ,输入自己的anaconda安装路径
     conda activate meet6
 运行代码时解释器选择meet6环境
 
+    cd meet
+
+运行run.py
+
 程序运行后，打开浏览器访问 `http://127.0.0.1:5000/`。
 
 ## 功能
