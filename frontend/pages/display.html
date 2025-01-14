@@ -220,6 +220,18 @@
             color: #666;
             vertical-align: middle;
         }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -229,7 +241,7 @@
 
     <main>
         <div class="left-panel">
-            <img id="preview" src="{{ url_for('video_feed') }}" alt="Camera Preview">
+            <img id="preview" src="" alt="摄像头预览" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
 
         <div class="right-panel">
@@ -240,8 +252,8 @@
                     <button onclick="joinRoom()" id="joinBtn">加入房间</button>
                 </div>
                 <div class="controls">
-                    <button onclick="startCapture()" id="startBtn">启动摄像头</button>
-                    <button onclick="stopCapture()" id="stopBtn">停止摄像头</button>
+                    <button id="startBtn">启动摄像头</button>
+                    <button id="stopBtn" disabled>停止摄像头</button>
                 </div>
             </div>
 
@@ -280,6 +292,11 @@
         </div>
     </main>
 
+    <!-- 加载提示 -->
+    <div id="loading" class="loading" style="display: none;">
+        <span id="loadingText">加载中...</span>
+    </div>
+
     <script>
         // 确保DOM加载完成后再执行
         document.addEventListener('DOMContentLoaded', function() {
@@ -309,32 +326,90 @@
             console.log('摄像头状态:', isRunning ? '运行中' : '已停止');
         }
 
-        // 启动摄像头
-        async function startCapture() {
-            console.log('尝试启动摄像头...');
-            try {
-                const response = await fetch('/start_capture', { 
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                console.log('服务器响应:', data);
-                
-                if (response.ok) {
-                    updateCameraStatus(true);
-                    const preview = document.getElementById('preview');
-                    preview.style.display = 'block';
-                    preview.src = "{{ url_for('video_feed') }}?" + new Date().getTime();
-                } else {
-                    throw new Error(data.error || '启动摄像头失败');
-                }
-            } catch (error) {
-                console.error('启动摄像头错误:', error);
-                alert('启动摄像头失败: ' + error.message);
+        // 初始化按钮状态
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM加载完成，初始化按钮状态');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            
+            if (startBtn && stopBtn) {
+                console.log('找到摄像头控制按钮');
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            } else {
+                console.error('未找到摄像头控制按钮');
             }
+        });
+
+        // 日志函数
+        function sendLog(level, message, data = null) {
+            const logData = {
+                level,
+                message,
+                data,
+                timestamp: new Date().toISOString(),
+                source: 'frontend'
+            };
+            
+            fetch('/log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(logData)
+            }).catch(err => console.error('发送日志失败:', err));
+        }
+
+        // 启动摄像头
+        function startCapture() {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            sendLog('info', '点击启动摄像头按钮', {
+                startBtnDisabled: startBtn.disabled,
+                stopBtnDisabled: stopBtn.disabled
+            });
+            
+            if (!startBtn || !stopBtn) {
+                sendLog('error', '按钮元素未找到');
+                return;
+            }
+
+            const startTime = performance.now();
+            showLoading("正在初始化摄像头...");
+            
+            fetch('/start_capture', {
+                method: 'POST'
+            })
+            .then(response => {
+                sendLog('info', '收到服务器响应', { status: response.status });
+                return response.json();
+            })
+            .then(data => {
+                const endTime = performance.now();
+                const timeElapsed = ((endTime - startTime) / 1000).toFixed(2);
+                sendLog('info', '摄像头启动完成', { timeElapsed });
+                
+                if (data.status === 'success') {
+                    console.log('摄像头启动成功，更新按钮状态');
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    // 显示视频预览
+                    const preview = document.getElementById('preview');
+                    if (preview) {
+                        preview.style.display = 'block';
+                        preview.src = '/video_feed?' + new Date().getTime();
+                    }
+                } else {
+                    throw new Error(data.error || '启动失败');
+                }
+            })
+            .catch(error => {
+                sendLog('error', '启动摄像头失败', { error: error.message });
+                alert('启动摄像头失败: ' + error.message);
+            })
+            .finally(() => {
+                hideLoading();
+            });
         }
 
         // 停止摄像头
@@ -390,6 +465,22 @@
             console.error('错误:', data.message);
             alert(data.message);
         });
+
+        function showLoading(text) {
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+            if (loading && loadingText) {
+                loadingText.textContent = text;
+                loading.style.display = 'block';
+            }
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
