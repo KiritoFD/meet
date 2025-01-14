@@ -7,7 +7,7 @@ import zlib
 import base64
 from flask import Flask, render_template, Response
 from flask_socketio import SocketIO
-from connect.pose_drawer import PoseDrawer
+from pose.drawer import PoseDrawer
 import time
 
 # 配置日志

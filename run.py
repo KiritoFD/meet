@@ -13,6 +13,7 @@ from camera.manager import CameraManager
 from pose.drawer import PoseDrawer
 import asyncio
 from config import settings
+from config.settings import CAMERA_CONFIG
 
 # 配置日志格式
 logging.basicConfig(
@@ -79,82 +80,69 @@ def index():
 
 @app.route('/start_capture', methods=['POST'])
 def start_capture():
-    global camera_manager
-    start_time = time.time()
-    logger.info("收到启动摄像头请求")
     try:
-        logger.info("开始初始化摄像头...")
-        success = camera_manager.start()
-        init_time = time.time() - start_time
-        logger.info(f"摄像头初始化{'成功' if success else '失败'}")
-        logger.info(f"总处理时间: {init_time:.2f}秒")
-        if not success:
+        logger.info("收到启动摄像头请求")
+        start_time = time.time()
+        
+        # 使用摄像头管理器启动
+        if camera_manager.start():
+            end_time = time.time()
+            logger.info(f"摄像头启动成功，耗时: {end_time - start_time:.2f}秒")
+            return jsonify({"message": "摄像头已启动", "status": "success"}), 200
+        else:
             raise Exception("无法打开摄像头")
-        return jsonify({"status": "success"}), 200
+            
     except Exception as e:
-        logger.error(f"启动摄像头失败: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"启动摄像头失败: {str(e)}")
+        return jsonify({"error": str(e), "status": "error"}), 500
 
 @app.route('/stop_capture', methods=['POST'])
 def stop_capture():
     try:
         camera_manager.stop()
-        return jsonify({"status": "success"}), 200
+        logger.info("摄像头已关闭")
+        return jsonify({"message": "摄像头已关闭", "status": "success"}), 200
     except Exception as e:
-        logger.error(f"关闭摄像头失败: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"关闭摄像头失败: {str(e)}")
+        return jsonify({"error": str(e), "status": "error"}), 500
 
 def generate_frames():
-    global camera_manager, current_frame, current_pose
+    pose_drawer = PoseDrawer()
     
     while True:
         try:
             if not camera_manager.is_running:
                 frame = np.zeros((480, 640, 3), dtype=np.uint8)
-                ret, buffer = cv2.imencode('.jpg', frame)
-                if ret:
-                    frame_bytes = buffer.tobytes()
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-                continue
-
-            success, frame = camera_manager.read()
-            if not success or frame is None:
-                continue
-
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-            # 处理姿势
-            pose_results = pose.process(frame_rgb)
-            
-            # 处理手部
-            hands_results = hands.process(frame_rgb)
-
-            # 处理面部
-            face_results = face_mesh.process(frame_rgb)
-
-            # 发送姿态数据到房间
-            pose_sender.send_pose_data(
-                room="default_room",  # 或从session获取当前房间
-                pose_results=pose_results,
-                face_results=face_results,
-                hands_results=hands_results,
-                timestamp=time.time()
-            )
-
-            # 使用绘制器绘制关键点
-            pose_drawer.draw_pose(frame, pose_results)
-            pose_drawer.draw_hands(frame, hands_results)
-            pose_drawer.draw_face(frame, face_results)
-
+            else:
+                success, frame = camera_manager.read()
+                if not success or frame is None:
+                    continue
+                    
+                # 处理帧
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                pose_results = pose.process(frame_rgb)
+                hands_results = hands.process(frame_rgb)
+                face_results = face_mesh.process(frame_rgb)
+                
+                # 发送姿态数据
+                pose_sender.send_pose_data(
+                    room="default_room",
+                    pose_results=pose_results,
+                    face_results=face_results,
+                    hands_results=hands_results,
+                    timestamp=time.time()
+                )
+                
+                # 使用PoseDrawer绘制
+                frame = pose_drawer.draw_frame(frame, pose_results, hands_results, face_results)
+                
+            # 编码并发送帧
             ret, buffer = cv2.imencode('.jpg', frame)
-            if not ret:
-                continue
-
-            frame_bytes = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-
+            if ret:
+                frame_bytes = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                       
         except Exception as e:
             logger.error(f"处理帧时出错: {str(e)}")
             continue
