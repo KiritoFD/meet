@@ -447,5 +447,56 @@ def stop_recording():
             'message': str(e)
         }), 500
 
+@app.route('/api/upload_audio', methods=['POST'])
+def upload_audio():
+    """上传音频文件"""
+    try:
+        if 'audio' not in request.files:
+            return jsonify({
+                'status': 'error',
+                'message': '没有上传文件'
+            }), 400
+            
+        file = request.files['audio']
+        if file.filename == '':
+            return jsonify({
+                'status': 'error', 
+                'message': '未选择文件'
+            }), 400
+            
+        # 确保上传目录存在
+        audio_dir = os.path.join(UPLOAD_FOLDER, 'audio')
+        os.makedirs(audio_dir, exist_ok=True)
+        
+        # 保存文件
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(audio_dir, filename)
+        file.save(file_path)
+        
+        return jsonify({
+            'status': 'success',
+            'message': '音频上传成功',
+            'audio_url': os.path.join('/uploads/audio', filename)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/audio/<filename>')
+def stream_audio(filename):
+    """流式传输音频文件"""
+    def generate():
+        audio_path = os.path.join(UPLOAD_FOLDER, 'audio', filename)
+        with open(audio_path, 'rb') as audio_file:
+            data = audio_file.read(1024)
+            while data:
+                yield data
+                data = audio_file.read(1024)
+                
+    return Response(generate(), mimetype='audio/mpeg')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True) 
