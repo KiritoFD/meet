@@ -1,6 +1,6 @@
 import os
 import sys
-from flask import Flask, Response, render_template, jsonify, send_from_directory, request
+from flask import Flask, Response, render_template, jsonify, send_from_directory, request, send_file
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -14,6 +14,8 @@ from pose.drawer import PoseDrawer
 import asyncio
 from config import settings
 from config.settings import CAMERA_CONFIG
+from audio.processor import AudioProcessor
+from datetime import datetime
 
 # 配置日志格式
 logging.basicConfig(
@@ -70,9 +72,14 @@ current_frame = None
 current_pose = None
 
 # 初始化
-socketio = SocketIO(app, cors_allowed_origins="*")
-socket_manager = SocketManager(socketio)
+audio_processor = AudioProcessor()
+socketio = SocketIO(app)
+socket_manager = SocketManager(socketio, audio_processor)
 pose_sender = PoseSender(socketio, socket_manager.room_manager)
+
+# 定义音频文件保存目录
+AUDIO_DIR = os.path.join(os.path.dirname(__file__), 'audio', 'recordings')
+os.makedirs(AUDIO_DIR, exist_ok=True)  # 创建保存目录
 
 @app.route('/')
 def index():
@@ -217,6 +224,74 @@ def handle_frontend_log():
     except Exception as e:
         logger.error(f"处理前端日志失败: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/start_audio', methods=['POST'])
+def start_audio():
+    print("收到开始录音请求")
+    try:
+        success = audio_processor.start_recording()
+        if success:
+            print("录音开始成功")
+            return jsonify({"message": "开始录音", "status": "success"}), 200
+        else:
+            print("录音已在进行中")
+            return jsonify({"error": "录音已在进行中", "status": "error"}), 400
+    except Exception as e:
+        print(f"录音启动错误: {e}")
+        logger.error(f"启动录音失败: {str(e)}")
+        return jsonify({"error": str(e), "status": "error"}), 500
+
+@app.route('/stop_audio', methods=['POST'])
+def stop_audio():
+    try:
+        success, result = audio_processor.stop_recording()
+        if success:
+            return jsonify({
+                "status": "success",
+                "filename": result
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "error": result
+            }), 400
+    except Exception as e:
+        logger.error(f"停止录音失败: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
+
+# 添加一个获取录音状态的路由（可选）
+@app.route('/audio_status')
+def audio_status():
+    try:
+        status = audio_processor.get_recording_status()
+        return jsonify(status), 200
+    except Exception as e:
+        logger.error(f"获取录音状态失败: {str(e)}")
+        return jsonify({"error": str(e), "status": "error"}), 500
+
+@app.route('/audio_file/<path:filename>')
+def audio_file(filename):
+    try:
+        # 从完整路径中获取文件名
+        file_name = os.path.basename(filename)
+        audio_dir = os.path.join(os.path.dirname(__file__), 'audio', 'recordings')
+        file_path = os.path.join(audio_dir, file_name)
+        
+        if os.path.exists(file_path):
+            return send_file(file_path, mimetype='audio/wav')
+        else:
+            return jsonify({"error": "文件不存在"}), 404
+    except Exception as e:
+        logger.error(f"访问音频文件失败: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# 添加 favicon 路由
+@app.route('/favicon.ico')
+def favicon():
+    return app.send_static_file('favicon.ico')
 
 if __name__ == "__main__":
     # 确保必要的目录存在
