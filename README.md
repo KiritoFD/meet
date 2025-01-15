@@ -15,8 +15,14 @@
 
 ### 方法1：使用打包好的环境（推荐）
 
+0.安装软件：
+
+先安装anaconda
+https://www.anaconda.com/download/success 下载
+安装WinRAR用于解压
+https://www.win-rar.com/download.html?&L=0
 1. 解压环境：
-先安装anaconda https://www.anaconda.com/download/success 下载
+
 
 win+r 打开cmd ,输入自己的anaconda安装路径
 
