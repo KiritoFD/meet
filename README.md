@@ -30,7 +30,9 @@ win+r 打开cmd ,输入自己的anaconda安装路径
 
     cd anaconda3\envs
 
-    mkdir -p meet6
+      (若是windows环境)：mkdir meet6
+
+      (若linux或wsl) mkdir -p meet6
 
     cd meet6
 复制当前路径
