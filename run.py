@@ -1,6 +1,7 @@
 import os
 import sys
 from flask import Flask, Response, render_template, jsonify, send_from_directory, request
+from werkzeug.utils import secure_filename
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -35,6 +36,9 @@ app = Flask(__name__,
 
 # 初始化音频处理器
 audio_processor = AudioProcessor()
+
+# 定义上传文件夹路径
+UPLOAD_FOLDER = os.path.join(project_root, 'uploads')
 
 # 初始化 Socket.IO
 socketio = SocketIO(app, cors_allowed_origins="*")
