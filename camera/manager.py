@@ -13,6 +13,9 @@ class CameraManager:
         self.camera = None
         self._is_running = False
         self._init_lock = threading.Lock()
+        self.frame_count = 0
+        self.fps_time = time.time()
+        self.current_fps = 0
         
         # 预先设置环境变量
         os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'   # 禁用MSMF
@@ -138,7 +141,17 @@ class CameraManager:
             return False, None
             
         try:
-            return self.camera.read()
+            ret, frame = self.camera.read()
+            if ret:
+                # 处理帧率计算
+                self.frame_count += 1
+                current_time = time.time()
+                if current_time - self.fps_time >= 1.0:
+                    self.current_fps = self.frame_count
+                    self.frame_count = 0
+                    self.fps_time = current_time
+                    logger.debug(f"当前FPS: {self.current_fps}")
+            return ret, frame
         except Exception as e:
             logger.error(f"读取帧失败: {e}")
             self.stop()
