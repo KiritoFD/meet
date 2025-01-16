@@ -2,8 +2,12 @@ import numpy as np
 import json
 import zlib
 import base64
+import logging
 from dataclasses import dataclass
 from typing import List, Dict, Optional
+
+# 配置logger
+logger = logging.getLogger(__name__)
 
 @dataclass
 class PoseData:
