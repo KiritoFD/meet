@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>姿态数据接收端</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .video-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .control-panel {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #videoFeed {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .room-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #2196F3;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #1976D2;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-indicator.connected {
+            background: #4CAF50;
+        }
+
+        .stats {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .stats div {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% include 'components/room_controls.html' %}
+        <div class="video-panel">
+            <div class="video-container">
+                <canvas id="poseCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="stats">
+                <div>帧率: <span id="fpsDisplay">0</span> FPS</div>
+                <div>带宽: <span id="bandwidthDisplay">0</span> KB/s</div>
+                <div>延迟: <span id="latencyDisplay">0</span> ms</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='js/poseRenderer.js') }}"></script>
+    <script>
+        // 连接WebSocket
+        const socket = io();
+        let connected = false;
+        let lastFrameTime = performance.now();
+        let frameCount = 0;
+        let bandwidthTotal = 0;
+        let lastStatsUpdate = performance.now();
+
+        const canvas = document.getElementById('poseCanvas');
+        const renderer = new PoseRenderer(canvas);
+        
+        // 设置画布大小
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        
+        // 监听窗口大小变化
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 更新状态显示
+        function updateStatus(isConnected, text) {
+            const indicator = document.getElementById('connectionStatus');
+            const statusText = document.getElementById('statusText');
+            
+            indicator.className = 'status-indicator' + (isConnected ? ' connected' : '');
+            statusText.textContent = text;
+            connected = isConnected;
+        }
+
+        // 更新统计信息
+        function updateStats(dataSize) {
+            frameCount++;
+            bandwidthTotal += dataSize;
+
+            const now = performance.now();
+            const elapsed = now - lastStatsUpdate;
+
+            if (elapsed >= 1000) {  // 每秒更新一次
+                const fps = Math.round(frameCount * 1000 / elapsed);
+                const bandwidth = Math.round(bandwidthTotal / 1024 / (elapsed / 1000));
+                
+                document.getElementById('fpsDisplay').textContent = fps;
+                document.getElementById('bandwidthDisplay').textContent = bandwidth;
+                
+                frameCount = 0;
+                bandwidthTotal = 0;
+                lastStatsUpdate = now;
+            }
+        }
+
+        // 加入房间
+        function joinRoom() {
+            const roomId = document.getElementById('roomInput').value;
+            if (!roomId) {
+                alert('请输入房间号');
+                return;
+            }
+            
+            socket.emit('join_room', { room_id: roomId });
+            document.getElementById('joinBtn').disabled = true;
+            document.getElementById('roomInput').disabled = true;
+        }
+
+        // Socket.IO事件处理
+        socket.on('connect', () => {
+            updateStatus(true, '已连接');
+        });
+
+        socket.on('disconnect', () => {
+            updateStatus(false, '已断开');
+        });
+
+        socket.on('pose_data', (data) => {
+            updateStats(JSON.stringify(data).length);
+            try {
+                const poseData = JSON.parse(zlib.decompress(data.data));
+                renderer.drawPose(poseData);
+            } catch (error) {
+                console.error('处理姿态数据错误:', error);
+            }
+        });
+
+        socket.on('room_joined', (data) => {
+            updateStatus(true, `已加入房间: ${data.room}`);
+        });
+
+        socket.on('error', (data) => {
+            console.error('错误:', data.message);
+            alert(data.message);
+        });
+    </script>
+</body>
+</html> 
