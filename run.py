@@ -1,21 +1,19 @@
 import os
 import sys
-from flask import Flask, Response, render_template, jsonify, send_from_directory, request, send_file
+from flask import Flask, Response, render_template, jsonify, send_from_directory, request
 import cv2
 import mediapipe as mp
 import numpy as np
 import logging
 import time
 from flask_socketio import SocketIO, emit
+from camera.manager import CameraManager
+from pose.drawer import PoseDrawer  # 确保从正确的路径导入
 from connect.pose_sender import PoseSender
 from connect.socket_manager import SocketManager
-from camera.manager import CameraManager
-from pose.drawer import PoseDrawer
-import asyncio
 from config import settings
 from config.settings import CAMERA_CONFIG
 from audio.processor import AudioProcessor
-from datetime import datetime
 
 # 配置日志格式
 logging.basicConfig(
@@ -35,6 +33,14 @@ app = Flask(__name__,
            static_folder=static_dir,
            static_url_path='/static')
 
+# 初始化音频处理器
+audio_processor = AudioProcessor()
+
+# 初始化 Socket.IO
+socketio = SocketIO(app, cors_allowed_origins="*")
+socket_manager = SocketManager(socketio, audio_processor)
+pose_sender = PoseSender(socketio, socket_manager.room_manager)
+
 # MediaPipe 初始化
 mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
@@ -42,6 +48,7 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
 
+# 初始化 MediaPipe 模型
 pose = mp_pose.Pose(
     static_image_mode=False,
     model_complexity=2,
@@ -68,18 +75,10 @@ face_mesh = mp_face_mesh.FaceMesh(
 # 全局变量
 camera_manager = CameraManager()
 pose_drawer = PoseDrawer()
-current_frame = None
-current_pose = None
 
-# 初始化
+# 初始化处理器
 audio_processor = AudioProcessor()
-socketio = SocketIO(app)
-socket_manager = SocketManager(socketio, audio_processor)
-pose_sender = PoseSender(socketio, socket_manager.room_manager)
-
-# 定义音频文件保存目录
-AUDIO_DIR = os.path.join(os.path.dirname(__file__), 'audio', 'recordings')
-os.makedirs(AUDIO_DIR, exist_ok=True)  # 创建保存目录
+audio_processor.set_socketio(socketio)
 
 @app.route('/')
 def index():
@@ -87,49 +86,75 @@ def index():
 
 @app.route('/start_capture', methods=['POST'])
 def start_capture():
-    try:
-        logger.info("收到启动摄像头请求")
-        start_time = time.time()
-        
-        # 使用摄像头管理器启动
-        if camera_manager.start():
-            end_time = time.time()
-            logger.info(f"摄像头启动成功，耗时: {end_time - start_time:.2f}秒")
-            return jsonify({"message": "摄像头已启动", "status": "success"}), 200
-        else:
-            raise Exception("无法打开摄像头")
-            
-    except Exception as e:
-        logger.error(f"启动摄像头失败: {str(e)}")
-        return jsonify({"error": str(e), "status": "error"}), 500
+    success = camera_manager.start()
+    return jsonify({'success': success})
 
 @app.route('/stop_capture', methods=['POST'])
 def stop_capture():
+    success = camera_manager.stop()
+    return jsonify({'success': success})
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/start_audio', methods=['POST'])
+def start_audio():
+    success = audio_processor.start_recording()
+    return jsonify({'success': success})
+
+@app.route('/stop_audio', methods=['POST'])
+def stop_audio():
+    success = audio_processor.stop_recording()
+    return jsonify({'success': success})
+
+@app.route('/check_stream_status')
+def check_stream_status():
     try:
-        camera_manager.stop()
-        logger.info("摄像头已关闭")
-        return jsonify({"message": "摄像头已关闭", "status": "success"}), 200
+        status = {
+            'video': {
+                'is_streaming': camera_manager.is_running,
+                'fps': camera_manager.current_fps
+            },
+            'audio': {
+                'is_recording': audio_processor.is_recording,
+                'sample_rate': audio_processor.sample_rate,
+                'buffer_size': len(audio_processor.frames) if hasattr(audio_processor, 'frames') else 0
+            }
+        }
+        return jsonify(status), 200
     except Exception as e:
-        logger.error(f"关闭摄像头失败: {str(e)}")
-        return jsonify({"error": str(e), "status": "error"}), 500
+        logger.error(f"获取流状态失败: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 def generate_frames():
-    pose_drawer = PoseDrawer()
-    
     while True:
         try:
             if not camera_manager.is_running:
+                # 创建空白帧
                 frame = np.zeros((480, 640, 3), dtype=np.uint8)
+                cv2.putText(frame, "Camera Not Running", (180, 240),
+                          cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
             else:
                 success, frame = camera_manager.read()
                 if not success or frame is None:
                     continue
-                    
-                # 处理帧
+
+                # 转换颜色空间用于MediaPipe处理
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                
+                # 处理各个模型
                 pose_results = pose.process(frame_rgb)
                 hands_results = hands.process(frame_rgb)
                 face_results = face_mesh.process(frame_rgb)
+                
+                # 使用PoseDrawer绘制
+                frame = pose_drawer.draw_frame(
+                    frame,
+                    pose_results,
+                    hands_results,
+                    face_results
+                )
                 
                 # 发送姿态数据
                 pose_sender.send_pose_data(
@@ -139,167 +164,52 @@ def generate_frames():
                     hands_results=hands_results,
                     timestamp=time.time()
                 )
-                
-                # 使用PoseDrawer绘制
-                frame = pose_drawer.draw_frame(frame, pose_results, hands_results, face_results)
-                
+
+                # 添加FPS显示
+                cv2.putText(frame, f"FPS: {camera_manager.current_fps}", 
+                          (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 
+                          1, (0, 255, 0), 2)
+
             # 编码并发送帧
             ret, buffer = cv2.imencode('.jpg', frame)
             if ret:
                 frame_bytes = buffer.tobytes()
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-                       
+
         except Exception as e:
             logger.error(f"处理帧时出错: {str(e)}")
+            time.sleep(0.1)  # 出错时短暂暂停
             continue
 
-@app.route('/video_feed')
-def video_feed():
-    try:
-        return Response(generate_frames(),
-                       mimetype='multipart/x-mixed-replace; boundary=frame')
-    except Exception as e:
-        logger.error(f"视频流出错: {str(e)}")
-        return "视频流错误", 500
-
-@app.route('/pose')
-def get_pose():
-    if current_pose is None:
-        return jsonify([])
-    return jsonify(current_pose)
-
-def restart_camera():
-    global camera
-    if camera is not None:
-        camera.release()
-    camera = cv2.VideoCapture(0)
-    if not camera.isOpened():
-        raise Exception("无法重新打开摄像头")
-    return camera.isOpened()
-
-@app.route('/restart_camera', methods=['POST'])
-def handle_restart_camera():
-    try:
-        success = restart_camera()
-        if success:
-            return jsonify({"message": "摄像头已重启", "status": "success"})
-        else:
-            return jsonify({"error": "重启摄像头失败", "status": "error"}), 500
-    except Exception as e:
-        return jsonify({"error": str(e), "status": "error"}), 500
-
-# 添加摄像头状态检查路由
 @app.route('/camera_status')
 def camera_status():
-    global camera_manager
-    is_running = camera_manager.camera is not None and camera_manager.camera.isOpened()
-    return jsonify({
-        "isRunning": is_running,
-        "status": "running" if is_running else "stopped"
-    })
-
-@app.route('/log', methods=['POST'])
-def handle_frontend_log():
     try:
-        log_data = request.json
-        level = log_data.get('level', 'info').upper()
-        message = log_data.get('message', '')
-        data = log_data.get('data')
-        source = log_data.get('source', 'unknown')
-        timestamp = log_data.get('timestamp')
-        
-        log_message = f"[{source}] {message}"
-        if data:
-            log_message += f" - {data}"
-        
-        if level == 'ERROR':
-            logger.error(log_message)
-        elif level == 'WARNING':
-            logger.warning(log_message)
-        else:
-            logger.info(log_message)
-            
-        return jsonify({"status": "success"}), 200
+        status = {
+            "isRunning": camera_manager.is_running,
+            "fps": camera_manager.current_fps,
+            "status": "running" if camera_manager.is_running else "stopped"
+        }
+        return jsonify(status)
     except Exception as e:
-        logger.error(f"处理前端日志失败: {e}")
+        logger.error(f"获取摄像头状态失败: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/start_audio', methods=['POST'])
-def start_audio():
-    print("收到开始录音请求")
-    try:
-        success = audio_processor.start_recording()
-        if success:
-            print("录音开始成功")
-            return jsonify({"message": "开始录音", "status": "success"}), 200
-        else:
-            print("录音已在进行中")
-            return jsonify({"error": "录音已在进行中", "status": "error"}), 400
-    except Exception as e:
-        print(f"录音启动错误: {e}")
-        logger.error(f"启动录音失败: {str(e)}")
-        return jsonify({"error": str(e), "status": "error"}), 500
+@socketio.on('connect')
+def handle_connect():
+    logger.info('客户端已连接')
 
-@app.route('/stop_audio', methods=['POST'])
-def stop_audio():
-    try:
-        success, result = audio_processor.stop_recording()
-        if success:
-            return jsonify({
-                "status": "success",
-                "filename": result
-            })
-        else:
-            return jsonify({
-                "status": "error",
-                "error": result
-            }), 400
-    except Exception as e:
-        logger.error(f"停止录音失败: {e}")
-        return jsonify({
-            "status": "error",
-            "error": str(e)
-        }), 500
+@socketio.on('disconnect')
+def handle_disconnect():
+    logger.info('客户端已断开连接')
 
-# 添加一个获取录音状态的路由（可选）
-@app.route('/audio_status')
-def audio_status():
-    try:
-        status = audio_processor.get_recording_status()
-        return jsonify(status), 200
-    except Exception as e:
-        logger.error(f"获取录音状态失败: {str(e)}")
-        return jsonify({"error": str(e), "status": "error"}), 500
-
-@app.route('/audio_file/<path:filename>')
-def audio_file(filename):
-    try:
-        # 从完整路径中获取文件名
-        file_name = os.path.basename(filename)
-        audio_dir = os.path.join(os.path.dirname(__file__), 'audio', 'recordings')
-        file_path = os.path.join(audio_dir, file_name)
-        
-        if os.path.exists(file_path):
-            return send_file(file_path, mimetype='audio/wav')
-        else:
-            return jsonify({"error": "文件不存在"}), 404
-    except Exception as e:
-        logger.error(f"访问音频文件失败: {e}")
-        return jsonify({"error": str(e)}), 500
-
-# 添加 favicon 路由
-@app.route('/favicon.ico')
-def favicon():
-    return app.send_static_file('favicon.ico')
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     # 确保必要的目录存在
     os.makedirs('static', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
     
-    print(f"服务器启动在 http://localhost:5000")
-    print(f"模板目录: {template_dir}")
-    print(f"静态文件目录: {static_dir}")
+    logger.info(f"服务器启动在 http://localhost:5000")
+    logger.info(f"模板目录: {template_dir}")
+    logger.info(f"静态文件目录: {static_dir}")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)

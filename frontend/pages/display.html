@@ -364,19 +364,13 @@
             border-radius: 8px;
             background: #f8f9fa;
         }
+
         .btn {
-            width: 100%; /* 设置按钮宽度为 100% */
-            background: #00aeec;
-            color: white;
+            padding: 8px 16px;
+            margin-right: 10px;
             border: none;
-            border-radius: 6px;
-            padding: 8px 20px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            height: 36px; /* 设置按钮高度为 36px */
-            line-height: 20px;
-            font-weight: 500;
-            transition: all 0.2s ease;
         }
 
         .btn-primary {
@@ -439,6 +433,42 @@
             font-size: 12px;
             margin-top: 5px;
             text-align: right;
+        }
+
+        .stream-status {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .status-section {
+            margin-bottom: 10px;
+        }
+
+        .status-section h4 {
+            color: #7cb7ff;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .stream-status div {
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+
+        .stream-status span {
+            color: #00ff00;
+        }
+
+        .status-active {
+            color: #4CAF50 !important;
+        }
+
+        .status-inactive {
+            color: #F44336 !important;
         }
     </style>
 </head>
@@ -516,6 +546,20 @@
                 <!-- 调试面板 -->
                 <div class="debug-panel">
                     <h3>调试信息</h3>
+                    <div id="streamStatus" class="stream-status">
+                        <div class="status-section">
+                            <h4>视频流状态</h4>
+                            <div>状态: <span id="videoStreamStatus">未知</span></div>
+                            <div>FPS: <span id="videoFPS">0</span></div>
+                            <div>总帧数: <span id="totalFrames">0</span></div>
+                        </div>
+                        <div class="status-section">
+                            <h4>音频流状态</h4>
+                            <div>状态: <span id="audioStreamStatus">未知</span></div>
+                            <div>采样率: <span id="audioSampleRate">0</span></div>
+                            <div>缓冲区大小: <span id="audioBufferSize">0</span></div>
+                        </div>
+                    </div>
                     <div id="audioDebug">
                         <div>音频状态: <span id="audioStatusDebug">未开始</span></div>
                         <div>音频上下文: <span id="audioContextStatus">未初始化</span></div>
@@ -537,684 +581,180 @@
         </div>
     </main>
 
+   
 
-<!-- 加载提示 -->
-<div id="loading" class="loading" style="display: none;">
-    <span id="loadingText">加载中...</span>
-</div>
-
-<script>
-    // 全局变量声明
-    let startAudioBtn;
-    let stopAudioBtn;
-    let audioStatus;
-    let mediaStream = null;
-    let audioContext;
-    let analyser;
-    let audioSource;
-    let audioDataInterval;
-    let socket = io(); // 假设你已经初始化了socket.io客户端
-    // 更新摄像头状态显示
-    function updateCameraStatus(isRunning) {
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        
-        if (startBtn && stopBtn) {
-            startBtn.disabled = isRunning;
-            stopBtn.disabled = !isRunning;
-        }
-        
-        console.log('摄像头状态:', isRunning ? '运行中':'已停止');
-    }
-    function startCapture() {
-        console.log('点击启动摄像头按钮');
-        
-        if (!startBtn || !stopBtn) {
-            console.error('按钮元素未找到');
-            return;
-        }
-
-        const startTime = performance.now();
-        showLoading("正在初始化摄像头...");
-        
-        fetch('/start_capture', {
-            method: 'POST'
-        })
-        .then(response => {
-            console.log('收到服务器响应', { status: response.status });
-            return response.json();
-        })
-        .then(data => {
-            const endTime = performance.now();
-            const timeElapsed = ((endTime - startTime) / 1000).toFixed(2);
-            console.log('摄像头启动完成', { timeElapsed });
-            
-            if (data.status === 'success') {
-                console.log('摄像头启动成功，更新按钮状态');
-                updateCameraStatus(true);
-                // 显示视频预览
-                const preview = document.getElementById('preview');
-                if (preview) {
-                    preview.style.display = 'block';
-                    preview.src = '/video_feed?' + new Date().getTime();
-                }
-            } else {
-                throw new Error(data.error || '启动失败');
-            }
-        })
-        .catch(error => {
-            console.error('启动摄像头失败', { error: error.message });
-            alert('启动摄像头失败: ' + error.message);
-        })
-        .finally(() => {
-            hideLoading();
-        });
-    }
-
-    // 停止摄像头
-    async function stopCapture() {
-        console.log('尝试停止摄像头...');
-        try {
-            const response = await fetch('/stop_capture', { 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                updateCameraStatus(false);
-                const preview = document.getElementById('preview');
-                preview.style.display = 'none';
-                preview.src = '';
-            } else {
-                throw new Error('停止摄像头失败');
-            }
-        } catch (error) {
-            console.error('停止摄像头错误:', error);
-            alert('停止摄像头失败: ' + error.message);
-        }
-    }
-
-    // 页面加载时初始化
-    window.onload = function() {
-        console.log('页面加载完成');
-        updateCameraStatus(false);
-    };
-
-    // 加入房间
-    async function joinRoom() {
-        const roomId = document.getElementById('roomInput').value;
-        if (!roomId) {
-            alert('请输入房间号');
-            return;
-        }
-        
-        socket.emit('join_room', { room_id: roomId });
-    }
-
-    // 监听Socket.IO事件
-    socket.on('room_joined', (data) => {
-        console.log('成功加入房间:', data);
-        document.getElementById('joinBtn').disabled = true;
-        document.getElementById('roomInput').disabled = true;
-    });
-
-    socket.on('error', (data) => {
-        console.error('错误:', data.message);
-        alert(data.message);
-    });
-
-    function showLoading(text) {
-        const loading = document.getElementById('loading');
-        const loadingText = document.getElementById('loadingText');
-        if (loading && loadingText) {
-            loadingText.textContent = text;
-            loading.style.display = 'block';
-        }
-    }
-
-    function hideLoading() {
-        const loading = document.getElementById('loading');
-        if (loading) {
-            loading.style.display = 'none';
-        }
-    }
-
-
-    
-    // 检查浏览器支持
-    function checkMediaSupport() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            console.log("浏览器不支持 getUserMedia");
-            // 老版本浏览器可能需要使用前缀
-            navigator.mediaDevices = {};
-            navigator.mediaDevices.getUserMedia = function(constraints) {
-                let getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-                
-                if (!getUserMedia) {
-                    alert('您的浏览器不支持音频录制，请使用最新版本的 Chrome/Firefox/Edge');
-                    return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
-                }
-
-                return new Promise(function(resolve, reject) {
-                    getUserMedia.call(navigator, constraints, resolve, reject);
-                });
-            }
-        }
-    }
-
-    // 更新调试信息
-    function updateDebugInfo(info) {
-        const audioStatusDebug = document.getElementById('audioStatusDebug');
-        const audioContextStatus = document.getElementById('audioContextStatus');
-        const sampleRate = document.getElementById('sampleRate');
-        const micStatus = document.getElementById('micStatus');
-        const trackInfo = document.getElementById('trackInfo');
-
-        if (info.status) audioStatusDebug.textContent = info.status;
-        if (info.contextStatus) audioContextStatus.textContent = info.contextStatus;
-        if (info.sampleRate) sampleRate.textContent = `${info.sampleRate} Hz`;
-        if (info.micStatus) micStatus.textContent = info.micStatus;
-        if (info.trackInfo) trackInfo.textContent = info.trackInfo;
-    }
-
-    // 创建音频上下文和分析器
-    function createAudioContext(stream) {
-        audioContext = new AudioContext();
-        analyser = audioContext.createAnalyser();
-        audioSource = audioContext.createMediaStreamSource(stream);
-        audioSource.connect(analyser);
-        analyser.connect(audioContext.destination);
-        analyser.fftSize = 2048;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-
-        function updateVolume() {
-            if (audioContext.state === 'running') {
-                analyser.getByteTimeDomainData(dataArray);
-                const values = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
-                const volume = values / 128; // Normalize to 0-1 range
-                const db = 20 * Math.log10(volume + 1e-6); // Convert to dB
-                const normalizedLevel = Math.max(0, Math.min(100, (db + 60) * 1.67)); // Normalize to 0-100 range
-
-                const volumeBar = document.getElementById('volumeBar');
-                const volumeValue = document.getElementById('volumeValue');
-                volumeBar.style.width = `${normalizedLevel}%`;
-                volumeValue.textContent = `${db.toFixed(1)} dB`;
-
-                requestAnimationFrame(updateVolume);
-            }
-        }
-
-        requestAnimationFrame(updateVolume);
-    }
-
-    // 初始化函数
-    function initializeAudioControls() {
-        console.log('初始化音频控制');
-        
-        // 检查媒体设备支持
-        checkMediaSupport();
-        
-        // 获取 DOM 元素
-        startAudioBtn = document.getElementById('startAudio');
-        stopAudioBtn = document.getElementById('stopAudio');
-        audioStatus = document.querySelector('#audioStatus .status-value');
-        
-        if (!startAudioBtn || !stopAudioBtn || !audioStatus) {
-            console.error('未找到必要的 DOM 元素');
-            return;
-        }
-        
-        console.log('找到按钮:', startAudioBtn, stopAudioBtn);
-
-        // 绑定开始录音事件
-        startAudioBtn.addEventListener('click', async function() {
-            console.log('点击开始录音按钮');
-            updateDebugInfo({
-                status: '正在请求麦克风权限...',
-                contextStatus: '初始化中',
-                micStatus: '等待授权'
-            });
-
-            try {
-                // 请求音频权限
-                mediaStream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        sampleRate: 44100
-                    }
-                });
-                
-                console.log('获取到音频流:', mediaStream);
-                const audioTrack = mediaStream.getAudioTracks()[0];
-                const settings = audioTrack.getSettings();
-                
-                updateDebugInfo({
-                    status: '已获取音频流',
-                    contextStatus: '已连接',
-                    sampleRate: settings.sampleRate || 44100,
-                    micStatus: '已授权',
-                    trackInfo: `${audioTrack.label || '默认麦克风'}`
-                });
-                
-                // 创建音频上下文并开始更新音量条
-                createAudioContext(mediaStream);
-
-                // 开始录音
-                fetch('/start_audio', { 
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        console.log('录音开始成功');
-                        if (audioStatus) {
-                            audioStatus.textContent = '录音中...';
-                        }
-                        updateDebugInfo({
-                            status: '录音中',
-                            contextStatus: '活动',
-                        });
-                        startAudioBtn.disabled = true;
-                        stopAudioBtn.disabled = false;
-                    } else {
-                        throw new Error(data.error || '启动录音失败');
-                    }
-                })
-                .catch(error => {
-                    console.error('启动录音失败:', error);
-                    if (audioStatus) {
-                        audioStatus.textContent = '启动失败';
-                    }
-                    updateDebugInfo({
-                        status: '启动失败',
-                        contextStatus: '错误',
-                    });
-                });
-                
-            } catch (error) {
-                console.error('获取音频权限失败:', error);
-                if (audioStatus) {
-                    audioStatus.textContent = '获取权限失败';
-                }
-                updateDebugInfo({
-                    status: '权限获取失败',
-                    contextStatus: '错误',
-                    micStatus: '未授权'
-                });
-            }
-        });
-
-        // 绑定停止录音事件
-        stopAudioBtn.addEventListener('click', function() {
-            console.log('点击停止录音按钮');
-            
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-                mediaStream = null;
-                updateDebugInfo({
-                    status: '正在停止录音',
-                    contextStatus: '正在关闭',
-                    micStatus: '已关闭'
-                });
-            }
-            
-            if (audioContext) {
-                audioContext.close();
-                audioContext = null;
-                analyser = null;
-                audioSource = null;
-            }
-
-            fetch('/stop_audio', { 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    console.log('录音停止成功');
-                    if (audioStatus) {
-                        audioStatus.textContent = '录音已停止';
-                    }
-                    updateDebugInfo({
-                        status: '录音已停止',
-                        contextStatus: '已关闭',
-                        micStatus: '已关闭',
-                        trackInfo: '无'
-                    });
-                    startAudioBtn.disabled = false;
-                    stopAudioBtn.disabled = true;
-                } else {
-                    throw new Error(data.error || '停止录音失败');
-                }
-            })
-            .catch(error => {
-                console.error('停止录音失败:', error);
-                if (audioStatus) {
-                    audioStatus.textContent = '停止失败';
-                }
-                updateDebugInfo({
-                    status: '停止失败',
-                    contextStatus: '错误'
-                });
-            });
-        });
-
-        // 初始化调试信息
-        updateDebugInfo({
-            status: '未开始',
-            contextStatus: '未初始化',
-            sampleRate: '-',
-            micStatus: '未开启',
-            trackInfo: '无'
-        });
-    }
-
-    // 页面加载完成后初始化
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('页面开始初始化');
-        initializeAudioControls();
-        console.log('页面初始化完成');
-    });
-
-    // 页面卸载时清理资源
-    window.addEventListener('beforeunload', () => {
-        if (mediaStream) {
-            mediaStream.getTracks().forEach(track => track.stop());
-        }
-        if (audioContext) {
-            audioContext.close();
-            audioContext = null;
-            analyser = null;
-            audioSource = null;
-        }
-    });
-
-    
-
-    </script>
-</body>
-</html> 
-
-
-
-<!-- 以下是只包括音频处理部分的 -->
-    <!-- 加载提示
+    <!-- 加载提示 -->
     <div id="loading" class="loading" style="display: none;">
         <span id="loadingText">加载中...</span>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
-        // 全局变量声明
-        let startAudioBtn;
-        let stopAudioBtn;
-        let audioStatus;
-        let mediaStream = null;
-        let audioDataInterval;
+    document.addEventListener('DOMContentLoaded', function() {
+        const socket = io({
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: 5
+        });
+        const preview = document.getElementById('preview');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const startAudio = document.getElementById('startAudio');
+        const stopAudio = document.getElementById('stopAudio');
+        const volumeBar = document.getElementById('volumeBar');
+        const volumeValue = document.getElementById('volumeValue');
+        const audioStatusDebug = document.getElementById('audioStatusDebug');
+        const micStatus = document.getElementById('micStatus');
 
-        // 检查浏览器支持
-        function checkMediaSupport() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                console.log("浏览器不支持 getUserMedia");
-                // 老版本浏览器可能需要使用前缀
-                navigator.mediaDevices = {};
-                navigator.mediaDevices.getUserMedia = function(constraints) {
-                    let getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-                    
-                    if (!getUserMedia) {
-                        alert('您的浏览器不支持音频录制，请使用最新版本的 Chrome/Firefox/Edge');
-                        return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+        // 摄像头控制
+        startBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/start_capture', { method: 'POST' });
+                if (response.ok) {
+                    preview.src = '/video_feed';
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    updateDebugInfo('摄像头已开启');
+                }
+            } catch (error) {
+                console.error('启动摄像头失败:', error);
+                updateDebugInfo('启动摄像头失败');
+            }
+        });
+
+        stopBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/stop_capture', { method: 'POST' });
+                if (response.ok) {
+                    preview.src = '';
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    updateDebugInfo('摄像头已关闭');
+                }
+            } catch (error) {
+                console.error('关闭摄像头失败:', error);
+                updateDebugInfo('关闭摄像头失败');
+            }
+        });
+
+        // 音频控制
+        startAudio.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/start_audio', { method: 'POST' });
+                if (response.ok) {
+                    startAudio.disabled = true;
+                    stopAudio.disabled = false;
+                    updateDebugInfo('开始录音');
+                }
+            } catch (error) {
+                console.error('启动录音失败:', error);
+                updateDebugInfo('启动录音失败');
+            }
+        });
+
+        stopAudio.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/stop_audio', { method: 'POST' });
+                if (response.ok) {
+                    startAudio.disabled = false;
+                    stopAudio.disabled = true;
+                    updateDebugInfo('停止录音');
+                    // 重置音量条
+                    const volumeBar = document.getElementById('volumeBar');
+                    const volumeValue = document.getElementById('volumeValue');
+                    if (volumeBar && volumeValue) {
+                        volumeBar.style.width = '0%';
+                        volumeValue.textContent = '0 dB';
                     }
+                }
+            } catch (error) {
+                console.error('停止录音失败:', error);
+                updateDebugInfo('停止录音失败');
+            }
+        });
 
-                    return new Promise(function(resolve, reject) {
-                        getUserMedia.call(navigator, constraints, resolve, reject);
-                    });
+        // 音量更新处理
+        socket.on('volume_update', (data) => {
+            const volume = Math.min(data.volume * 2, 100); // 调整音量显示范围
+            
+            if (volumeBar && volumeValue) {
+                volumeBar.style.width = `${volume}%`;
+                volumeValue.textContent = `${volume.toFixed(1)} dB`;
+                
+                // 根据音量大小改变颜色
+                if (volume < 30) {
+                    volumeBar.style.background = '#4CAF50';
+                } else if (volume < 70) {
+                    volumeBar.style.background = '#FFC107';
+                } else {
+                    volumeBar.style.background = '#F44336';
+                }
+            }
+            
+            // 添加调试输出
+            console.log('收到音量更新:', volume);
+        });
+
+        function updateDebugInfo(message) {
+            const debugInfo = document.getElementById('audioDebug');
+            if (debugInfo) {
+                const timestamp = new Date().toLocaleTimeString();
+                const statusDiv = document.createElement('div');
+                statusDiv.textContent = `${timestamp}: ${message}`;
+                debugInfo.appendChild(statusDiv);
+                
+                // 保持最新的5条记录
+                while (debugInfo.children.length > 5) {
+                    debugInfo.removeChild(debugInfo.firstChild);
                 }
             }
         }
 
-        // 更新调试信息
-        function updateDebugInfo(info) {
-            const audioStatusDebug = document.getElementById('audioStatusDebug');
-            const audioContextStatus = document.getElementById('audioContextStatus');
-            const sampleRate = document.getElementById('sampleRate');
-            const micStatus = document.getElementById('micStatus');
-            const trackInfo = document.getElementById('trackInfo');
+        // 添加Socket连接状态监控
+        socket.on('connect', () => {
+            console.log('Socket已连接');
+            updateDebugInfo('Socket已连接');
+        });
 
-            if (info.status) audioStatusDebug.textContent = info.status;
-            if (info.contextStatus) audioContextStatus.textContent = info.contextStatus;
-            if (info.sampleRate) sampleRate.textContent = `${info.sampleRate} Hz`;
-            if (info.micStatus) micStatus.textContent = info.micStatus;
-            if (info.trackInfo) trackInfo.textContent = info.trackInfo;
-        }
+        socket.on('disconnect', () => {
+            console.log('Socket已断开');
+            updateDebugInfo('Socket已断开');
+        });
 
-        // 初始化函数
-        function initializeAudioControls() {
-            console.log('初始化音频控制');
-            
-            // 检查媒体设备支持
-            checkMediaSupport();
-            
-            // 获取 DOM 元素
-            startAudioBtn = document.getElementById('startAudio');
-            stopAudioBtn = document.getElementById('stopAudio');
-            audioStatus = document.querySelector('#audioStatus .status-value');
-            
-            if (!startAudioBtn || !stopAudioBtn || !audioStatus) {
-                console.error('未找到必要的 DOM 元素');
-                return;
-            }
-            
-            console.log('找到按钮:', startAudioBtn, stopAudioBtn);
-
-            // 绑定开始录音事件
-            startAudioBtn.addEventListener('click', async function() {
-                console.log('点击开始录音按钮');
-                updateDebugInfo({
-                    status: '正在请求麦克风权限...',
-                    contextStatus: '初始化中',
-                    micStatus: '等待授权'
-                });
-
-                try {
-                    // 请求音频权限
-                    mediaStream = await navigator.mediaDevices.getUserMedia({
-                        audio: {
-                            echoCancellation: true,
-                            noiseSuppression: true,
-                            sampleRate: 44100
-                        }
-                    });
-                    
-                    console.log('获取到音频流:', mediaStream);
-                    const audioTrack = mediaStream.getAudioTracks()[0];
-                    const settings = audioTrack.getSettings();
-                    
-                    updateDebugInfo({
-                        status: '已获取音频流',
-                        contextStatus: '已连接',
-                        sampleRate: settings.sampleRate || 44100,
-                        micStatus: '已授权',
-                        trackInfo: `${audioTrack.label || '默认麦克风'}`
-                    });
-                    
-                    // 开始录音
-                    fetch('/start_audio', { 
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            console.log('录音开始成功');
-                            if (audioStatus) {
-                                audioStatus.textContent = '录音中...';
-                            }
-                            updateDebugInfo({
-                                status: '录音中',
-                                contextStatus: '活动',
-                            });
-                            startAudioBtn.disabled = true;
-                            stopAudioBtn.disabled = false;
-                        } else {
-                            throw new Error(data.error || '启动录音失败');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('启动录音失败:', error);
-                        if (audioStatus) {
-                            audioStatus.textContent = '启动失败';
-                        }
-                        updateDebugInfo({
-                            status: '启动失败',
-                            contextStatus: '错误',
-                        });
-                    });
-                    
-                } catch (error) {
-                    console.error('获取音频权限失败:', error);
-                    if (audioStatus) {
-                        audioStatus.textContent = '获取权限失败';
-                    }
-                    updateDebugInfo({
-                        status: '权限获取失败',
-                        contextStatus: '错误',
-                        micStatus: '未授权'
-                    });
-                }
-            });
-
-            // 绑定停止录音事件
-            stopAudioBtn.addEventListener('click', function() {
-                console.log('点击停止录音按钮');
-                
-                if (mediaStream) {
-                    mediaStream.getTracks().forEach(track => track.stop());
-                    mediaStream = null;
-                    updateDebugInfo({
-                        status: '正在停止录音',
-                        contextStatus: '正在关闭',
-                        micStatus: '已关闭'
-                    });
-                }
-                
-                fetch('/stop_audio', { 
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
+        // 添加流状态监控
+        function updateStreamStatus() {
+            fetch('/check_stream_status')
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'success') {
-                        console.log('录音停止成功');
-                        if (audioStatus) {
-                            audioStatus.textContent = '录音已停止';
-                        }
-                        updateDebugInfo({
-                            status: '录音已停止',
-                            contextStatus: '已关闭',
-                            micStatus: '已关闭',
-                            trackInfo: '无'
-                        });
-                        startAudioBtn.disabled = false;
-                        stopAudioBtn.disabled = true;
-                    } else {
-                        throw new Error(data.error || '停止录音失败');
-                    }
+                    // 更新视频状态
+                    const videoStatus = document.getElementById('videoStreamStatus');
+                    const videoFPS = document.getElementById('videoFPS');
+                    const totalFrames = document.getElementById('totalFrames');
+                    
+                    videoStatus.textContent = data.video.is_streaming ? '正在流传输' : '未传输';
+                    videoStatus.className = data.video.is_streaming ? 'status-active' : 'status-inactive';
+                    videoFPS.textContent = data.video.fps;
+                    totalFrames.textContent = data.video.frame_count;
+
+                    // 更新音频状态
+                    const audioStatus = document.getElementById('audioStreamStatus');
+                    const audioSampleRate = document.getElementById('audioSampleRate');
+                    const audioBufferSize = document.getElementById('audioBufferSize');
+                    
+                    audioStatus.textContent = data.audio.is_recording ? '正在录制' : '未录制';
+                    audioStatus.className = data.audio.is_recording ? 'status-active' : 'status-inactive';
+                    audioSampleRate.textContent = data.audio.sample_rate;
+                    audioBufferSize.textContent = data.audio.buffer_size;
                 })
                 .catch(error => {
-                    console.error('停止录音失败:', error);
-                    if (audioStatus) {
-                        audioStatus.textContent = '停止失败';
-                    }
-                    updateDebugInfo({
-                        status: '停止失败',
-                        contextStatus: '错误'
-                    });
+                    console.error('获取流状态失败:', error);
                 });
-            });
-
-            // 初始化调试信息
-            updateDebugInfo({
-                status: '未开始',
-                contextStatus: '未初始化',
-                sampleRate: '-',
-                micStatus: '未开启',
-                trackInfo: '无'
-            });
         }
 
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('页面开始初始化');
-            initializeAudioControls();
-            console.log('页面初始化完成');
-        });
-
-        // 页面卸载时清理资源
-        window.addEventListener('beforeunload', () => {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-            }
-        });
-
-        function startAudioStream() {
-            socket.emit('start_stream');
-            
-            // 开始定期请求音频数据
-            audioDataInterval = setInterval(() => {
-                socket.emit('request_audio_data');
-            }, 100);  // 每100ms请求一次
-        }
-
-        function stopAudioStream() {
-            socket.emit('stop_stream');
-            if (audioDataInterval) {
-                clearInterval(audioDataInterval);
-                audioDataInterval = null;
-            }
-        }
-
-        // 处理音频数据
-        socket.on('audio_data', (data) => {
-            // 更新音量显示
-            const volumeBar = document.getElementById('volumeBar');
-            const volumeValue = document.getElementById('volumeValue');
-            
-            // 将音量级别转换为分贝值
-            const db = 20 * Math.log10(data.level + 1e-6);
-            const normalizedLevel = Math.max(0, Math.min(100, (db + 60) * 1.67));
-            
-            volumeBar.style.width = `${normalizedLevel}%`;
-            volumeValue.textContent = `${db.toFixed(1)} dB`;
-            
-            // 更新调试信息
-            updateDebugInfo({
-                status: '正在录音',
-                audioLevel: `${db.toFixed(1)} dB`,
-                sampleRate: `${data.sample_rate} Hz`
-            });
-        });
-
-        // 处理流状态更新
-        socket.on('stream_status', (data) => {
-            updateDebugInfo({
-                status: data.message,
-                contextStatus: data.status
-            });
-        });
+        // 每秒更新一次状态
+        setInterval(updateStreamStatus, 1000);
+    });
     </script>
 </body>
-</html> -->
+</html>
