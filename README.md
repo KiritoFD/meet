@@ -27,6 +27,7 @@ https://www.win-rar.com/download.html?&L=0
 复制当前路径
 
 用anaconda prompt 进入项目根目录，输入以下命令：
+(本压缩包目前在dev分支，如果发现找不到压缩包的切换到dev分支下载一下)
 
     tar -xvf meet6.tar.gz -C 
 在这一行后粘贴刚才复制的路径，enter
