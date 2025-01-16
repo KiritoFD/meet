@@ -7,14 +7,14 @@
 
 由于原理的创新，即使我们的系统出现故障，也不会显现出你未经收拾的房间的画面，而只会显示背景，大大提高了不收拾房间就开正式会议的危险程度（我一直害怕传统的虚拟背景会突然崩溃）；更好的是，我们正在努力通过得到的数据自动把你摆到正确的位置上--再也不用调整摄像头角度了，尤其是如果你的摄像头在笔记本电脑的键盘上，你就会知道这是多么有用。
 
-本项目基于 MediaPipe 的实时人体姿态估计与异物消除系统，实现了上述功能。
-
-希望我们的项目能让你轻松而放心地以最佳的真实面貌地出现在正式的视频会议里。
 
 ## 快速开始
 
 ### 方法1：使用打包好的环境（推荐）
 
+1. 解压环境：
+先安装anaconda https://www.anaconda.com/download/success 下载
+=======
 0.安装软件：
 
 先安装anaconda
@@ -22,13 +22,6 @@ https://www.anaconda.com/download/success 下载
 安装WinRAR用于解压
 https://www.win-rar.com/download.html?&L=0
 1. 解压环境：
-
-
-win+r 打开cmd ,输入自己的anaconda安装路径
-
-    cd anaconda3\envs
-
-    mkdir -p meet6
 
     cd meet6
 复制当前路径
@@ -44,8 +37,9 @@ win+r 打开cmd ,输入自己的anaconda安装路径
     cd meet
 
 运行run.py
-
 程序运行后，打开浏览器访问 `http://127.0.0.1:5000/`。
+
+
 
 ## 功能
 
