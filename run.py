@@ -43,7 +43,7 @@ UPLOAD_FOLDER = os.path.join(project_root, 'uploads')
 # 初始化 Socket.IO
 socketio = SocketIO(app, cors_allowed_origins="*")
 socket_manager = SocketManager(socketio, audio_processor)
-pose_sender = PoseSender(socketio, socket_manager.room_manager)
+pose_sender = PoseSender(socketio, socket_manager)
 
 # MediaPipe 初始化
 mp_pose = mp.solutions.pose

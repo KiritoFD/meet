@@ -1,6 +1,6 @@
 import socketio
 import logging
-from typing import Optional
+from typing import Dict, Any, Callable, Optional
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -9,18 +9,24 @@ logger = logging.getLogger(__name__)
 class ConnectionConfig:
     """Socket连接配置"""
     url: str = 'http://localhost:5000'
-    reconnection: bool = True
-    reconnection_attempts: int = 5
-    reconnection_delay: int = 1000
+    reconnect_attempts: int = 5
+    reconnect_delay: int = 1000
+    heartbeat_interval: int = 25000
 
 class SocketManager:
-    def __init__(self, config: Optional[ConnectionConfig] = None):
+    def __init__(self, socketio, audio_processor=None, config: ConnectionConfig = None):
+        """初始化连接管理器
+        Args:
+            socketio: Socket.IO客户端实例
+            audio_processor: 音频处理器(可选)
+            config: 连接配置(可选)
+        """
+        self.sio = socketio
+        self.audio_processor = audio_processor
         self.config = config or ConnectionConfig()
-        self.sio = socketio.Client()
-        self.connected = False
-        self.setup_handlers()
+        self._setup_handlers()
         
-    def setup_handlers(self):
+    def _setup_handlers(self):
         """设置事件处理器"""
         @self.sio.event
         def connect():
