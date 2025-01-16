@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Scene Saver</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e3e5e7;
+            padding: 16px 0;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        h1 {
+            color: #00aeec;
+            margin: 0;
+            font-size: 26px;
+        }
+
+        main {
+            display: flex;
+            gap: 50px;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 0 50px;
+        }
+
+        .left-panel {
+            flex: 1;
+            background: black;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 800px;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .right-panel {
+            width: 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        #preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .controls-group {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .controls-group h3 {
+            color: #00aeec;
+            font-size: 15px;
+            margin: 0 0 16px 0;
+            font-weight: normal;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .status-active {
+            background-color: #4CAF50;
+        }
+
+        /* 按钮样式 */
+        button {
+            background: #00aeec;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            height: 36px;
+            line-height: 20px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        button.full-width {
+            width: 100%;
+        }
+
+        button.outline {
+            background: white;
+            color: #00aeec;
+            border: 1px solid #00aeec;
+        }
+
+        button.outline:hover {
+            background: #f6fdff;
+            border-color: #33bef0;
+            color: #33bef0;
+            box-shadow: 0 2px 8px rgba(0,174,236,0.15);
+        }
+
+        button:hover {
+            background: #33bef0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,174,236,0.3);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .single-button {
+            width: auto;
+            min-width: unset;
+            display: inline-block;
+            margin-right: 16px;
+        }
+
+        .single-button-container {
+            margin-bottom: 20px;
+        }
+
+        /* 滑块样式 */
+        .slider-container {
+            margin: 16px 0;
+            background: #f5f5f5;
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            height: 3px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin: 12px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 4px;
+            height: 16px;
+            background: #00aeec;
+            border-radius: 2px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Firefox样式 */
+        input[type="range"]::-moz-range-thumb {
+            width: 4px;
+            height: 16px;
+            background: #00aeec;
+            border-radius: 2px;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* 添加刻度标记 */
+        input[type="range"] {
+            background: linear-gradient(to right, 
+                #e0e0e0 0%, #e0e0e0 25%, 
+                #00aeec 25%, #00aeec 26%,
+                #e0e0e0 26%, #e0e0e0 50%,
+                #00aeec 50%, #00aeec 51%,
+                #e0e0e0 51%, #e0e0e0 75%,
+                #00aeec 75%, #00aeec 76%,
+                #e0e0e0 76%, #e0e0e0 100%
+            );
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .value-display {
+            float: right;
+            color: #666;
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: #666;
+            vertical-align: middle;
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+
+        .control-panel {
+            margin: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .camera-controls,
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .audio-status {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .status-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .status-label {
+            font-weight: bold;
+        }
+
+        .status-value {
+            color: #6c757d;
+        }
+
+        .last-recording {
+            margin-top: 10px;
+        }
+
+        #audioPlayer {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .debug-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #2d2d2d;
+            color: #fff;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+
+        .debug-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #7cb7ff;
+        }
+
+        #audioDebug div {
+            margin: 5px 0;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #audioDebug span {
+            color: #00ff00;
+        }
+
+        .video-container {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .local-video,
+        .remote-video {
+            position: relative;
+            width: 400px;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .video-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .audio-controls {
+            margin: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:disabled {
+            background: #ccc;
+        }
+
+        .audio-status {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .status-label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .audio-meter {
+            margin-top: 10px;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+        }
+
+        .meter-label {
+            color: #fff;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .meter-bar {
+            height: 20px;
+            background: #222;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #4CAF50, #FFC107, #F44336);
+            transition: width 0.1s ease;
+        }
+
+        #volumeValue {
+            color: #fff;
+            font-size: 12px;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .stream-status {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .status-section {
+            margin-bottom: 10px;
+        }
+
+        .status-section h4 {
+            color: #7cb7ff;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .stream-status div {
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+
+        .stream-status span {
+            color: #00ff00;
+        }
+
+        .status-active {
+            color: #4CAF50 !important;
+        }
+
+        .status-inactive {
+            color: #F44336 !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Meeting Scene Saver</h1>
+    </header>
+
+    <main>
+        <div class="left-panel">
+            <img id="preview" src="" alt="摄像头预览" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+
+        <div class="right-panel">
+            <div class="controls-group">
+                <h3>摄像头状态</h3>
+                <div class="room-controls">
+                    <input type="text" id="roomInput" placeholder="输入房间号">
+                    <button onclick="joinRoom()" id="joinBtn">加入房间</button>
+                </div>
+                <div class="controls">
+                    <button id="startBtn">启动摄像头</button>
+                    <button id="stopBtn" disabled>停止摄像头</button>
+                </div>
+            </div>
+
+            <div class="controls-group">
+                <h3>显示设置</h3>
+                <div class="button-group">
+                    <button>切换预览</button>
+                    <button>切换骨骼显示</button>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>骨骼线条粗细</span>
+                        <span>2</span>
+                    </div>
+                    <input type="range" id="lineWidthSlider" min="1" max="10" value="2">
+                </div>
+            </div>
+
+            <div class="controls-group">
+                <h3>模型设置</h3>
+                <button class="outline" style="margin-bottom: 12px;">上传模型</button>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>模型大小</span>
+                        <span>1.0</span>
+                    </div>
+                    <input type="range" id="modelSizeSlider" min="0.1" max="2" value="1.0" step="0.1">
+                </div>
+            </div>
+
+            <div class="controls-group">
+                <h3>背景设置</h3>
+                <button class="outline" style="margin-bottom: 12px;">上传背景</button>
+                <button>移除背景</button>
+            </div>
+
+            <div class="control-panel">
+                <!-- 音频控制按钮 -->
+                <div class="audio-controls">
+                    <button id="startAudio" class="btn btn-primary">
+                        <i class="fas fa-microphone"></i> 开始录音
+                    </button>
+                    <button id="stopAudio" class="btn btn-danger" disabled>
+                        <i class="fas fa-microphone-slash"></i> 停止录音
+                    </button>
+                    <div id="audioStatus" class="audio-status">
+                        <span class="status-label">录音状态:</span>
+                        <span class="status-value">未开始</span>
+                    </div>
+                </div>
+
+                <!-- 调试面板 -->
+                <div class="debug-panel">
+                    <h3>调试信息</h3>
+                    <div id="streamStatus" class="stream-status">
+                        <div class="status-section">
+                            <h4>视频流状态</h4>
+                            <div>状态: <span id="videoStreamStatus">未知</span></div>
+                            <div>FPS: <span id="videoFPS">0</span></div>
+                            <div>总帧数: <span id="totalFrames">0</span></div>
+                        </div>
+                        <div class="status-section">
+                            <h4>音频流状态</h4>
+                            <div>状态: <span id="audioStreamStatus">未知</span></div>
+                            <div>采样率: <span id="audioSampleRate">0</span></div>
+                            <div>缓冲区大小: <span id="audioBufferSize">0</span></div>
+                        </div>
+                    </div>
+                    <div id="audioDebug">
+                        <div>音频状态: <span id="audioStatusDebug">未开始</span></div>
+                        <div>音频上下文: <span id="audioContextStatus">未初始化</span></div>
+                        <div>采样率: <span id="sampleRate">-</span></div>
+                        <div>麦克风状态: <span id="micStatus">未开启</span></div>
+                        <div>音频轨道: <span id="trackInfo">无</span></div>
+                    </div>
+                </div>
+
+                <!-- 音量显示 -->
+                <div class="audio-meter">
+                    <div class="meter-label">音量级别:</div>
+                    <div class="meter-bar">
+                        <div id="volumeBar" class="meter-fill"></div>
+                    </div>
+                    <div id="volumeValue">0 dB</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+   
+
+    <!-- 加载提示 -->
+    <div id="loading" class="loading" style="display: none;">
+        <span id="loadingText">加载中...</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const socket = io({
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: 5
+        });
+        const preview = document.getElementById('preview');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const startAudio = document.getElementById('startAudio');
+        const stopAudio = document.getElementById('stopAudio');
+        const volumeBar = document.getElementById('volumeBar');
+        const volumeValue = document.getElementById('volumeValue');
+        const audioStatusDebug = document.getElementById('audioStatusDebug');
+        const micStatus = document.getElementById('micStatus');
+
+        // 摄像头控制
+        startBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/start_capture', { method: 'POST' });
+                if (response.ok) {
+                    preview.src = '/video_feed';
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    updateDebugInfo('摄像头已开启');
+                }
+            } catch (error) {
+                console.error('启动摄像头失败:', error);
+                updateDebugInfo('启动摄像头失败');
+            }
+        });
+
+        stopBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/stop_capture', { method: 'POST' });
+                if (response.ok) {
+                    preview.src = '';
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    updateDebugInfo('摄像头已关闭');
+                }
+            } catch (error) {
+                console.error('关闭摄像头失败:', error);
+                updateDebugInfo('关闭摄像头失败');
+            }
+        });
+
+        // 音频控制
+        startAudio.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/start_audio', { method: 'POST' });
+                if (response.ok) {
+                    startAudio.disabled = true;
+                    stopAudio.disabled = false;
+                    updateDebugInfo('开始录音');
+                }
+            } catch (error) {
+                console.error('启动录音失败:', error);
+                updateDebugInfo('启动录音失败');
+            }
+        });
+
+        stopAudio.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/stop_audio', { method: 'POST' });
+                if (response.ok) {
+                    startAudio.disabled = false;
+                    stopAudio.disabled = true;
+                    updateDebugInfo('停止录音');
+                    // 重置音量条
+                    const volumeBar = document.getElementById('volumeBar');
+                    const volumeValue = document.getElementById('volumeValue');
+                    if (volumeBar && volumeValue) {
+                        volumeBar.style.width = '0%';
+                        volumeValue.textContent = '0 dB';
+                    }
+                }
+            } catch (error) {
+                console.error('停止录音失败:', error);
+                updateDebugInfo('停止录音失败');
+            }
+        });
+
+        // 音量更新处理
+        socket.on('volume_update', (data) => {
+            const volume = Math.min(data.volume * 2, 100); // 调整音量显示范围
+            
+            if (volumeBar && volumeValue) {
+                volumeBar.style.width = `${volume}%`;
+                volumeValue.textContent = `${volume.toFixed(1)} dB`;
+                
+                // 根据音量大小改变颜色
+                if (volume < 30) {
+                    volumeBar.style.background = '#4CAF50';
+                } else if (volume < 70) {
+                    volumeBar.style.background = '#FFC107';
+                } else {
+                    volumeBar.style.background = '#F44336';
+                }
+            }
+            
+            // 添加调试输出
+            console.log('收到音量更新:', volume);
+        });
+
+        function updateDebugInfo(message) {
+            const debugInfo = document.getElementById('audioDebug');
+            if (debugInfo) {
+                const timestamp = new Date().toLocaleTimeString();
+                const statusDiv = document.createElement('div');
+                statusDiv.textContent = `${timestamp}: ${message}`;
+                debugInfo.appendChild(statusDiv);
+                
+                // 保持最新的5条记录
+                while (debugInfo.children.length > 5) {
+                    debugInfo.removeChild(debugInfo.firstChild);
+                }
+            }
+        }
+
+        // 添加Socket连接状态监控
+        socket.on('connect', () => {
+            console.log('Socket已连接');
+            updateDebugInfo('Socket已连接');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Socket已断开');
+            updateDebugInfo('Socket已断开');
+        });
+
+        // 添加流状态监控
+        function updateStreamStatus() {
+            fetch('/check_stream_status')
+                .then(response => response.json())
+                .then(data => {
+                    // 更新视频状态
+                    const videoStatus = document.getElementById('videoStreamStatus');
+                    const videoFPS = document.getElementById('videoFPS');
+                    const totalFrames = document.getElementById('totalFrames');
+                    
+                    videoStatus.textContent = data.video.is_streaming ? '正在流传输' : '未传输';
+                    videoStatus.className = data.video.is_streaming ? 'status-active' : 'status-inactive';
+                    videoFPS.textContent = data.video.fps;
+                    totalFrames.textContent = data.video.frame_count;
+
+                    // 更新音频状态
+                    const audioStatus = document.getElementById('audioStreamStatus');
+                    const audioSampleRate = document.getElementById('audioSampleRate');
+                    const audioBufferSize = document.getElementById('audioBufferSize');
+                    
+                    audioStatus.textContent = data.audio.is_recording ? '正在录制' : '未录制';
+                    audioStatus.className = data.audio.is_recording ? 'status-active' : 'status-inactive';
+                    audioSampleRate.textContent = data.audio.sample_rate;
+                    audioBufferSize.textContent = data.audio.buffer_size;
+                })
+                .catch(error => {
+                    console.error('获取流状态失败:', error);
+                });
+        }
+
+        // 每秒更新一次状态
+        setInterval(updateStreamStatus, 1000);
+    });
+    </script>
+</body>
+</html>
