@@ -130,3 +130,33 @@ meet/
 ## 许可证
 
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件 (您需要创建 LICENSE 文件并添加 MIT 许可证内容)。
+
+## 安全功能
+
+### 认证
+系统使用 JWT (JSON Web Token) 进行认证。在建立连接前需要先进行认证：
+
+```python
+# 认证示例
+socket_manager = SocketManager(socketio, audio_processor)
+socket_manager.authenticate({
+    'username': 'your_username',
+    'password': 'your_password'
+})
+```
+
+### 数据安全
+- 数据压缩：自动压缩大于1KB的数据
+- 数据签名：使用JWT对数据进行签名，确保完整性
+- 时间戳：防止重放攻击
+
+### 配置
+可以在 config.yaml 中配置安全选项：
+
+```yaml
+socket:
+  security:
+    encryption_enabled: true
+    compression_level: 6
+    token_expiry: 3600
+```
