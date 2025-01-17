@@ -10,11 +10,29 @@
 
 ## 快速开始
 
-### 方法1：使用打包好的环境（推荐）
+### 方法0：如果你不想自己安装conda,请运行setup.bat（windows）或setup.sh（linux）
+
+
+如果想自己动手（我们的安装脚本并不那么可靠）
+
+先安装anaconda
+https://www.anaconda.com/download/success 下载
+
+### 方法1
+    
+在项目根目录下运行
+
+    conda env create -f meet.yaml
+然后用anaconda prompt 输入以下命令：
+
+    conda activate meet
+之后就可以选择meet环境运行代码了(选择解释器)
+
+
+### 方法2：使用打包好的环境
 
 1. 解压环境：
-先安装anaconda https://www.anaconda.com/download/success 下载
-=======
+
 0.安装软件：
 
 先安装anaconda
