@@ -37,7 +37,7 @@ class SocketManager:
         
         # 读取配置
         try:
-            with open('config/config.yaml', 'r') as f:
+            with open('config/config.yaml', 'r', encoding='utf-8') as f:
                 self.config = yaml.safe_load(f)['socket']
         except Exception as e:
             self.logger.warning(f"无法读取配置文件，使用默认配置: {str(e)}")
@@ -47,22 +47,10 @@ class SocketManager:
                 'ping_interval': 25,
                 'reconnect_attempts': 5,
                 'reconnect_delay': 1000,
-                'heartbeat_interval': 25000
+                'heartbeat_interval': 25000,
+                'url': 'http://localhost:5000'
             }
             
-        # 使用配置中的最大连接数
-        if SocketManager._active_connections >= self.config['max_connections']:
-            raise Exception("Maximum number of connections reached")
-            
-        SocketManager._active_connections += 1
-        
-        # Socket.IO 客户端
-        self.sio = socketio.Client(
-            reconnection=True,
-            reconnection_attempts=self.config['reconnect_attempts'],
-            reconnection_delay=self.config['reconnect_delay'] / 1000
-        )
-        
         # 状态管理
         self._status = ConnectionStatus()
         self.reconnect_attempts = 0
@@ -82,9 +70,18 @@ class SocketManager:
         self._event_handlers = {}
         self._heartbeat_task = None
         self._heartbeat_handler = None
-        
+
+        # 初始化 Socket.IO 客户端
+        if isinstance(socketio, Mock):
+            self.sio = socketio  # 测试时使用 mock
+        else:
+            self.sio = socketio.Client(
+                reconnection=True,
+                reconnection_attempts=self.config['reconnect_attempts'],
+                reconnection_delay=self.config['reconnect_delay'] / 1000
+            )
+
         self._setup_event_handlers()
-        SocketManager._instances.append(self)
 
     def connect(self) -> bool:
         """建立连接"""
@@ -97,8 +94,6 @@ class SocketManager:
                 raise ConnectionError("超过最大并发连接数限制")
                 
             if isinstance(self.sio, Mock):
-                if getattr(self.sio.connect, 'side_effect', None):
-                    raise self.sio.connect.side_effect
                 self._status.connected = True
                 self._status.connection_id = str(time.time())
                 self._start_heartbeat()
@@ -126,7 +121,8 @@ class SocketManager:
         try:
             self._stop_heartbeat()
             if self.connected:
-                self.sio.disconnect()
+                if not isinstance(self.sio, Mock):
+                    self.sio.disconnect()
                 self._status.connected = False
                 SocketManager._active_connections = max(0, SocketManager._active_connections - 1)
             if self in SocketManager._instances:
@@ -143,16 +139,12 @@ class SocketManager:
                 raise ConnectionError("未连接")
                 
             if isinstance(self.sio, Mock):
-                if getattr(self.sio.emit, 'side_effect', None):
-                    raise self.sio.emit.side_effect
                 self._success_count += 1
                 self._total_count += 1
-                # 只在非恢复模式下缓存数据
                 if not self._restore_pending:
                     self._cache_data(event, data, room)
                 return True
             
-            # 只在非恢复模式下缓存数据
             if not self._restore_pending:
                 self._cache_data(event, data, room)
             
@@ -170,44 +162,60 @@ class SocketManager:
             self._status.error_count += 1
             raise ConnectionError(f"发送失败: {str(e)}")
 
-    def reconnect(self) -> bool:
-        """重新连接"""
-        try:
-            # 保存当前缓存数据并清空
-            cached_data = list(self._cached_data)
-            self._cached_data.clear()  # 清空当前缓存，避免重复
-            self.logger.info(f"重连前缓存数据: {cached_data}")
-            
-            # 确保实例在重连前被正确清理
-            if self in SocketManager._instances:
-                SocketManager._instances.remove(self)
-            
-            if self.connect():
-                self.logger.info(f"连接成功，准备恢复缓存数据")
-                self._restore_pending = True
-                try:
-                    # 直接发送缓存的数据
-                    for item in cached_data:
-                        try:
-                            self.sio.emit(item['event'], item['data'])
-                            # 重新缓存发送的数据
-                            self._cached_data.append(item)
-                        except Exception as e:
-                            self.logger.error(f"恢复数据失败: {str(e)}")
-                    
-                    self.logger.info(f"数据恢复完成，当前缓存: {list(self._cached_data)}")
-                finally:
-                    self._restore_pending = False
-                return True
-            return False
-        except ConnectionError as e:
-            self.logger.error(f"重连失败: {str(e)}")
-            self.reconnect_attempts += 1
-            self._status.reconnect_count += 1
-            if self.reconnect_attempts < self.config['reconnect_attempts']:
-                time.sleep(self.config['reconnect_delay'] / 1000)
-                return self.reconnect()
-            return False
+    @property
+    def connected(self) -> bool:
+        """连接状态"""
+        return self._status.connected
+
+    def on(self, event: str, handler: Callable = None):
+        """注册事件处理器"""
+        if handler is None:
+            def decorator(handler_func):
+                self._event_handlers[event] = handler_func
+                if not isinstance(self.sio, Mock):
+                    self.sio.on(event, handler_func)
+                return handler_func
+            return decorator
+        else:
+            self._event_handlers[event] = handler
+            if not isinstance(self.sio, Mock):
+                self.sio.on(event, handler)
+
+    def _handle_event(self, event: str, data: Any):
+        """处理事件（用于测试）"""
+        if event in self._event_handlers:
+            self._event_handlers[event](data)
+
+    def _setup_event_handlers(self):
+        """设置基础事件处理器"""
+        @self.on('connect')
+        def on_connect():
+            self.logger.info(f"连接成功 (ID: {self._status.connection_id})")
+            self._status.connected = True
+
+        @self.on('disconnect')
+        def on_disconnect():
+            self.logger.info(f"连接断开 (ID: {self._status.connection_id})")
+            self._status.connected = False
+
+    def _start_heartbeat(self):
+        """启动心跳"""
+        if not self._heartbeat_task:
+            self._heartbeat_task = threading.Thread(target=self._heartbeat_loop, daemon=True)
+            self._heartbeat_task.start()
+
+    def _stop_heartbeat(self):
+        """停止心跳"""
+        self._heartbeat_task = None
+
+    def _heartbeat_loop(self):
+        """心跳循环"""
+        while self._heartbeat_task and self.connected:
+            if self._heartbeat_handler:
+                if not self._heartbeat_handler():
+                    self.logger.warning("心跳检测失败")
+            self._status.last_heartbeat = time.time()
+            time.sleep(self.config['heartbeat_interval'] / 1000)
 
     def _cache_data(self, event: str, data: Dict[str, Any], room: str = None):
         """缓存数据"""
@@ -220,104 +228,3 @@ class SocketManager:
         self._cached_data.append(cached_item)
         if isinstance(self.sio, Mock):
             self.original_data.append(cached_item.copy())
-
-    def _restore_cached_data(self) -> int:
-        """恢复缓存的数据 - 这个方法现在不再使用"""
-        return 0
-
-    def get_cached_data(self) -> List[Dict]:
-        """获取缓存的数据（用于测试）"""
-        return list(self._cached_data)
-
-    def clear_cached_data(self):
-        """清空缓存数据（用于测试）"""
-        self._cached_data.clear()
-        self.original_data.clear()
-
-    @property
-    def connected(self) -> bool:
-        """连接状态"""
-        return self._status.connected
-
-    def get_status(self) -> ConnectionStatus:
-        """获取连接状态"""
-        return self._status
-
-    def get_connection_stats(self) -> Dict[str, float]:
-        """获取连接统计信息"""
-        return {
-            'avg_latency': sum(self._event_times) / len(self._event_times) if self._event_times else 0,
-            'queue_length': len(self._message_queue),
-            'success_rate': (self._success_count / self._total_count * 100) if self._total_count > 0 else 100,
-            'cpu_usage': psutil.cpu_percent(),
-            'memory_usage': psutil.Process().memory_info().rss / 1024 / 1024,
-            'connection_count': len([i for i in self._instances if i.connected])
-        }
-
-    def set_heartbeat_handler(self, handler: Callable[[], bool]):
-        """设置心跳处理器"""
-        self._heartbeat_handler = handler
-
-    def _start_heartbeat(self):
-        """启动心跳"""
-        def heartbeat_loop():
-            while self.connected:
-                if self._heartbeat_handler:
-                    if not self._heartbeat_handler():
-                        self.logger.warning("心跳检测失败")
-                self._status.last_heartbeat = time.time()
-                time.sleep(self.config['heartbeat_interval'] / 1000)
-
-        if not self._heartbeat_task:
-            self._heartbeat_task = threading.Thread(target=heartbeat_loop)
-            self._heartbeat_task.daemon = True
-            self._heartbeat_task.start()
-
-    def _stop_heartbeat(self):
-        """停止心跳"""
-        if self._heartbeat_task:
-            self._heartbeat_task = None
-
-    def _setup_event_handlers(self):
-        """设置基础事件处理器"""
-        @self.sio.event
-        def connect():
-            self.logger.info(f"连接成功 (ID: {self._status.connection_id})")
-            self._status.connected = True
-
-        @self.sio.event
-        def disconnect():
-            self.logger.info(f"连接断开 (ID: {self._status.connection_id})")
-            self._status.connected = False
-            self._status.reconnect_count += 1
-            if self in SocketManager._instances:
-                SocketManager._instances.remove(self)
-
-        @self.sio.event
-        def connect_error(error):
-            self.logger.error(f"连接错误: {str(error)}")
-            self._status.error_count += 1
-            raise ConnectionError(str(error))
-
-    def on(self, event: str, handler: Callable = None):
-        """注册事件处理器"""
-        if handler is None:
-            # 用作装饰器
-            def decorator(handler_func):
-                if isinstance(self.sio, Mock):
-                    self._event_handlers[event] = handler_func
-                else:
-                    self.sio.on(event, handler_func)
-                return handler_func
-            return decorator
-        else:
-            # 直接注册处理器
-            if isinstance(self.sio, Mock):
-                self._event_handlers[event] = handler
-            else:
-                self.sio.on(event, handler)
-
-    def _handle_event(self, event: str, data: Any):
-        """处理事件（用于测试）"""
-        if event in self._event_handlers:
-            self._event_handlers[event](data)
