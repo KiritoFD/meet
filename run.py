@@ -84,6 +84,28 @@ pose_drawer = PoseDrawer()
 audio_processor = AudioProcessor()
 audio_processor.set_socketio(socketio)
 
+def check_camera_settings(cap):
+    """检查摄像头实际参数"""
+    logger.info("摄像头当前参数:")
+    params = {
+        cv2.CAP_PROP_EXPOSURE: "曝光值",
+        cv2.CAP_PROP_BRIGHTNESS: "亮度",
+        cv2.CAP_PROP_CONTRAST: "对比度",
+        cv2.CAP_PROP_GAIN: "增益"
+    }
+    
+    for param, name in params.items():
+        value = cap.get(param)
+        logger.info(f"{name}: {value}")
+
+# 在摄像头初始化后添加:
+cap = cv2.VideoCapture(CAMERA_CONFIG['device_id'], CAMERA_CONFIG['api_preference'])
+for param, value in CAMERA_CONFIG['params'].items():
+    cap.set(param, value)
+
+# 检查设置是否生效
+check_camera_settings(cap)
+
 @app.route('/')
 def index():
     return render_template('display.html')

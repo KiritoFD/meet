@@ -1,82 +1,78 @@
 import pytest
 import numpy as np
-import time
-from pose.pose_deformer import PoseDeformer
-from pose.pose_binding import SkeletonBinding, Bone
+from connect.pose_deformer import PoseDeformer
+from connect.pose_protocol import PoseData
 
 class TestPoseDeformer:
     @pytest.fixture
     def setup_deformer(self):
         """初始化测试环境"""
-        # 创建测试绑定
-        binding = SkeletonBinding(
-            landmarks=[{'x': 0.5, 'y': 0.5, 'z': 0.0} for _ in range(33)],
-            bones=[Bone(0, 1, [2]), Bone(1, 2, []), Bone(2, 3, [])],
-            weights=np.random.rand(1000, 3)  # 1000个点，3个骨骼
-        )
-        return PoseDeformer(binding)
+        return PoseDeformer()
+
+    def test_pose_interpolation(self, setup_deformer):
+        """测试姿态插值"""
+        # 创建两个测试姿态
+        pose1 = self._create_test_pose(0.0, 0.0)
+        pose2 = self._create_test_pose(1.0, 1.0)
         
-    def test_transform_frame(self, setup_deformer):
-        """测试帧变换"""
-        deformer = setup_deformer
-        
-        # 创建测试数据
-        frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        current_pose = [
-            {'x': 0.6, 'y': 0.6, 'z': 0.0}  # 稍微移动的姿态
-            for _ in range(33)
+        # 测试0.5插值
+        interpolated = setup_deformer.interpolate(pose1, pose2, 0.5)
+        assert np.allclose(interpolated.landmarks[0]['x'], 0.5)
+        assert np.allclose(interpolated.landmarks[0]['y'], 0.5)
+
+    def test_pose_smoothing(self, setup_deformer):
+        """测试姿态平滑"""
+        # 创建带噪声的姿态序列
+        noisy_poses = [
+            self._create_test_pose(i + np.random.normal(0, 0.1))
+            for i in range(10)
         ]
         
-        # 测试变换性能
-        start_time = time.time()
-        result = deformer.transform_frame(frame, current_pose)
-        transform_time = time.time() - start_time
+        # 应用平滑
+        smoothed = setup_deformer.smooth_sequence(noisy_poses)
         
-        assert transform_time < 0.01  # 10ms内完成
-        assert result.shape == frame.shape
-        assert not np.array_equal(result, frame)  # 确保发生了变换
-        
-    def test_bone_transforms(self, setup_deformer):
-        """测试骨骼变换"""
-        deformer = setup_deformer
-        
-        # 创建测试姿态
-        current_pose = [
-            {'x': 0.5 + i*0.01, 'y': 0.5 + i*0.01, 'z': 0.0}
-            for i in range(33)
+        # 验证平滑效果
+        for i in range(1, len(smoothed)-1):
+            curr_x = smoothed[i].landmarks[0]['x']
+            prev_x = smoothed[i-1].landmarks[0]['x']
+            next_x = smoothed[i+1].landmarks[0]['x']
+            # 验证平滑度
+            assert abs(curr_x - (prev_x + next_x)/2) < 0.1
+
+    def test_pose_extrapolation(self, setup_deformer):
+        """测试姿态预测"""
+        # 创建历史姿态序列
+        history = [
+            self._create_test_pose(i * 0.1)
+            for i in range(5)
         ]
         
-        # 计算变换矩阵
-        transforms = deformer.compute_bone_transforms(current_pose)
+        # 预测下一帧
+        predicted = setup_deformer.predict_next(history)
         
-        assert len(transforms) == len(deformer.binding.bones)
-        for transform in transforms:
-            assert transform.shape == (4, 4)  # 齐次变换矩阵
+        # 验证预测趋势
+        assert predicted.landmarks[0]['x'] > history[-1].landmarks[0]['x']
+
+    def test_error_handling(self, setup_deformer):
+        """测试错误处理"""
+        # 测试无效输入
+        with pytest.raises(ValueError):
+            setup_deformer.interpolate(None, None, 0.5)
             
-    def test_deformation_stability(self, setup_deformer):
-        """测试变形稳定性"""
-        deformer = setup_deformer
-        frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        
-        # 创建轻微抖动的姿态序列
-        results = []
-        for i in range(10):
-            noise = np.random.normal(0, 0.001, (33, 3))  # 小幅抖动
-            pose = [
-                {
-                    'x': 0.5 + noise[j,0],
-                    'y': 0.5 + noise[j,1],
-                    'z': noise[j,2]
-                }
-                for j in range(33)
-            ]
-            result = deformer.transform_frame(frame, pose)
-            results.append(result)
-            
-        # 检查相邻帧的差异
-        diffs = []
-        for i in range(1, len(results)):
-            diff = np.abs(results[i] - results[i-1]).mean()
-            diffs.append(diff)
-            
-        assert max(diffs) < 1.0  # 相邻帧差异不大 
+        # 测试序列太短
+        with pytest.raises(ValueError):
+            setup_deformer.smooth_sequence([self._create_test_pose(0)])
+
+    @staticmethod
+    def _create_test_pose(x: float, y: float = None):
+        """创建测试姿态数据"""
+        if y is None:
+            y = x
+        return PoseData(
+            landmarks=[{
+                'x': x,
+                'y': y,
+                'z': 0.0,
+                'visibility': 1.0
+            }] * 33  # MediaPipe姿态点数量
+        ) 
