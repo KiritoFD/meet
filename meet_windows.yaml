@@ -42,3 +42,8 @@ dependencies:
     - scikit-image==0.25.0
     - psutil==5.9.8
     - pywin32==308  # Windows 特定包 
+    - PyJWT>=2.0.0
+    - python-socketio
+    - pytest
+    - pytest-cov
+    - cryptography  # JWT的依赖 
