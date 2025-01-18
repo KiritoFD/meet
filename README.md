@@ -8,15 +8,27 @@
 由于原理的创新，即使我们的系统出现故障，也不会显现出你未经收拾的房间的画面，而只会显示背景，大大提高了不收拾房间就开正式会议的危险程度（我一直害怕传统的虚拟背景会突然崩溃）；更好的是，我们正在努力通过得到的数据自动把你摆到正确的位置上--再也不用调整摄像头角度了，尤其是如果你的摄像头在笔记本电脑的键盘上，你就会知道这是多么有用。
 
 
+
+本项目基于 MediaPipe 的实时人体姿态估计与异物消除系统，实现了上述功能。
+
+希望我们的项目能让你轻松而放心地以最佳的真实面貌地出现在正式的视频会议里。
+
+
+
 ## 快速开始
 
 ### 方法0：如果你不想自己安装conda,请运行setup.bat（windows）或setup.sh（linux）
 
 
+
 如果想自己动手（我们的安装脚本并不那么可靠）
+=======
+0.安装软件：
+
 
 先安装anaconda
 https://www.anaconda.com/download/success 下载
+
 
 ### 方法1
     
@@ -26,6 +38,9 @@ https://www.anaconda.com/download/success 下载
     conda env create -f meet_windows.yaml
     # Linux系统：
     conda env create -f meet_linux.yaml
+=======
+win+r 打开cmd ,输入自己的anaconda安装路径
+
 
 然后用anaconda prompt 输入以下命令：
 
@@ -44,6 +59,8 @@ https://www.anaconda.com/download/success 下载
 安装WinRAR用于解压
 https://www.win-rar.com/download.html?&L=0
 1. 解压环境：
+
+
 
     cd meet6
 复制当前路径
