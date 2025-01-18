@@ -1,105 +1,152 @@
+import logging
+from typing import Dict, Optional
+import time
+from collections import deque
 import json
 import zlib
-import numpy as np
-from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
-from utils.compression import compress_data
+from .socket_manager import SocketManager
 
-@dataclass
-class PoseData:
-    pose_landmarks: Optional[List[Dict[str, float]]] = None
-    face_landmarks: Optional[List[Dict[str, float]]] = None
-    left_hand_landmarks: Optional[List[Dict[str, float]]] = None
-    right_hand_landmarks: Optional[List[Dict[str, float]]] = None
-    timestamp: float = 0.0
+logger = logging.getLogger(__name__)
 
 class PoseSender:
-    def __init__(self, socketio, room_manager):
-        self.socketio = socketio
-        self.room_manager = room_manager
-        self.last_pose = None
-        self.change_threshold = 0.005  # 变化阈值
+    def __init__(self, socket_manager: SocketManager):
+        self.socket_manager = socket_manager
         
-    def _convert_landmarks_to_dict(self, landmarks) -> List[Dict[str, float]]:
-        """将MediaPipe landmarks转换为可序列化的字典列表"""
-        if not landmarks:
-            return None
-        return [
-            {
-                'x': landmark.x,
-                'y': landmark.y,
-                'z': landmark.z,
-                'visibility': landmark.visibility if hasattr(landmark, 'visibility') else 1.0
-            }
-            for landmark in landmarks.landmark
-        ]
-    
-    def _compress_data(self, data: dict) -> bytes:
-        """压缩姿态数据"""
-        return compress_data(data)
-    
-    def _has_significant_change(self, new_pose: PoseData) -> bool:
-        """检查姿态是否有显著变化"""
-        if not self.last_pose or not new_pose.pose_landmarks:
-            return True
+        # 性能统计
+        self.frame_count = 0
+        self.frame_times = deque(maxlen=100)
+        self.stats = {
+            "fps": 0.0,
+            "latency": 0.0,
+            "success_rate": 100.0,
+            "failed_frames": 0
+        }
+
+        # 帧率控制
+        self._target_fps = 30
+        self._frame_interval = 1.0 / self._target_fps
+        self._last_frame_time = time.time()
+        self._performance_mode = True  # 默认启用性能模式
+        
+        # 压缩设置
+        self._compression_enabled = False
+        self._compression_level = 6
+        
+        # 队列管理
+        self.queue_size = 100
+        self._frame_queue = deque(maxlen=100)
+        
+        # 性能优化
+        self._json_encoder = json.JSONEncoder(separators=(',', ':'))
+        
+    def set_target_fps(self, fps: float):
+        """设置目标帧率"""
+        if fps <= 0:
+            raise ValueError("FPS must be positive")
+        self._target_fps = fps
+        self._frame_interval = 1.0 / fps
+        self._performance_mode = False  # 设置帧率时禁用性能模式
+        self._last_frame_time = time.time()  # 重置时间戳
+        
+    def enable_compression(self, enabled: bool, level: int = 6):
+        """启用或禁用压缩"""
+        self._compression_enabled = enabled
+        if 1 <= level <= 9:
+            self._compression_level = level
+        else:
+            raise ValueError("Compression level must be between 1 and 9")
+
+    def _get_data_size(self, data: dict) -> int:
+        """获取数据大小"""
+        json_str = self._json_encoder.encode(data)
+        if self._compression_enabled:
+            return len(zlib.compress(json_str.encode(), self._compression_level))
+        return len(json_str.encode())
+
+    def _compress_data(self, data: dict) -> dict:
+        """压缩数据"""
+        if not self._compression_enabled:
+            return data
             
-        if not self.last_pose.pose_landmarks:
-            return True
-            
-        # 计算关键点的平均变化
-        changes = []
-        for old, new in zip(self.last_pose.pose_landmarks, new_pose.pose_landmarks):
-            change = abs(old['x'] - new['x']) + abs(old['y'] - new['y']) + abs(old['z'] - new['z'])
-            changes.append(change)
-            
-        avg_change = np.mean(changes)
-        return avg_change > self.change_threshold
-    
-    def send_pose_data(self, room: str, pose_results, face_results, hands_results, timestamp: float):
-        """发送姿态数据到指定房间"""
         try:
-            # 检查房间是否存在
-            if not self.room_manager.room_exists(room):
-                return
-            
-            # 构建姿态数据
-            pose_data = PoseData(
-                pose_landmarks=self._convert_landmarks_to_dict(pose_results.pose_landmarks) if pose_results else None,
-                face_landmarks=self._convert_landmarks_to_dict(face_results.multi_face_landmarks[0]) if face_results and face_results.multi_face_landmarks else None,
-                left_hand_landmarks=None,
-                right_hand_landmarks=None,
-                timestamp=timestamp
-            )
-            
-            # 处理手部数据
-            if hands_results and hands_results.multi_hand_landmarks:
-                for idx, hand_landmarks in enumerate(hands_results.multi_hand_landmarks):
-                    if idx == 0:
-                        pose_data.left_hand_landmarks = self._convert_landmarks_to_dict(hand_landmarks)
-                    elif idx == 1:
-                        pose_data.right_hand_landmarks = self._convert_landmarks_to_dict(hand_landmarks)
-            
-            # 检查是否需要发送
-            if self._has_significant_change(pose_data):
-                # 转换为字典
-                data_dict = {
-                    'pose': pose_data.pose_landmarks,
-                    'face': pose_data.face_landmarks,
-                    'left_hand': pose_data.left_hand_landmarks,
-                    'right_hand': pose_data.right_hand_landmarks,
-                    'timestamp': pose_data.timestamp
-                }
-                
-                # 压缩数据
-                compressed_data = self._compress_data(data_dict)
-                
-                # 发送到房间
-                self.socketio.emit('pose_data', 
-                                 {'data': compressed_data},
-                                 room=room)
-                
-                # 更新上一帧数据
-                self.last_pose = pose_data
-                
+            json_str = self._json_encoder.encode(data)
+            compressed = zlib.compress(json_str.encode(), self._compression_level)
+            return {
+                "compressed": True,
+                "data": compressed
+            }
         except Exception as e:
-            print(f"发送姿态数据错误: {str(e)}") 
+            logger.warning(f"Compression failed: {e}")
+            return data
+
+    def send_pose_data(self, room: str, pose_results: dict, timestamp: float = None) -> bool:
+        """发送姿态数据"""
+        if not self.socket_manager.connected:
+            return False
+
+        if len(self._frame_queue) >= self.queue_size:
+            return False
+
+        try:
+            # 准备数据
+            data = {
+                'room': room,
+                'pose_data': pose_results,
+                'timestamp': timestamp or time.time(),
+                'frame_id': self.frame_count
+            }
+
+            # 压缩数据
+            compressed_data = self._compress_data(data)
+            
+            # 发送数据
+            self.socket_manager.emit('pose_frame', compressed_data)
+            
+            # 更新队列
+            self._frame_queue.append(compressed_data)
+            self.frame_count += 1
+            
+            # 帧率控制
+            if not self._performance_mode:
+                current_time = time.time()
+                elapsed = current_time - self._last_frame_time
+                if elapsed < self._frame_interval:
+                    time.sleep(self._frame_interval - elapsed)
+                self._last_frame_time = current_time + self._frame_interval
+            
+            return True
+
+        except Exception as e:
+            logger.error(f"Send error: {e}")
+            return False
+
+    def _update_stats(self, success: bool, start_time: float):
+        """更新性能统计"""
+        try:
+            end_time = time.time()
+            frame_time = end_time - start_time
+            
+            if frame_time > 0:
+                self.frame_times.append(frame_time)
+                if len(self.frame_times) >= 2:
+                    self.stats["fps"] = len(self.frame_times) / sum(self.frame_times)
+            
+            self.stats["latency"] = frame_time * 1000
+            
+            if not success:
+                self.stats["failed_frames"] += 1
+                
+            if self.frame_count > 0:
+                self.stats["success_rate"] = (
+                    (self.frame_count - self.stats["failed_frames"]) / self.frame_count * 100
+                )
+        except Exception as e:
+            logger.error(f"Stats update error: {e}")
+
+    def get_stats(self) -> Dict[str, float]:
+        """获取性能统计"""
+        return self.stats.copy()
+
+    def set_performance_mode(self, enabled: bool):
+        """设置性能模式"""
+        self._performance_mode = enabled
