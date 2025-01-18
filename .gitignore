@@ -54,8 +54,3 @@ build/
 # OS
 .DS_Store
 Thumbs.db
-
-# Git LFS
-*.tar.gz
-.git/lfs/
-.gitattributes
