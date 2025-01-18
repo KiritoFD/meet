@@ -1,4 +1,2 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-# Git LFS
-*.tar.gz filter=lfs diff=lfs merge=lfs -text

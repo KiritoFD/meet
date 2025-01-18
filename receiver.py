@@ -9,8 +9,6 @@ from flask import Flask, render_template, Response
 from flask_socketio import SocketIO
 from pose.drawer import PoseDrawer
 import time
-import torch
-from pose.smoother import FrameSmoother
 
 # 配置日志
 logging.basicConfig(
@@ -29,13 +27,13 @@ pose_drawer = PoseDrawer()
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# 初始化平滑器
-frame_smoother = FrameSmoother(
-    model_path='models/nafnet_smoother.pth',
-    device='cuda' if torch.cuda.is_available() else 'cpu',
-    buffer_size=5,
-    temporal_weight=0.8
-)
+# 依赖版本要求：
+# Flask==3.0.2
+# flask-socketio==5.3.6
+# python-socketio==5.12.0
+# eventlet==0.35.3
+# opencv-python-headless==4.9.0.80
+# numpy==1.26.4
 
 class PoseTransformManager:
     def __init__(self, max_cache_size=30):
@@ -176,11 +174,7 @@ def generate_frames():
         if initial_image is not None and current_pose is not None:
             try:
                 # 使用PoseDrawer绘制姿态
-                frame = pose_drawer.draw_pose(initial_image, current_pose)
-                
-                # 应用帧平滑
-                smoothed_frame = frame_smoother.smooth_frame(frame)
-                output_frame = smoothed_frame
+                output_frame = pose_drawer.draw_pose(initial_image, current_pose)
                 
                 # 编码并yield帧
                 ret, buffer = cv2.imencode('.jpg', output_frame)

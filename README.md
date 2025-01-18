@@ -8,49 +8,15 @@
 由于原理的创新，即使我们的系统出现故障，也不会显现出你未经收拾的房间的画面，而只会显示背景，大大提高了不收拾房间就开正式会议的危险程度（我一直害怕传统的虚拟背景会突然崩溃）；更好的是，我们正在努力通过得到的数据自动把你摆到正确的位置上--再也不用调整摄像头角度了，尤其是如果你的摄像头在笔记本电脑的键盘上，你就会知道这是多么有用。
 
 
-
 本项目基于 MediaPipe 的实时人体姿态估计与异物消除系统，实现了上述功能。
 
 希望我们的项目能让你轻松而放心地以最佳的真实面貌地出现在正式的视频会议里。
 
 
-
 ## 快速开始
 
-### 方法0：如果你不想自己安装conda,请运行setup.bat（windows）或setup.sh（linux）
+### 方法1：使用打包好的环境（推荐）
 
-
-
-如果想自己动手（我们的安装脚本并不那么可靠）
-=======
-0.安装软件：
-
-
-先安装anaconda
-https://www.anaconda.com/download/success 下载
-
-
-### 方法1
-    
-在项目根目录下运行（根据系统选择对应的配置文件）：
-
-    # Windows系统：
-    conda env create -f meet_windows.yaml
-    # Linux系统：
-    conda env create -f meet_linux.yaml
-=======
-win+r 打开cmd ,输入自己的anaconda安装路径
-
-
-然后用anaconda prompt 输入以下命令：
-
-    conda activate meet6
-之后就可以选择meet6环境运行代码了(选择解释器)
-
-
-### 方法2：使用打包好的环境
-
-1. 解压环境：
 
 0.安装软件：
 
@@ -60,13 +26,18 @@ https://www.anaconda.com/download/success 下载
 https://www.win-rar.com/download.html?&L=0
 1. 解压环境：
 
+win+r 打开cmd ,输入自己的anaconda安装路径
+
+    cd anaconda3\envs
+
+    mkdir -p meet6
+
 
 
     cd meet6
 复制当前路径
 
 用anaconda prompt 进入项目根目录，输入以下命令：
-(本压缩包目前在dev分支，如果发现找不到压缩包的切换到dev分支下载一下)
 
     tar -xvf meet6.tar.gz -C 
 在这一行后粘贴刚才复制的路径，enter
@@ -78,8 +49,6 @@ https://www.win-rar.com/download.html?&L=0
 
 运行run.py
 程序运行后，打开浏览器访问 `http://127.0.0.1:5000/`。
-
-
 
 ## 功能
 
@@ -147,33 +116,3 @@ meet/
 ## 许可证
 
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件 (您需要创建 LICENSE 文件并添加 MIT 许可证内容)。
-
-## 安全功能
-
-### 认证
-系统使用 JWT (JSON Web Token) 进行认证。在建立连接前需要先进行认证：
-
-```python
-# 认证示例
-socket_manager = SocketManager(socketio, audio_processor)
-socket_manager.authenticate({
-    'username': 'your_username',
-    'password': 'your_password'
-})
-```
-
-### 数据安全
-- 数据压缩：自动压缩大于1KB的数据
-- 数据签名：使用JWT对数据进行签名，确保完整性
-- 时间戳：防止重放攻击
-
-### 配置
-可以在 config.yaml 中配置安全选项：
-
-```yaml
-socket:
-  security:
-    encryption_enabled: true
-    compression_level: 6
-    token_expiry: 3600
-```
