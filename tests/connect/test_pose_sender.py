@@ -921,6 +921,231 @@ class TestPoseSender:
         max_diff = max(usage_values) - min(usage_values)
         assert max_diff <= len(usage_values) * 0.2  # 允许20%的不平衡
 
+    def test_performance_alerts(self, setup_sender):
+        """测试性能告警机制
+        
+        验证:
+        1. 帧率过低告警
+        2. 延迟过高告警
+        3. CPU过载告警
+        4. 内存泄漏告警
+        5. 连续发送失败告警
+        """
+        try:
+            setup_sender.start_monitoring()
+            
+            # 设置告警阈值
+            setup_sender.set_alert_thresholds(
+                min_fps=25,
+                max_latency=50,
+                max_cpu_usage=30,
+                max_memory_growth=100,
+                max_consecutive_failures=3
+            )
+            
+            # 模拟性能问题
+            alerts = []
+            def alert_callback(alert_type, message):
+                alerts.append((alert_type, message))
+            
+            setup_sender.set_alert_callback(alert_callback)
+            
+            # 模拟帧率过低
+            with patch.object(setup_sender, '_get_current_fps', return_value=15):
+                setup_sender.check_performance()
+                assert any(alert[0] == 'low_fps' for alert in alerts)
+            
+            # 模拟高延迟
+            with patch.object(setup_sender, '_get_current_latency', return_value=150):
+                setup_sender.check_performance()
+                assert any(alert[0] == 'high_latency' for alert in alerts)
+            
+            # 模拟CPU过载
+            with patch.object(setup_sender, '_get_cpu_usage', return_value=60):
+                setup_sender.check_performance()
+                assert any(alert[0] == 'cpu_overload' for alert in alerts)
+            
+            # 模拟内存泄漏
+            with patch.object(setup_sender, '_get_memory_growth', return_value=200):
+                setup_sender.check_performance()
+                assert any(alert[0] == 'memory_leak' for alert in alerts)
+            
+            # 模拟连续失败
+            for _ in range(4):
+                setup_sender._record_send_failure()
+            assert any(alert[0] == 'consecutive_failures' for alert in alerts)
+            
+        finally:
+            setup_sender.stop_monitoring()
+
+    def test_queue_management_advanced(self, setup_sender):
+        """测试高级队列管理功能
+        
+        验证:
+        1. 队列优先级
+        2. 队列清理策略
+        3. 队列状态监控
+        4. 队列容量自适应
+        """
+        # 设置队列配置
+        setup_sender.set_queue_config(
+            max_size=100,
+            priority_levels=3,
+            cleanup_threshold=0.8,
+            adaptive_capacity=True
+        )
+        
+        # 测试优先级发送
+        high_priority_data = self._generate_test_pose()
+        normal_priority_data = self._generate_test_pose()
+        low_priority_data = self._generate_test_pose()
+        
+        sent_order = []
+        def track_send_order(data):
+            sent_order.append(data.get('priority', 'normal'))
+            
+        with patch.object(setup_sender, '_send_data', side_effect=track_send_order):
+            setup_sender.send_pose_data(
+                room="test_room",
+                pose_results=low_priority_data,
+                priority='low'
+            )
+            setup_sender.send_pose_data(
+                room="test_room",
+                pose_results=high_priority_data,
+                priority='high'
+            )
+            setup_sender.send_pose_data(
+                room="test_room",
+                pose_results=normal_priority_data,
+                priority='normal'
+            )
+            
+        # 验证发送顺序符合优先级
+        assert sent_order == ['high', 'normal', 'low']
+        
+        # 测试队列清理
+        setup_sender.fill_queue_to_threshold()
+        initial_queue_size = setup_sender.get_queue_size()
+        setup_sender.cleanup_queue()
+        assert setup_sender.get_queue_size() < initial_queue_size
+        
+        # 测试队列状态
+        queue_status = setup_sender.get_queue_status()
+        assert 'current_size' in queue_status
+        assert 'max_size' in queue_status
+        assert 'average_wait_time' in queue_status
+        
+        # 测试容量自适应
+        initial_capacity = setup_sender.get_queue_capacity()
+        for _ in range(1000):  # 模拟高负载
+            setup_sender.send_pose_data(
+                room="test_room",
+                pose_results=self._generate_test_pose()
+            )
+        assert setup_sender.get_queue_capacity() > initial_capacity
+
+    def test_send_config_management(self, setup_sender):
+        """测试发送配置管理
+        
+        验证:
+        1. 配置更新
+        2. 配置验证
+        3. 配置持久化
+        4. 配置回滚
+        """
+        # 测试配置更新
+        initial_config = setup_sender.get_send_config()
+        new_config = {
+            'compression_level': 'high',
+            'batch_size': 10,
+            'retry_count': 3,
+            'timeout': 5000,
+            'priority_enabled': True
+        }
+        
+        setup_sender.set_send_config(new_config)
+        current_config = setup_sender.get_send_config()
+        assert current_config != initial_config
+        for key, value in new_config.items():
+            assert current_config[key] == value
+            
+        # 测试无效配置
+        invalid_config = {
+            'compression_level': 'invalid',
+            'batch_size': -1,
+            'retry_count': 'invalid',
+            'timeout': 'invalid',
+            'priority_enabled': 'invalid'
+        }
+        
+        for key, value in invalid_config.items():
+            with pytest.raises(ValueError):
+                setup_sender.set_send_config({key: value})
+                
+        # 测试配置持久化
+        setup_sender.save_config('test_config')
+        setup_sender.set_send_config(initial_config)  # 恢复初始配置
+        setup_sender.load_config('test_config')
+        loaded_config = setup_sender.get_send_config()
+        assert loaded_config == new_config
+        
+        # 测试配置回滚
+        with pytest.raises(ValueError):
+            setup_sender.set_send_config({'invalid_key': 'invalid_value'})
+        current_config = setup_sender.get_send_config()
+        assert current_config == new_config  # 确保配置未被破坏
+
+    def test_performance_statistics(self, setup_sender):
+        """测试性能统计功能
+        
+        验证:
+        1. 实时指标统计
+        2. 历史数据统计
+        3. 性能报告生成
+        4. 统计数据持久化
+        """
+        try:
+            setup_sender.start_monitoring()
+            
+            # 生成测试数据
+            for _ in range(100):
+                setup_sender.send_pose_data(
+                    room="test_room",
+                    pose_results=self._generate_test_pose(),
+                    timestamp=time.time()
+                )
+                time.sleep(0.01)  # 模拟真实发送间隔
+            
+            # 测试实时指标
+            real_time_stats = setup_sender.get_real_time_stats()
+            assert 'current_fps' in real_time_stats
+            assert 'current_latency' in real_time_stats
+            assert 'current_cpu_usage' in real_time_stats
+            assert 'current_memory_usage' in real_time_stats
+            
+            # 测试历史统计
+            historical_stats = setup_sender.get_historical_stats()
+            assert 'avg_fps' in historical_stats
+            assert 'max_latency' in historical_stats
+            assert 'min_latency' in historical_stats
+            assert 'success_rate' in historical_stats
+            
+            # 测试性能报告
+            report = setup_sender.generate_performance_report()
+            assert 'summary' in report
+            assert 'details' in report
+            assert 'recommendations' in report
+            
+            # 测试数据持久化
+            setup_sender.save_performance_data('test_performance_data')
+            loaded_data = setup_sender.load_performance_data('test_performance_data')
+            assert loaded_data['timestamp'] == report['timestamp']
+            assert loaded_data['summary'] == report['summary']
+            
+        finally:
+            setup_sender.stop_monitoring()
+
     @staticmethod
     def _generate_test_pose(landmark_count=33):
         """生成可配置数量关键点的测试姿态数据"""
