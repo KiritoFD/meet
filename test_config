@@ -1,0 +1,1 @@
+{"compression_level": "high", "batch_size": 10, "retry_count": 3, "timeout": 5000, "priority_enabled": true}
