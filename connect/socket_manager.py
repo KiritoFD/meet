@@ -8,6 +8,7 @@ import psutil
 from collections import deque
 from connect.errors import ConnectionError
 from unittest.mock import Mock
+import yaml
 
 @dataclass
 class ConnectionConfig:
@@ -27,36 +28,39 @@ class ConnectionStatus:
 
 class SocketManager:
     _instances = []
-    _active_connections = 0  # 添加活跃连接计数器
+    _active_connections = 0
 
-    @classmethod
-    def clear_instances(cls):
-        """清理所有实例（用于测试）"""
-        for instance in cls._instances[:]:
-            try:
-                instance.disconnect()
-            except:
-                pass
-        cls._instances.clear()
-        cls._active_connections = 0  # 确保重置活跃连接计数
-
-    def __init__(self, config: ConnectionConfig = None, socketio_client = None):
-        """初始化连接管理器"""
-        self.config = config or ConnectionConfig()
+    def __init__(self, socketio, audio_processor):
+        self.socketio = socketio
+        self.audio_processor = audio_processor
         self.logger = logging.getLogger(__name__)
         
-        # 清理断开连接的实例
-        SocketManager._instances = [i for i in SocketManager._instances if i.connected]
-        
-        # 检查并发连接数限制（只检查已连接的实例）
-        if SocketManager._active_connections >= self.config.max_connections:
-            raise ConnectionError("超过最大并发连接数限制")
+        # 读取配置
+        try:
+            with open('config/config.yaml', 'r') as f:
+                self.config = yaml.safe_load(f)['socket']
+        except Exception as e:
+            self.logger.warning(f"无法读取配置文件，使用默认配置: {str(e)}")
+            self.config = {
+                'max_connections': 10,
+                'ping_timeout': 60,
+                'ping_interval': 25,
+                'reconnect_attempts': 5,
+                'reconnect_delay': 1000,
+                'heartbeat_interval': 25000
+            }
+            
+        # 使用配置中的最大连接数
+        if SocketManager._active_connections >= self.config['max_connections']:
+            raise Exception("Maximum number of connections reached")
+            
+        SocketManager._active_connections += 1
         
         # Socket.IO 客户端
-        self.sio = socketio_client if socketio_client else socketio.Client(
+        self.sio = socketio.Client(
             reconnection=True,
-            reconnection_attempts=self.config.reconnect_attempts,
-            reconnection_delay=self.config.reconnect_delay / 1000
+            reconnection_attempts=self.config['reconnect_attempts'],
+            reconnection_delay=self.config['reconnect_delay'] / 1000
         )
         
         # 状态管理
@@ -89,7 +93,7 @@ class SocketManager:
                 return True
             
             # 检查连接数限制
-            if SocketManager._active_connections >= self.config.max_connections:
+            if SocketManager._active_connections >= self.config['max_connections']:
                 raise ConnectionError("超过最大并发连接数限制")
                 
             if isinstance(self.sio, Mock):
@@ -103,7 +107,7 @@ class SocketManager:
                 SocketManager._active_connections += 1  # 增加活跃连接计数
                 return True
                 
-            self.sio.connect(self.config.url)
+            self.sio.connect(self.config['url'])
             self._status.connected = True
             self._status.connection_id = str(time.time())
             self._start_heartbeat()
@@ -200,8 +204,8 @@ class SocketManager:
             self.logger.error(f"重连失败: {str(e)}")
             self.reconnect_attempts += 1
             self._status.reconnect_count += 1
-            if self.reconnect_attempts < self.config.reconnect_attempts:
-                time.sleep(self.config.reconnect_delay / 1000)
+            if self.reconnect_attempts < self.config['reconnect_attempts']:
+                time.sleep(self.config['reconnect_delay'] / 1000)
                 return self.reconnect()
             return False
 
@@ -262,7 +266,7 @@ class SocketManager:
                     if not self._heartbeat_handler():
                         self.logger.warning("心跳检测失败")
                 self._status.last_heartbeat = time.time()
-                time.sleep(self.config.heartbeat_interval / 1000)
+                time.sleep(self.config['heartbeat_interval'] / 1000)
 
         if not self._heartbeat_task:
             self._heartbeat_task = threading.Thread(target=heartbeat_loop)

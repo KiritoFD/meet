@@ -20,13 +20,17 @@ https://www.anaconda.com/download/success 下载
 
 ### 方法1
     
-在项目根目录下运行
+在项目根目录下运行（根据系统选择对应的配置文件）：
 
-    conda env create -f meet.yaml
+    # Windows系统：
+    conda env create -f meet_windows.yaml
+    # Linux系统：
+    conda env create -f meet_linux.yaml
+
 然后用anaconda prompt 输入以下命令：
 
-    conda activate meet
-之后就可以选择meet环境运行代码了(选择解释器)
+    conda activate meet6
+之后就可以选择meet6环境运行代码了(选择解释器)
 
 
 ### 方法2：使用打包好的环境
