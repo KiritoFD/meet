@@ -4,21 +4,21 @@ import cv2
 from .pose_data import PoseData, DeformRegion, Landmark
 import time
 import pytest
+from config.settings import POSE_CONFIG
 
 class PoseDeformer:
     """处理基于姿态的图像变形"""
     
-    def __init__(self, smoothing_window: int = 5):
+    def __init__(self):
         """初始化变形器"""
-        if smoothing_window < 3:
-            raise ValueError("Smoothing window must be at least 3")
-        self.smoothing_window = smoothing_window
+        config = POSE_CONFIG['deformer']
+        self.smoothing_window = config['smoothing_window']
+        self._smoothing_factor = config['smoothing_factor']
+        self._blend_radius = config['blend_radius']
+        self._min_scale = config['min_scale']
+        self._max_scale = config['max_scale']
+        self._control_point_radius = config['control_point_radius']
         self._last_deformed = None
-        # 变形参数
-        self._smoothing_factor = 0.3  # 平滑因子
-        self._blend_radius = 20  # 区域混合半径
-        self._min_scale = 0.5  # 最小缩放
-        self._max_scale = 2.0  # 最大缩放
         
     def deform_frame(self, 
                      frame: np.ndarray,
@@ -93,7 +93,7 @@ class PoseDeformer:
             # 如果点不够，添加额外的控制点
             for i in range(3 - len(src_points)):
                 angle = i * 2 * np.pi / 3
-                radius = 50  # 控制点距离中心的半径
+                radius = self._control_point_radius  # 控制点距离中心的半径
                 
                 # 添加原始控制点
                 src_point = region.center + radius * np.array([

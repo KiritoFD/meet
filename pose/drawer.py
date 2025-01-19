@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import logging
+from config.settings import POSE_CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -11,30 +12,17 @@ class PoseDrawer:
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_hands = mp.solutions.hands
         
-        # 定义上半身的连接关系
-        self.POSE_CONNECTIONS = [
-            # 面部关键点
-            (0, 1), (1, 2), (2, 3), (3, 4),    # 左侧面部
-            (0, 4), (4, 5), (5, 6), (6, 7),    # 右侧面部
-            (8, 9), (9, 10),                    # 嘴部
-            (0, 5),                             # 眉心连接
-            (1, 2), (2, 3),                     # 左眉
-            (4, 5), (5, 6),                     # 右眉
-            (2, 5),                             # 鼻梁
-            (3, 6),                             # 眼睛连接
-            
-            # 身体关键点
-            (11, 12),                           # 肩膀连接
-            (11, 13), (13, 15),                 # 左臂
-            (12, 14), (14, 16),                 # 右臂
-            
-            # 手指连接
-            (15, 17), (17, 19), (19, 21),       # 左手
-            (16, 18), (18, 20), (20, 22),       # 右手
-            
-            # 躯干
-            (11, 23), (12, 24), (23, 24)        # 上身躯干
-        ]
+        # 从配置加载颜色
+        self.COLORS = POSE_CONFIG['drawer']['colors']
+        self.FACE_COLORS = POSE_CONFIG['drawer']['face_colors']
+        
+        # 从配置加载连接关系
+        self.POSE_CONNECTIONS = []
+        for region, points in POSE_CONFIG['detector']['connections'].items():
+            for i in range(len(points)-1):
+                p1 = POSE_CONFIG['detector']['keypoints'][points[i]]['id']
+                p2 = POSE_CONFIG['detector']['keypoints'][points[i+1]]['id']
+                self.POSE_CONNECTIONS.append((p1, p2))
         
         self.UPPER_BODY_POINTS = [
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  # 面部
@@ -42,30 +30,6 @@ class PoseDrawer:
             17, 18, 19, 20, 21, 22,            # 手指
             23, 24                             # 躯干
         ]
-        
-        # 定义颜色方案
-        self.COLORS = {
-            'face': (255, 0, 0),       # 蓝色
-            'body': (0, 255, 0),       # 绿色
-            'hands': (0, 255, 255),    # 黄色
-            'joints': (0, 0, 255)      # 红色
-        }
-        
-        # 面部特征颜色 - 更柔和的配色
-        self.FACE_COLORS = {
-            'contour': (200, 180, 130),    # 淡金色
-            'eyebrow': (180, 120, 90),     # 深棕色
-            'eye': (120, 150, 230),        # 淡蓝色
-            'nose': (150, 200, 180),       # 青绿色
-            'mouth': (140, 160, 210),      # 淡紫色
-            'feature': {
-                'eyebrow': (160, 140, 110),   # 眉毛：深金色
-                'eye': (130, 160, 220),       # 眼睛：天蓝色
-                'nose': (140, 190, 170),      # 鼻子：青色
-                'mouth': (170, 150, 200),     # 嘴唇：淡紫色
-                'face': (190, 170, 120)       # 轮廓：金棕色
-            }
-        }
         
         # 面部连接定义
         self.FACE_CONNECTIONS = [

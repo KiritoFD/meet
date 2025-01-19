@@ -15,6 +15,9 @@ from connect.socket_manager import SocketManager
 from config import settings
 from config.settings import CAMERA_CONFIG
 from audio.processor import AudioProcessor
+from pose.pose_binding import PoseBinding
+from pose.detector import PoseDetector
+from pose.types import PoseData
 
 # 配置日志格式
 logging.basicConfig(
@@ -79,6 +82,9 @@ face_mesh = mp_face_mesh.FaceMesh(
 # 全局变量
 camera_manager = CameraManager()  # 直接初始化，不需要传入配置
 pose_drawer = PoseDrawer()
+pose_binding = PoseBinding()
+initial_frame = None
+initial_regions = None
 
 # 初始化处理器
 audio_processor = AudioProcessor()
@@ -159,8 +165,44 @@ def check_stream_status():
         logger.error(f"获取流状态失败: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/capture_initial', methods=['POST'])
+def capture_initial():
+    """捕获初始参考帧"""
+    global initial_frame, initial_regions
+    
+    try:
+        success, frame = camera_manager.read()
+        if not success:
+            return jsonify({'success': False, 'error': 'Failed to capture frame'}), 500
+            
+        # 处理姿态
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pose_results = pose.process(frame_rgb)
+        
+        if not pose_results.pose_landmarks:
+            return jsonify({'success': False, 'error': 'No pose detected'}), 400
+            
+        # 转换关键点格式
+        keypoints = PoseDetector.mediapipe_to_keypoints(pose_results.pose_landmarks)
+        pose_data = PoseData(keypoints=keypoints, timestamp=time.time(), confidence=1.0)
+        
+        # 创建区域绑定
+        initial_frame = frame.copy()
+        initial_regions = pose_binding.create_binding(frame, pose_data)
+        
+        return jsonify({
+            'success': True,
+            'timestamp': time.time()
+        })
+        
+    except Exception as e:
+        logger.error(f"捕获初始帧失败: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 def generate_frames():
     """生成视频帧"""
+    global initial_frame, initial_regions
+    
     logger.info("开始生成视频帧")
     while True:
         try:
@@ -183,6 +225,12 @@ def generate_frames():
                 pose_results = pose.process(frame_rgb)
                 hands_results = hands.process(frame_rgb)
                 face_results = face_mesh.process(frame_rgb)
+                
+                # 如果有初始帧和区域定义，进行变形
+                if initial_frame is not None and initial_regions is not None and pose_results.pose_landmarks:
+                    keypoints = PoseDetector.mediapipe_to_keypoints(pose_results.pose_landmarks)
+                    pose_data = PoseData(keypoints=keypoints, timestamp=time.time(), confidence=1.0)
+                    frame = pose.pose_deformer.deform_frame(initial_frame, initial_regions, pose_data)
                 
                 # 使用PoseDrawer绘制
                 frame = pose_drawer.draw_frame(
