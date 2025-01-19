@@ -66,19 +66,171 @@ graph TD
         PoseProtocol --> Validation
     end
 
-    %% 样式
-    classDef core fill:#f9f,stroke:#333,stroke-width:2px
-    classDef module fill:#bbf,stroke:#333,stroke-width:1px
-    classDef subComponent fill:#ddd,stroke:#333,stroke-width:1px
+    %% 样式 - 只保留边框
+    classDef core stroke:#333,stroke-width:2px,fill:none
+    classDef module stroke:#333,stroke-width:1px,fill:none
+    classDef subComponent stroke:#333,stroke-width:1px,fill:none
 
     class SocketManager,RoomManager,PoseSender,MediaSender core
     class PerfMonitor,PoseProtocol,ErrorHandler module
     class BaseError,ConnectError,SendError,Metrics,Stats,Compression,Validation subComponent
+
+    %% 子图样式
+    style 错误处理系统 fill:none,stroke:#666,stroke-width:1px
+    style 性能监控 fill:none,stroke:#666,stroke-width:1px
+    style 数据处理 fill:none,stroke:#666,stroke-width:1px
+
 ```
 
-## 3. 关键问题和解决方案
+## 3. 各组件功能介绍
 
-### 3.1 实时性问题
+### 3.1 核心组件功能
+
+#### 3.1.1 SocketManager (socket_manager.py)
+
+<!-- ##### 3.1.1.1 基础设施管理
+处理基本的初始化和配置
+##### 函数列表
+- __init__(self, socketio)：初始化Socket管理器
+- _setup_event_handlers(self)：设置基础事件处理器
+
+#### 3.1.1.2 连接生命周期
+管理WebSocket连接的建立、维护和断开
+##### 函数列表
+- connect(self) -> bool：建立WebSocket连接
+- disconnect(self)：断开WebSocket连接
+- _start_heartbeat(self)：启动心跳检测
+- _heartbeat_loop(self)：心跳检测循环
+
+#### 3.1.1.3 认证与安全
+处理用户认证和数据安全
+##### 函数列表
+- authenticate(self, credentials)：用户认证
+- _validate_credentials(self, credentials)：验证用户凭据
+- _generate_token(self, username)：生成JWT令牌
+- _verify_token(self, token)：验证JWT令牌
+
+#### 3.1.1.4 数据处理与传输
+负责数据的处理、压缩和传输
+##### 函数列表
+- emit(self, event, data, room)：发送数据
+- _process_data(self, data)：处理发送数据
+- _decompress_data(self, data)：解压数据
+- _cache_data(self, event, data, room)：缓存发送数据
+
+#### 3.1.1.5 连接池管理
+管理和维护连接池
+##### 函数列表
+- _start_pool_manager(self)：启动连接池管理器
+- _manage_connection_pool(self)：管理连接池
+- _check_connections_health(self)：检查连接健康状态 -->
+
+
+
+
+
+#### 3.1.2 RoomManager (room_manager.py)
+房间管理器，处理：
+- 创建/加入/退出房间
+- 房间成员状态管理
+- 房间级别消息广播
+- 房间资源清理
+- 成员权限控制
+
+#### 3.1.3 PoseSender (pose_sender.py)
+姿态数据发送器，负责：
+- 姿态数据的预处理和优化
+- 数据发送队列管理
+- 发送状态监控
+- 失败重试机制
+- 资源使用监控
+
+#### 3.1.4 MediaSender (media_sender.py)
+媒体数据发送器，处理：
+- 音视频数据的发送
+- 媒体流控制
+- 帧率适配
+- 带宽管理
+- 媒体同步
+
+### 3.2 辅助组件功能
+
+#### 3.2.1 PoseProtocol (pose_protocol.py)
+数据协议处理器：
+- 定义数据格式规范
+- 数据序列化/反序列化
+- 数据压缩和解压
+- 数据完整性验证
+- 版本兼容处理
+
+#### 3.2.2 PerformanceMonitor (performance_monitor.py)
+性能监控器：
+- 系统资源监控
+- 网络性能分析
+- 数据吞吐量统计
+- 延迟监测
+- 性能报告生成
+
+#### 3.2.3 ErrorHandler (errors.py)
+错误处理系统：
+- 异常类型定义
+- 错误捕获和分类
+- 错误恢复策略
+- 降级处理机制
+- 错误日志记录
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 4. 数据流程
+
+## 4.1 姿态数据处理流程
+```mermaid
+sequenceDiagram
+    participant App
+    participant PoseSender
+    participant PoseProtocol
+    participant SocketManager
+    
+    App->>PoseSender: 发送姿态数据
+    PoseSender->>PoseProtocol: 数据格式化
+    PoseProtocol->>PoseSender: 返回处理后数据
+    PoseSender->>SocketManager: 发送数据
+    SocketManager->>SocketManager: 压缩&加密
+    SocketManager-->>App: 发送确认
+```
+
+## 4.2 房间管理流程
+```mermaid
+sequenceDiagram
+    participant Client
+    participant RoomManager
+    participant SocketManager
+    
+    Client->>RoomManager: 加入房间请求
+    RoomManager->>SocketManager: 建立连接
+    RoomManager->>RoomManager: 更新房间状态
+    RoomManager-->>Client: 返回房间信息
+```
+
+
+
+## 5. 关键  问题和解决方案
+
+### 5.1 实时性问题
 **问题:**
 - 网络延迟导致动作不同步
 - 数据堆积造成内存增长
@@ -100,7 +252,7 @@ class UnifiedSender:
         await self._rate_limit()
 ```
 
-### 3.2 可靠性问题
+### 5.2 可靠性问题
 **问题:**
 - 网络断开需要重连
 - 数据可能丢失
@@ -120,7 +272,7 @@ class RoomManager:
         await self._broadcast_state_update(room_id, state)
 ```
 
-### 3.3 性能问题
+### 5.3 性能问题
 **问题:**
 - CPU使用率过高
 - 内存泄漏
@@ -138,26 +290,26 @@ class PerformanceMonitor:
         self.alerts = AlertManager()
 ```
 
-## 4. 实现优先级
+    ## 6. 实现优先级
 
-### 4.1 第一阶段 - 基础功能
+### 6.1 第一阶段 - 基础功能
 1. 简化SocketManager
 2. 实现UnifiedSender
 3. 基础房间管理
 
-### 4.2 第二阶段 - 性能优化
+### 6.2 第二阶段 - 性能优化
 1. 实现性能监控
 2. 添加带宽控制
 3. 优化数据压缩
 
-### 4.3 第三阶段 - 可靠性提升
+### 6.3 第三阶段 - 可靠性提升
 1. 完善错误处理
 2. 添加状态同步
 3. 实现数据验证
 
-## 5. 关键接口
+## 7. 关键接口
 
-### 5.1 数据发送
+### 7.1 数据发送
 ```python
 async def send_pose_data(
     pose_data: Dict[str, Any],
@@ -166,7 +318,7 @@ async def send_pose_data(
 ) -> bool
 ```
 
-### 5.2 房间管理
+### 7.2 房间管理
 ```python
 async def join_room(
     room_id: str,
@@ -175,28 +327,28 @@ async def join_room(
 ) -> bool
 ```
 
-### 5.3 性能监控
+### 7.3 性能监控
 ```python
 def get_performance_metrics() -> Dict[str, float]:
     """返回关键性能指标"""
     pass
 ```
 
-## 6. 测试重点
+## 8. 测试重点
 - 网络断开重连
 - 高并发数据发送
 - 内存泄漏检测
 - 性能压力测试
 
-## 7. 注意事项
+## 9. 注意事项
 - 避免阻塞操作
 - 及时清理资源
 - 做好日志记录
 - 优先保证实时性
 
-# Connect 模块测试规范
+# 10. Connect 模块测试规范
 
-## 1. 测试文件结构
+## 10.1 测试文件结构
 ```
 tests/connect/
 ├── __init__.py
@@ -208,9 +360,9 @@ tests/connect/
 └── test_stability.py          # 稳定性测试
 ```
 
-## 2. 核心测试场景
+## 10.2 核心测试场景
 
-### 2.1 实时性测试
+### 10.2.1 实时性测试
 ```python
 class TestRealtime:
     def test_latency(self):
@@ -228,7 +380,7 @@ class TestRealtime:
         # 发送大量数据验证带宽限制
 ```
 
-### 2.2 可靠性测试
+### 10.2.2 可靠性测试
 ```python
 class TestReliability:
     def test_reconnection(self):
@@ -243,7 +395,7 @@ class TestReliability:
         # 发送数据并验证接收
 ```
 
-### 2.3 性能测试
+### 10.2.3 性能测试
 ```python
 class TestPerformance:
     def test_high_load(self):
