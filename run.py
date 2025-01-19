@@ -185,7 +185,6 @@ def handle_restart_camera():
 # 添加摄像头状态检查路由
 @app.route('/camera_status')
 def camera_status():
-    global camera_manager
     is_running = camera_manager.camera is not None and camera_manager.camera.isOpened()
     return jsonify({
         "isRunning": is_running,

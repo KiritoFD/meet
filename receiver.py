@@ -168,7 +168,6 @@ def apply_pose_transform(image, pose_data):
 
 def generate_frames():
     """生成视频帧"""
-    global initial_image, current_pose, output_frame
     
     while True:
         if initial_image is not None and current_pose is not None:
@@ -224,7 +223,6 @@ def handle_initial_frame(data):
 @socketio.on('pose_data')
 def handle_pose_data(data):
     """处理姿态数据"""
-    global current_pose, pose_manager
     try:
         pose_data = decompress_pose_data(data['data'])
         if pose_data:
