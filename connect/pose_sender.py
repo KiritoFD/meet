@@ -20,7 +20,8 @@ class PoseSender:
         self.last_pose = None
         self.change_threshold = 0.005  # 变化阈值
         
-    def _convert_landmarks_to_dict(self, landmarks) -> List[Dict[str, float]]:
+    @staticmethod
+    def _convert_landmarks_to_dict(landmarks) -> List[Dict[str, float]]:
         """将MediaPipe landmarks转换为可序列化的字典列表"""
         if not landmarks:
             return None
@@ -34,7 +35,8 @@ class PoseSender:
             for landmark in landmarks.landmark
         ]
     
-    def _compress_data(self, data: dict) -> bytes:
+    @staticmethod
+    def _compress_data(data: dict) -> bytes:
         """压缩姿态数据"""
         return compress_data(data)
     

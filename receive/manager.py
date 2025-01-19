@@ -42,7 +42,8 @@ class ReceiveManager:
         except Exception as e:
             logger.error(f"处理姿态数据失败: {e}")
     
-    def decompress_pose_data(self, compressed_data: bytes) -> dict:
+    @staticmethod
+    def decompress_pose_data(compressed_data: bytes) -> dict:
         """解压缩姿态数据"""
         try:
             json_str = zlib.decompress(compressed_data).decode()

@@ -179,7 +179,8 @@ class PoseDrawer:
                 
         return frame
         
-    def _draw_hands(self, frame, hand_landmarks_list):
+    @staticmethod
+    def _draw_hands(frame, hand_landmarks_list):
         """绘制手部关键点和连接"""
         if not hand_landmarks_list:
             return frame
