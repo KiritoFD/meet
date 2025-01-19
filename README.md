@@ -177,3 +177,12 @@ socket:
     compression_level: 6
     token_expiry: 3600
 ```
+
+## 环境要求
+
+Linux用户请使用 `conda env create -f meet_ubuntu.yaml` 创建环境，支持Ubuntu 22.04及以上版本。
+
+## 安装步骤
+1. 安装Anaconda或Miniconda
+2. 创建虚拟环境
+...

@@ -1,6 +1,8 @@
 import pytest
 import numpy as np
 import cv2
+import time
+import psutil
 from pose.pose_binding import PoseBinding, BindingConfig
 from pose.pose_data import PoseData
 
@@ -264,12 +266,106 @@ class TestPoseBinding:
             
             prev_deformed = deformed.copy()
 
+    def test_performance_metrics(self, setup_binding):
+        """测试性能指标"""
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        pose = self._create_test_pose()
+        
+        # 测试处理时间
+        start_time = time.time()
+        binding = setup_binding.create_binding(frame, pose)
+        creation_time = time.time() - start_time
+        
+        start_time = time.time()
+        deformed = setup_binding.deform_frame(binding, self._create_test_pose(angle=45))
+        deform_time = time.time() - start_time
+        
+        # 验证性能在合理范围内
+        assert creation_time < 0.1  # 创建绑定应在100ms内完成
+        assert deform_time < 0.05   # 变形应在50ms内完成
+
+    def test_memory_usage(self, setup_binding):
+        """测试内存使用"""
+        initial_memory = psutil.Process().memory_info().rss
+        
+        # 创建多个绑定和变形
+        frames = []
+        bindings = []
+        for _ in range(10):
+            frame = np.zeros((480, 640, 3), dtype=np.uint8)
+            binding = setup_binding.create_binding(frame, self._create_test_pose())
+            frames.append(frame)
+            bindings.append(binding)
+        
+        current_memory = psutil.Process().memory_info().rss
+        memory_growth = (current_memory - initial_memory) / (1024 * 1024)  # MB
+        
+        # 验证内存增长在合理范围内
+        assert memory_growth < 100  # 内存增长不应超过100MB
+
+    def test_error_recovery(self, setup_binding):
+        """测试错误恢复"""
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        pose = self._create_test_pose()
+        binding = setup_binding.create_binding(frame, pose)
+        
+        # 测试异常姿态的处理
+        invalid_pose = self._create_test_pose()
+        invalid_pose.landmarks[0]['x'] = float('inf')  # 制造无效数据
+        
+        # 应该能够优雅处理无效数据
+        result = setup_binding.deform_frame(binding, invalid_pose)
+        assert result is not None  # 应返回上一个有效结果
+
+    def test_edge_cases(self, setup_binding):
+        """测试边界条件"""
+        # 测试空帧
+        empty_frame = np.zeros((0, 0, 3), dtype=np.uint8)
+        with pytest.raises(ValueError):
+            setup_binding.create_binding(empty_frame, self._create_test_pose())
+        
+        # 测试异常姿态数据
+        invalid_pose = self._create_test_pose()
+        invalid_pose.landmarks[0]['x'] = float('inf')
+        with pytest.raises(ValueError):
+            setup_binding.create_binding(self.test_frame, invalid_pose)
+
+    def test_concurrent_binding(self, setup_binding):
+        """测试并发绑定"""
+        import threading
+        
+        def bind_frame():
+            frame = np.zeros((480, 640, 3), dtype=np.uint8)
+            pose = self._create_test_pose()
+            setup_binding.create_binding(frame, pose)
+        
+        threads = []
+        for _ in range(5):
+            t = threading.Thread(target=bind_frame)
+            threads.append(t)
+            t.start()
+        
+        for t in threads:
+            t.join()
+
     @staticmethod
-    def _create_test_pose(angle: float = 0, visibility: float = 1.0):
-        """创建测试姿态数据"""
-        return PoseData(landmarks=[{
-            'x': np.cos(np.radians(angle)),
-            'y': np.sin(np.radians(angle)),
-            'z': 0.0,
-            'visibility': visibility
-        } for _ in range(33)]) 
+    def _create_test_pose(angle: float = 0, visibility: float = 1.0) -> PoseData:
+        """创建测试姿态数据
+        
+        Args:
+            angle: 关节角度
+            visibility: 关键点可见度
+        """
+        # 创建基本姿态
+        landmarks = []
+        for i in range(33):  # 使用标准的33个关键点
+            x = 0.5 + 0.1 * np.cos(np.radians(angle))
+            y = 0.5 + 0.1 * np.sin(np.radians(angle))
+            landmarks.append({
+                'x': x,
+                'y': y,
+                'z': 0.0,
+                'visibility': visibility
+            })
+        
+        return PoseData(landmarks=landmarks) 

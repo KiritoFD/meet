@@ -85,15 +85,16 @@ class TestPoseProtocol:
     def test_protocol_version_compatibility(self, setup_protocol):
         """测试协议版本兼容性"""
         # 测试当前版本
-        pose_data = self._create_test_pose_data()
-        encoded = setup_protocol.encode(pose_data)
-        assert setup_protocol.decode(encoded).version == setup_protocol.CURRENT_VERSION
+        current_data = self._create_test_data()
+        encoded = setup_protocol.encode(current_data)
+        decoded = setup_protocol.decode(encoded)
+        assert decoded.version == setup_protocol.CURRENT_VERSION
         
-        # 测试向后兼容
+        # 测试旧版本兼容
         old_data = {
             'version': '1.0',
-            'pose_landmarks': pose_data.pose_landmarks,
-            'timestamp': pose_data.timestamp
+            'pose_landmarks': current_data.pose_landmarks,
+            'timestamp': current_data.timestamp
         }
         decoded = setup_protocol.decode_legacy(old_data)
         assert isinstance(decoded, PoseData)

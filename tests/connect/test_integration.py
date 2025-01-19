@@ -1,47 +1,111 @@
 import pytest
 import time
+import asyncio
 import numpy as np
 from connect.socket_manager import SocketManager
 from connect.room_manager import RoomManager
 from connect.pose_sender import PoseSender
 from connect.pose_protocol import PoseProtocol
+from connect.unified_sender import UnifiedSender
+from connect.performance_monitor import PerformanceMonitor
+from connect.validator import DataValidator
 
 class TestIntegration:
     @pytest.fixture
-    def setup_system(self):
+    async def setup_system(self):
         """初始化完整系统"""
         socket = SocketManager()
         room_manager = RoomManager(socket)
         protocol = PoseProtocol()
         sender = PoseSender(socket, protocol)
+        monitor = PerformanceMonitor()
+        validator = DataValidator()
+        unified_sender = UnifiedSender(socket, monitor, validator)
         
-        socket.connect()
-        yield (socket, room_manager, sender, protocol)
-        socket.disconnect()
+        await socket.connect()
+        yield {
+            'socket': socket,
+            'room': room_manager,
+            'sender': sender,
+            'protocol': protocol,
+            'monitor': monitor,
+            'validator': validator,
+            'unified_sender': unified_sender
+        }
+        await socket.disconnect()
 
-    def test_end_to_end(self, setup_system):
-        """测试完整流程"""
-        socket, room_manager, sender, protocol = setup_system
+    @pytest.mark.asyncio
+    async def test_end_to_end_flow(self, setup_system):
+        """测试完整的端到端流程"""
         room_id = "test_room"
+        user_id = "test_user"
         
         # 1. 创建并加入房间
-        assert room_manager.create_room(room_id)
-        assert room_manager.join_room(room_id)
+        assert setup_system['room'].create_room(room_id)
+        assert setup_system['room'].join_room(room_id, user_id)
         
-        # 2. 发送测试数据
+        # 2. 发送数据
         pose_data = self._generate_test_pose()
-        success = sender.send_pose_data(room_id, pose_data)
+        success = await setup_system['unified_sender'].send(
+            data_type='pose',
+            data=pose_data,
+            room_id=room_id
+        )
         assert success
         
-        # 3. 验证数据接收
-        received_data = None
-        @socket.on('pose_data')
-        def handle_pose(data):
-            nonlocal received_data
-            received_data = protocol.decode(data)
+        # 3. 检查性能指标
+        stats = setup_system['monitor'].get_stats()
+        assert stats['success_rate'] > 0.95
+        assert stats['latency'] < 0.05
         
-        assert received_data is not None
-        assert len(received_data.pose_landmarks) == len(pose_data.pose_landmarks)
+        # 4. 验证房间状态
+        state = setup_system['room'].get_room_state(room_id)
+        assert state['member_count'] == 1
+        assert user_id in state['members']
+
+    @pytest.mark.asyncio
+    async def test_error_recovery(self, setup_system):
+        """测试错误恢复流程"""
+        # 1. 断开连接
+        await setup_system['socket'].disconnect()
+        
+        # 2. 尝试发送数据
+        pose_data = self._generate_test_pose()
+        success = await setup_system['unified_sender'].send(
+            data_type='pose',
+            data=pose_data
+        )
+        
+        # 3. 验证自动重连和恢复
+        assert setup_system['socket'].connected
+        assert success
+
+    @pytest.mark.asyncio
+    async def test_concurrent_operations(self, setup_system):
+        """测试并发操作"""
+        room_id = "test_room"
+        setup_system['room'].create_room(room_id)
+        
+        # 并发加入房间和发送数据
+        async def user_session(user_id: str):
+            assert setup_system['room'].join_room(room_id, user_id)
+            pose_data = self._generate_test_pose()
+            await setup_system['unified_sender'].send(
+                data_type='pose',
+                data=pose_data,
+                room_id=room_id
+            )
+            
+        # 创建多个用户会话
+        tasks = [
+            user_session(f"user_{i}")
+            for i in range(10)
+        ]
+        await asyncio.gather(*tasks)
+        
+        # 验证结果
+        state = setup_system['room'].get_room_state(room_id)
+        assert state['member_count'] == 10
 
     def test_stress(self, setup_system):
         """压力测试"""
