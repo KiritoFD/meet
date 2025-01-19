@@ -10,7 +10,13 @@ import base64
 from collections import deque
 from connect.errors import ConnectionError, AuthError
 import yaml
-import jwt as PyJWT
+import sys
+from unittest.mock import Mock
+try:
+    import jwt as PyJWT
+except ImportError:
+    print("Please install PyJWT package using: pip install PyJWT")
+    sys.exit(1)
 
 @dataclass
 class ConnectionConfig:
@@ -40,8 +46,9 @@ class SocketManager:
     _active_connections = 0
     _lock = threading.Lock()  # 添加线程锁
 
-    def __init__(self, socketio):
+    def __init__(self, socketio, audio_processor=None):
         self.socketio = socketio
+        self.audio_processor = audio_processor
         self.logger = logging.getLogger(__name__)
         
         # 状态管理
@@ -87,15 +94,12 @@ class SocketManager:
         self._heartbeat_task = None
         self._heartbeat_handler = None
 
-        # 初始化 Socket.IO 客户端
+        # 初始化 Socket.IO
         if isinstance(socketio, Mock):
             self.sio = socketio  # 测试时使用 mock
         else:
-            self.sio = socketio.Client(
-                reconnection=True,
-                reconnection_attempts=self.config['reconnect_attempts'],
-                reconnection_delay=self.config['reconnect_delay'] / 1000
-            )
+            # 使用传入的Flask-SocketIO实例
+            self.sio = socketio
 
         self._setup_event_handlers()
 
@@ -521,3 +525,4 @@ class SocketManager:
                 return None
                 
         return available[0] if available else None
+

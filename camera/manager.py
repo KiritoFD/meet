@@ -23,29 +23,23 @@ class CameraManager:
         os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'  # 禁用MSMF
         os.environ['OPENCV_VIDEOIO_PRIORITY_DSHOW'] = '1'  # 优先DirectShow
         
-        # 关键参数设置
-        self._camera_params = {
-            cv2.CAP_PROP_SETTINGS: 0,         # 禁用设置弹窗
-            cv2.CAP_PROP_EXPOSURE: -6,        # 自动曝光
-            cv2.CAP_PROP_AUTOFOCUS: 0,        # 禁用自动对焦
-            cv2.CAP_PROP_BUFFERSIZE: 1,       # 最小缓冲
-            cv2.CAP_PROP_FPS: 30,             # 帧率
-            cv2.CAP_PROP_FOURCC: cv2.VideoWriter_fourcc(*'MJPG'),  # MJPG格式
-            cv2.CAP_PROP_SETTINGS: 0          # 禁用所有弹窗
-        }
+        # 使用CAMERA_CONFIG中的参数
+        self._camera_params = CAMERA_CONFIG['params']
+        self._device_id = CAMERA_CONFIG['device_id']
+        self._api_preference = CAMERA_CONFIG['api_preference']
         
     def _init_camera(self):
         """初始化摄像头设备"""
         try:
-            # 在创建摄像头对象时就设置禁用弹窗
-            self.camera = cv2.VideoCapture(CAMERA_CONFIG['device_id'], cv2.CAP_DSHOW)
+            # 使用配置的设备ID和API
+            self.camera = cv2.VideoCapture(self._device_id, self._api_preference)
             if not self.camera.isOpened():
                 return False
                 
             # 优先设置禁用弹窗
             self.camera.set(cv2.CAP_PROP_SETTINGS, 0)
             
-            # 然后设置其他参数
+            # 设置其他参数
             for prop, value in self._camera_params.items():
                 if prop != cv2.CAP_PROP_SETTINGS:  # 跳过已设置的禁用弹窗参数
                     self.camera.set(prop, value)
