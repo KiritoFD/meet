@@ -9,12 +9,71 @@
 ## 2. 系统架构
 ```mermaid
 graph TD
-    A[SocketManager] --> B[UnifiedSender]
-    B --> C[PerformanceMonitor]
-    B --> D[DataValidator]
-    B --> E[ErrorHandler]
-    F[RoomManager] --> A
-    B --> F
+    %% 核心组件
+    SocketManager[SocketManager<br/>socket_manager.py]
+    RoomManager[RoomManager<br/>room_manager.py]
+    PoseSender[PoseSender<br/>pose_sender.py]
+    MediaSender[MediaSender<br/>media_sender.py]
+    PerfMonitor[PerformanceMonitor<br/>performance_monitor.py]
+    PoseProtocol[PoseProtocol<br/>pose_protocol.py]
+    ErrorHandler[ErrorHandler<br/>errors.py]
+
+    %% 组件依赖关系
+    SocketManager --> RoomManager
+    SocketManager --> PoseSender
+    SocketManager --> MediaSender
+    
+    PoseSender --> PoseProtocol
+    PoseSender --> PerfMonitor
+    MediaSender --> PerfMonitor
+    
+    %% 错误处理
+    ErrorHandler --> SocketManager
+    ErrorHandler --> PoseSender
+    ErrorHandler --> MediaSender
+    ErrorHandler --> RoomManager
+
+    %% 数据流
+    PoseProtocol --> |数据格式化| PoseSender
+    PerfMonitor --> |性能数据| SocketManager
+
+    %% 子组件
+    subgraph 错误处理系统
+        ErrorHandler
+        BaseError[BaseError]
+        ConnectError[ConnectError]
+        SendError[SendError]
+        
+        BaseError --> ConnectError
+        ConnectError --> SendError
+    end
+
+    subgraph 性能监控
+        PerfMonitor
+        Metrics[性能指标]
+        Stats[统计数据]
+        
+        PerfMonitor --> Metrics
+        PerfMonitor --> Stats
+    end
+
+    subgraph 数据处理
+        PoseProtocol
+        Compression[数据压缩]
+        Validation[数据验证]
+        
+        PoseProtocol --> Compression
+        PoseProtocol --> Validation
+    end
+
+    %% 样式
+    classDef core fill:#f9f,stroke:#333,stroke-width:2px
+    classDef module fill:#bbf,stroke:#333,stroke-width:1px
+    classDef subComponent fill:#ddd,stroke:#333,stroke-width:1px
+
+    class SocketManager,RoomManager,PoseSender,MediaSender core
+    class PerfMonitor,PoseProtocol,ErrorHandler module
+    class BaseError,ConnectError,SendError,Metrics,Stats,Compression,Validation subComponent
 ```
 
 ## 3. 关键问题和解决方案
