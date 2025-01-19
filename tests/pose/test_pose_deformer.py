@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 from pose.pose_deformer import PoseDeformer
 from pose.pose_data import PoseData
+import time
 
 class TestPoseDeformer:
     @pytest.fixture
@@ -118,7 +119,6 @@ class TestPoseDeformer:
         # 模拟实时姿态流
         poses = [self._create_test_pose(angle=i) for i in range(0, 360, 10)]
         
-        import time
         start_time = time.time()
         for pose in poses:
             deformed = setup_deformer.deform_frame(frame, pose)
@@ -184,6 +184,70 @@ class TestPoseDeformer:
                     assert dist < 100  # 根据实际情况调整阈值
                 
                 prev_centroids = centroids
+
+    def test_deformation_quality(self, setup_deformer):
+        """测试变形质量"""
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        # 创建特征点图案
+        cv2.circle(frame, (320, 240), 50, (255, 255, 255), -1)
+        cv2.rectangle(frame, (100, 100), (200, 200), (128, 128, 128), -1)
+        
+        # 测试不同程度的变形
+        angles = [30, 60, 90, 120, 150, 180]
+        for angle in angles:
+            pose = self._create_test_pose(angle=angle)
+            deformed = setup_deformer.deform_frame(frame, pose)
+            
+            # 验证变形后的特征保持
+            assert np.sum(deformed > 0) > 100  # 确保特征点没有完全消失
+            assert np.mean(deformed) > 0  # 确保整体亮度保持
+
+    def test_temporal_stability(self, setup_deformer):
+        """测试时间稳定性"""
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        cv2.circle(frame, (320, 240), 50, (255, 255, 255), -1)
+        
+        prev_deformed = None
+        max_diff = 0
+        
+        # 测试连续小角度变化的稳定性
+        for angle in range(0, 360, 5):
+            pose = self._create_test_pose(angle=float(angle))
+            deformed = setup_deformer.deform_frame(frame, pose)
+            
+            if prev_deformed is not None:
+                diff = np.mean(np.abs(deformed - prev_deformed))
+                max_diff = max(max_diff, diff)
+            
+            prev_deformed = deformed.copy()
+        
+        # 验证最大帧间差异在合理范围内
+        assert max_diff < 50  # 根据实际效果调整阈值
+
+    def test_performance_optimization(self, setup_deformer):
+        """测试性能优化"""
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        pose = self._create_test_pose()
+        
+        # 测试批处理性能
+        batch_size = 10
+        poses = [self._create_test_pose(angle=i*36) for i in range(batch_size)]
+        
+        start_time = time.time()
+        results = setup_deformer.batch_deform(frame, poses)
+        batch_time = time.time() - start_time
+        
+        # 测试单帧处理性能
+        single_times = []
+        for pose in poses:
+            start = time.time()
+            setup_deformer.deform_frame(frame, pose)
+            single_times.append(time.time() - start)
+        
+        avg_single_time = sum(single_times) / len(single_times)
+        
+        # 验证批处理性能提升
+        assert batch_time < avg_single_time * batch_size * 0.8  # 期望至少20%的性能提升
 
     @staticmethod
     def _create_test_pose(angle: float = 0.0):

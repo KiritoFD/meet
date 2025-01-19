@@ -4,13 +4,11 @@ import time
 import logging
 import threading
 import socketio
-import psutil
 import json
 import zlib
 import base64
 from collections import deque
 from connect.errors import ConnectionError, AuthError
-from unittest.mock import Mock
 import yaml
 import jwt as PyJWT
 
@@ -20,7 +18,6 @@ class ConnectionConfig:
     reconnect_attempts: int = 5
     reconnect_delay: int = 1000  # milliseconds
     heartbeat_interval: int = 25000  # milliseconds
-    max_connections: int = 10
 
 @dataclass
 class ConnectionStatus:
@@ -38,36 +35,19 @@ class SecurityConfig:
     encryption_enabled: bool = True  # 是否启用加密
     compression_level: int = 6  # 压缩级别(0-9)
 
-@dataclass
-class ConnectionPoolConfig:
-    """连接池配置"""
-    max_pool_size: int = 10
-    min_pool_size: int = 2
-    connection_timeout: int = 30  # 连接超时时间(秒)
-    cleanup_interval: int = 60    # 清理间隔(秒)
-    health_check_interval: int = 15  # 健康检查间隔(秒)
-
 class SocketManager:
     _instances = []
     _active_connections = 0
     _lock = threading.Lock()  # 添加线程锁
 
-    def __init__(self, socketio, audio_processor):
+    def __init__(self, socketio):
         self.socketio = socketio
-        self.audio_processor = audio_processor
         self.logger = logging.getLogger(__name__)
         
         # 状态管理
         self._status = ConnectionStatus()
-        self._pool_status = {
-            'active_connections': 0,
-            'available_connections': 0,
-            'failed_connections': 0,
-            'last_cleanup': time.time()
-        }
         
         # 配置
-        self.pool_config = ConnectionPoolConfig()
         self.security_config = SecurityConfig()
         
         # 初始化标志
@@ -123,17 +103,6 @@ class SocketManager:
         self.compression_enabled = True
         self.compression_threshold = 1024  # 超过1KB才压缩
 
-        # 添加连接池配置
-        self.pool_config = ConnectionPoolConfig()
-        
-        # 连接池状态
-        self._pool_status = {
-            'active_connections': 0,
-            'available_connections': 0,
-            'failed_connections': 0,
-            'last_cleanup': time.time()
-        }
-        
         # 启动连接池管理
         self._start_pool_manager()
 
@@ -483,7 +452,7 @@ class SocketManager:
             for _ in range(needed):
                 try:
                     if self._active_connections < self.pool_config.max_pool_size:
-                        new_manager = SocketManager(self.socketio, self.audio_processor)
+                        new_manager = SocketManager(self.socketio)
                         new_manager.authenticate({
                             'username': 'admin',
                             'password': 'admin123'

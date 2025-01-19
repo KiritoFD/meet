@@ -1093,3 +1093,66 @@ class TestPoseSender:
             'pose_score': np.random.random(),
             'is_keyframe': False
         }
+
+    def test_bandwidth_adaptation(self, setup_sender, mock_socket_manager):
+        """测试带宽自适应"""
+        # 模拟带宽受限情况
+        setup_sender.set_bandwidth_limit(1.0)  # 1MB/s
+        
+        # 发送大量数据
+        large_pose = self._generate_test_pose(landmark_count=1000)
+        for _ in range(10):
+            setup_sender.send_pose_data(
+                room="test_room",
+                pose_results=large_pose,
+                timestamp=time.time()
+            )
+        
+        # 验证数据被压缩
+        compressed_data = mock_socket_manager.emit.call_args[0][1]
+        assert len(str(compressed_data)) < len(str(large_pose))
+
+    def test_concurrent_operations(self, setup_sender):
+        """测试并发操作"""
+        def send_data():
+            for _ in range(100):
+                setup_sender.send_pose_data(
+                    room="test_room",
+                    pose_results=self._generate_test_pose(),
+                    timestamp=time.time()
+                )
+        
+        # 创建多个线程同时发送数据
+        threads = []
+        for _ in range(5):
+            t = threading.Thread(target=send_data)
+            threads.append(t)
+            t.start()
+        
+        # 等待所有线程完成
+        for t in threads:
+            t.join()
+        
+        # 验证队列状态
+        assert setup_sender.get_queue_size() <= setup_sender.get_queue_capacity()
+
+    def test_resource_monitoring(self, setup_sender):
+        """测试资源监控"""
+        setup_sender.start_monitoring()
+        
+        # 模拟负载
+        for _ in range(1000):
+            setup_sender.send_pose_data(
+                room="test_room",
+                pose_results=self._generate_test_pose(landmark_count=100),
+                timestamp=time.time()
+            )
+        
+        stats = setup_sender.get_stats()
+        
+        # 验证监控指标
+        assert 'cpu_usage' in stats
+        assert 'memory_usage' in stats
+        assert 'queue_size' in stats
+        assert 'error_rate' in stats
+        assert 'current_fps' in stats

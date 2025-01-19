@@ -1,0 +1,12 @@
+# P0级测试（基础功能）
+test_socket_manager.py      # 连接管理测试
+test_unified_sender.py      # 数据发送测试
+test_room_manager.py        # 房间管理测试
+
+# P1级测试（重要功能）
+test_validator.py           # 数据验证测试
+test_performance.py         # 性能监控测试
+test_integration.py         # 集成测试
+
+# P2级测试（稳定性）
+test_stability.py           # 长期稳定性测试 

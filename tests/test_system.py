@@ -164,8 +164,13 @@ class TestSystem:
             sender = setup_system['sender']
             socket = setup_system['socket']
             
-            # 验证连接状态
-            assert socket.connected, "Socket未连接"
+            # Add timeout for connection check
+            connection_timeout = time.time() + 5  # 5 seconds timeout
+            while not socket.connected and time.time() < connection_timeout:
+                time.sleep(0.1)
+            
+            if not socket.connected:
+                raise ConnectionError("Socket connection timeout")
             
             # 创建测试帧
             test_frame = np.zeros((480, 640, 3), dtype=np.uint8)
@@ -187,6 +192,54 @@ class TestSystem:
         except Exception as e:
             logger.error(f"Pose sending test failed: {e}")
             raise
+
+    def test_performance_monitoring(self, setup_system):
+        """测试性能监控"""
+        sender = setup_system['sender']
+        
+        # 开始监控
+        sender.start_monitoring()
+        
+        # 执行一些操作
+        for _ in range(100):
+            sender.send_pose_data(
+                room="test_room",
+                pose_results=self._generate_test_pose()
+            )
+        
+        # 获取性能报告
+        stats = sender.get_stats()
+        
+        # 验证关键指标
+        assert 'fps' in stats
+        assert 'latency' in stats
+        assert 'success_rate' in stats
+        assert stats['success_rate'] >= 0.95  # 95% 成功率
+        
+        # 停止监控
+        sender.stop_monitoring()
+
+    def teardown_system(self, components):
+        """清理系统组件"""
+        try:
+            # 关闭连接
+            if 'socket' in components:
+                components['socket'].disconnect()
+            
+            # 释放资源
+            if 'pose' in components:
+                components['pose'].close()
+            
+            # 清理缓存
+            if 'drawer' in components:
+                components['drawer'].clear_cache()
+            
+            # 停止所有后台任务
+            if 'sender' in components:
+                components['sender'].stop_monitoring()
+            
+        except Exception as e:
+            logging.error(f"Teardown error: {e}")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

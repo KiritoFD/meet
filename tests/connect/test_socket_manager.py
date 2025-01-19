@@ -265,4 +265,78 @@ class TestSocketManager:
         assert pool_status['active_connections'] <= setup_manager.pool_config.max_pool_size
         
         # 验证最小连接数维护
-        assert pool_status['available_connections'] >= setup_manager.pool_config.min_pool_size 
+        assert pool_status['available_connections'] >= setup_manager.pool_config.min_pool_size
+
+    @pytest.fixture
+    def setup_socket(self):
+        """初始化Socket管理器"""
+        socket = SocketManager()
+        yield socket
+        socket.disconnect()
+
+    def test_basic_connection(self, setup_socket):
+        """测试基本连接功能"""
+        assert setup_socket.connect()
+        assert setup_socket.connected
+        assert setup_socket.connection_id is not None
+
+    def test_auto_reconnection(self, setup_socket):
+        """测试自动重连"""
+        setup_socket.connect()
+        
+        # 模拟断开连接
+        setup_socket.sio.disconnect()
+        time.sleep(1)  # 等待重连
+        
+        assert setup_socket.connected
+        assert setup_socket._status.reconnect_count > 0
+
+    def test_event_handling(self, setup_socket):
+        """测试事件处理"""
+        events_received = []
+        
+        @setup_socket.on('test_event')
+        def handle_event(data):
+            events_received.append(data)
+
+        setup_socket.connect()
+        setup_socket.emit('test_event', {'test': 'data'})
+        
+        assert len(events_received) == 1
+        assert events_received[0]['test'] == 'data'
+
+    def test_graceful_shutdown(self, setup_socket):
+        """测试优雅关闭"""
+        setup_socket.connect()
+        
+        # 添加一些待处理的事件
+        for _ in range(5):
+            setup_socket.emit('test', {'data': 'test'})
+            
+        # 执行优雅关闭
+        setup_socket.graceful_shutdown(timeout=2)
+        
+        assert not setup_socket.connected
+        assert len(setup_socket._message_queue) == 0
+
+    def test_error_handling(self, setup_socket):
+        """测试错误处理"""
+        # 测试连接错误
+        setup_socket.config['url'] = 'invalid_url'
+        with pytest.raises(ConnectionError):
+            setup_socket.connect()
+
+        # 测试认证错误
+        with pytest.raises(AuthError):
+            setup_socket.authenticate({'invalid': 'credentials'})
+
+    def test_compression(self, setup_socket):
+        """测试数据压缩"""
+        large_data = {'data': 'x' * 10000}  # 创建大数据
+        
+        # 启用压缩
+        setup_socket.compression_enabled = True
+        compressed = setup_socket._process_data(large_data)
+        
+        assert compressed['compressed']
+        assert len(compressed['data']) < len(str(large_data)) 
