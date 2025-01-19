@@ -38,7 +38,7 @@
 
 1. 启动发送端
    ```bash
-   python run.py
+   python run.py send
    ```
 
 2. 访问页面
@@ -65,22 +65,26 @@ project/
 ├── pose/                   # 姿态处理模块
 │   ├── detector.py        # 姿态检测器
 │   ├── drawer.py          # 姿态绘制
-│   ├── binding.py         # 姿态绑定
-│   ├── deformer.py        # 姿态变形
-│   ├── smoother.py        # 平滑处理
 │   └── types.py           # 数据类型定义
+│
+├── receive/               # 接收端模块
+│   ├── app.py            # 接收端应用
+│   ├── manager.py        # 接收端管理器
+│   ├── processor.py      # 数据处理器
+│   └── display.py        # 显示管理器
 │
 ├── connect/               # 网络连接模块
 │   ├── socket_manager.py  # Socket管理
-│   ├── pose_sender.py     # 姿态数据发送
-│   ├── pose_protocol.py   # 数据协议
-│   └── errors.py         # 错误定义
+│   └── pose_sender.py     # 姿态数据发送
 │
-├── camera/               # 摄像头模块
-│   └── manager.py        # 摄像头管理
+├── tools/                # 工具脚本
+│   ├── demo.py           # 演示程序
+│   └── create_model.py   # 模型创建工具
 │
-├── audio/                # 音频处理模块
-│   └── processor.py      # 音频处理器
+├── utils/                # 工具函数
+│   ├── logger.py         # 日志工具
+│   ├── image.py          # 图像处理
+│   └── compression.py    # 数据压缩
 │
 ├── frontend/             # 前端界面
 │   ├── pages/           # 页面模板
@@ -110,8 +114,7 @@ project/
 │   ├── testing/        # 测试说明
 │   └── usage/          # 使用说明
 │
-├── run.py              # 发送端启动脚本
-├── receiver.py         # 接收端启动脚本
+├── run.py              # 主程序入口
 ├── pytest.ini          # 测试配置
 └── envs/               # 环境配置
      ├── meet_windows.yaml  # Windows环境配置
@@ -123,14 +126,11 @@ project/
 ### 姿态处理 (pose/)
 - detector.py: MediaPipe姿态检测
 - drawer.py: 姿态可视化绘制
-- binding.py: 初始帧区域绑定
-- deformer.py: 姿态驱动变形
 - types.py: 数据结构定义
 
 ### 网络连接 (connect/)
 - socket_manager.py: WebSocket连接管理
 - pose_sender.py: 姿态数据发送
-- pose_protocol.py: 数据编解码协议
 
 ### 前端界面 (frontend/)
 - display.html: 发送端页面
@@ -147,12 +147,17 @@ project/
 
 ### 发送端
 ```bash
-python run.py [--camera CAMERA_ID] [--room ROOM_ID] [--host HOST] [--port PORT]
+python run.py send [--camera CAMERA_ID] [--room ROOM_ID]
 ```
 
 ### 接收端
 ```bash
-python receiver.py [--room ROOM_ID] [--host HOST] [--port PORT]
+python run.py receive [--room ROOM_ID]
+```
+
+### 启动演示程序
+```bash
+python run.py demo
 ```
 
 ## 未来改进
