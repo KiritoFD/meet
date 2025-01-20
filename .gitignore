@@ -56,6 +56,5 @@ build/
 Thumbs.db
 
 # Git LFS
-*.tar.gz
 .git/lfs/
 .gitattributes
