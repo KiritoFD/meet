@@ -7,9 +7,8 @@ import numpy as np
 import cv2
 
 # 配置项目路径
-project_root = str(Path(__file__).parent.parent)
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 # 配置日志
 logging.basicConfig(
@@ -47,4 +46,10 @@ def mock_socket():
 
 # 打印调试信息
 print("Added to Python path:", project_root)
-print("Current sys.path:", sys.path) 
+print("Current sys.path:", sys.path)
+
+@pytest.fixture(autouse=True)
+def setup_test_env():
+    """设置测试环境"""
+    # 这里可以添加其他测试环境设置
+    pass 
