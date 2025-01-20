@@ -57,44 +57,85 @@ win+r 打开cmd ,输入自己的anaconda安装路径
 project/
 ├── run.py                # 主程序入口
 ├── requirements.txt      # Python依赖
-├── package.json         # Node.js依赖
 │
-├── server/              # 后端代码
+├── config/              # 配置文件
 │   ├── __init__.py
-│   ├── model_manager.py  # 模型管理
-│   ├── video_renderer.py # 视频渲染
-│   ├── pose_detector.py  # 姿态检测
-│   ├── scene_renderer.py # 场景渲染
-│   └── data_processor.py # 数据处理
+│   ├── settings.py      # 全局配置
+│   └── config.yaml      # YAML配置文件
 │
-├── static/              # 前端资源
-│   ├── js/
-│   │   ├── app.js      # 应用入口
-│   │   └── modules/    # 功能模块
-│   │       ├── model-manager.js     # 模型管理
-│   │       ├── render-manager.js    # 渲染管理
-│   │       ├── pose-recorder.js     # 姿态录制
-│   │       ├── video-texture-manager.js # 视频纹理
-│   │       ├── video-controls.js    # 视频控制
-│   │       └── scene-composer.js    # 场景合成
-│   │
-│   ├── css/            # 样式文件
-│   │   └── style.css
-│   │
-│   ├── models/         # 3D模型文件
-│   │   ├── default/    # 默认模型
-│   │   └── uploads/    # 上传模型
-│   │
-│   └── shaders/        # 着色器文件
-│       ├── vertex/     # 顶点着色器
-│       └── fragment/   # 片段着色器
+├── camera/             # 摄像头模块
+│   ├── __init__.py
+│   └── manager.py      # 摄像头管理
 │
-├── templates/           # 模板文件
-│   └── index.html      # 主页面
+├── pose/               # 姿态检测模块
+│   ├── __init__.py
+│   ├── detector.py     # 姿态检测器
+│   ├── drawer.py       # 姿态绘制
+│   ├── smoother.py     # 平滑处理
+│   ├── binding.py      # 姿态绑定
+│   ├── deformer.py     # 图像变形处理
+│   ├── types.py        # 类型定义
+│   └── pose_binding.py # 姿态绑定实现
 │
-└── uploads/            # 上传文件存储
-    ├── models/         # 模型文件
-    └── videos/         # 视频文件
+├── connect/            # 连接模块
+│   ├── __init__.py
+│   ├── socket_manager.py  # Socket管理
+│   ├── pose_sender.py    # 姿态数据发送
+│   ├── pose_protocol.py  # 数据协议
+│   └── room_manager.py   # 房间管理
+│
+├── receive/            # 接收端模块
+│   ├── __init__.py
+│   ├── app.py          # 接收端应用
+│   ├── manager.py      # 接收端管理
+│   └── static.py       # 静态资源处理
+│
+├── audio/              # 音频模块
+│   ├── __init__.py
+│   └── processor.py    # 音频处理
+│
+├── tools/              # 工具脚本
+│   └── demo.py         # 演示程序
+│
+├── docs/               # 文档
+│   ├── README.md       # 文档索引
+│   ├── config/         # 配置文档
+│   ├── testing/        # 测试文档
+│   ├── usage/          # 使用说明
+│   ├── pose/           # 姿态模块文档
+│   ├── room/           # 房间管理文档
+│   ├── receive/        # 接收端文档
+│   └── frontend/       # 前端文档
+│
+├── frontend/           # 前端资源
+│   ├── pages/          # 页面模板
+│   │   ├── display.html    # 发送端页面
+│   │   └── receiver.html   # 接收端页面
+│   ├── components/     # 可复用组件
+│   └── static/         # 静态资源
+│       ├── js/         # JavaScript文件
+│       ├── css/        # 样式文件
+│       └── models/     # 3D模型文件
+│
+├── envs/               # 环境配置
+│   ├── setup.bat       # Windows环境配置
+│   ├── setup.sh        # Linux环境配置
+│   ├── setup.py        # Python环境配置
+│   ├── meet.yaml       # 通用环境配置
+│   ├── meet_windows.yaml  # Windows专用配置
+│   ├── meet_ubuntu.yaml   # Ubuntu专用配置
+│   └── meet_linux.yaml    # Linux专用配置
+│
+└── tests/              # 测试用例
+    ├── __init__.py
+    ├── conftest.py     # 测试配置
+    ├── test_system.py  # 系统测试
+    ├── test_connect.py # 连接测试
+    ├── test_smoother.py # 平滑器测试
+    └── connect/        # 连接模块测试
+        ├── __init__.py
+        ├── test_integration.py    # 集成测试
+        └── test_pose_protocol.py  # 协议测试
 ```
 
 
