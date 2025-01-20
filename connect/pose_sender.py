@@ -916,7 +916,7 @@ class PoseSender:
         }
 
     def send_pose_data(self, room: str, pose_results: Dict,
-                       timestamp: float = None, priority: str = 'normal',
+                       face_results: Dict = None, hands_results: Dict = None, timestamp: float = None, priority: str = 'normal',
                        raise_errors: bool = False) -> bool:
         """发送姿态数据"""
         try:
@@ -936,6 +936,8 @@ class PoseSender:
             data = {
                 'room': room,
                 'pose_results': pose_results,
+                'face_results': face_results,
+                'hands_results': hands_results,
                 'timestamp': timestamp or time.time(),
                 'priority': {'high': 2, 'normal': 1, 'low': 0}.get(priority, 1)
             }

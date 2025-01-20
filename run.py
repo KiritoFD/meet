@@ -277,18 +277,6 @@ def camera_status():
         logger.error(f"获取摄像头状态失败: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-<<<<<<< HEAD
-if __name__ == "__main__":
-    # 确保必要的目录存在
-    os.makedirs('static', exist_ok=True)
-    os.makedirs('templates', exist_ok=True)
-    
-    print(f"服务器启动在 http://localhost:5000")
-    print(f"模板目录: {template_dir}")
-    print(f"静态文件目录: {static_dir}")
-    
-    app.run(debug=True, host='0.0.0.0', port=5000)
-=======
 @socketio.on('connect')
 def handle_connect():
     logger.info('客户端已连接')
@@ -372,4 +360,3 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"服务器启动失败: {str(e)}")
         sys.exit(1)
->>>>>>> upstream/dev
