@@ -1,9 +1,10 @@
 import mediapipe as mp
 import cv2
 import logging
-from typing import Dict, Optional, NamedTuple, List
+from typing import Dict, Optional, NamedTuple, List, Union
 import numpy as np
 from config.settings import POSE_CONFIG
+from .types import Landmark
 
 logger = logging.getLogger(__name__)
 
@@ -39,20 +40,28 @@ class PoseDetector:
         """获取区域对应的关键点ID列表"""
         return [cls.get_keypoint_id(name) for name in cls.CONNECTIONS[region]]
     
-    @classmethod
-    def mediapipe_to_keypoints(cls, landmarks) -> List[tuple]:
-        """将MediaPipe姿态关键点转换为标准格式"""
-        keypoints = []
-        for name, keypoint in cls.KEYPOINTS.items():
-            lm = landmarks.landmark[keypoint.id]
-            keypoints.append((
-                keypoint.id,
-                float(lm.x),
-                float(lm.y),
-                float(lm.z),
-                float(lm.visibility)
-            ))
-        return keypoints
+    @staticmethod
+    def mediapipe_to_keypoints(landmarks) -> List[Landmark]:
+        """将 MediaPipe 关键点转换为内部格式
+        
+        Args:
+            landmarks: MediaPipe 姿态关键点
+            
+        Returns:
+            List[Landmark]: 转换后的关键点列表
+        """
+        if landmarks is None:
+            return []
+            
+        return [
+            Landmark(
+                x=float(lm.x),
+                y=float(lm.y),
+                z=float(lm.z),
+                visibility=float(lm.visibility)
+            )
+            for lm in landmarks.landmark
+        ]
     
     def __init__(self):
         self.mp_pose = mp.solutions.pose

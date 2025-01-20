@@ -13,7 +13,7 @@ from pose.drawer import PoseDrawer  # 确保从正确的路径导入
 from connect.pose_sender import PoseSender
 from connect.socket_manager import SocketManager
 from config import settings
-from config.settings import CAMERA_CONFIG
+from config.settings import CAMERA_CONFIG, POSE_CONFIG
 from audio.processor import AudioProcessor
 from pose.pose_binding import PoseBinding
 from pose.detector import PoseDetector
@@ -22,8 +22,7 @@ from pose.types import PoseData
 # 配置日志格式
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,7 @@ UPLOAD_FOLDER = os.path.join(project_root, 'uploads')
 # 初始化 Socket.IO
 socketio = SocketIO(app, cors_allowed_origins="*")
 socket_manager = SocketManager(socketio, audio_processor)
-pose_sender = PoseSender(socket_manager)
+pose_sender = PoseSender(config=POSE_CONFIG)
 
 # MediaPipe 初始化
 mp_pose = mp.solutions.pose
@@ -80,7 +79,7 @@ face_mesh = mp_face_mesh.FaceMesh(
 )
 
 # 全局变量
-camera_manager = CameraManager()  # 直接初始化，不需要传入配置
+camera_manager = CameraManager(config=CAMERA_CONFIG)
 pose_drawer = PoseDrawer()
 pose_binding = PoseBinding()
 initial_frame = None
@@ -106,7 +105,7 @@ def check_camera_settings(cap):
 
 @app.route('/')
 def index():
-    logger.info("访问主页")
+    """渲染显示页面"""
     return render_template('display.html')
 
 @app.route('/start_capture', methods=['POST'])
@@ -132,9 +131,10 @@ def stop_capture():
 @app.route('/video_feed')
 def video_feed():
     """视频流路由"""
-    logger.info("请求视频流")
-    return Response(generate_frames(), 
-                   mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(
+        generate_frames(),
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
 
 @app.route('/start_audio', methods=['POST'])
 def start_audio():
@@ -200,68 +200,32 @@ def capture_initial():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 def generate_frames():
-    """生成视频帧"""
-    global initial_frame, initial_regions
-    
-    logger.info("开始生成视频帧")
+    """生成视频流"""
     while True:
         try:
-            if not camera_manager.is_running:
-                logger.debug("摄像头未运行，显示提示画面")
-                frame = np.zeros((480, 640, 3), dtype=np.uint8)
-                cv2.putText(frame, "Click Start to Begin", (180, 240),
-                          cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            else:
-                success, frame = camera_manager.read()
-                if not success or frame is None:
-                    logger.warning("读取帧失败")
-                    continue
-
-                logger.debug("成功读取帧")
-                # 转换颜色空间用于MediaPipe处理
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # 读取帧
+            frame = camera_manager.read_frame()
+            if frame is None:
+                continue
                 
-                # 处理各个模型
-                pose_results = pose.process(frame_rgb)
-                hands_results = hands.process(frame_rgb)
-                face_results = face_mesh.process(frame_rgb)
+            # 处理帧
+            result = pose_sender.process_and_send(frame)
+            if result is None:
+                result = frame
                 
-                # 如果有初始帧和区域定义，进行变形
-                if initial_frame is not None and initial_regions is not None and pose_results.pose_landmarks:
-                    keypoints = PoseDetector.mediapipe_to_keypoints(pose_results.pose_landmarks)
-                    pose_data = PoseData(keypoints=keypoints, timestamp=time.time(), confidence=1.0)
-                    frame = pose.pose_deformer.deform_frame(initial_frame, initial_regions, pose_data)
+            # 编码帧
+            ret, buffer = cv2.imencode('.jpg', result)
+            if not ret:
+                continue
                 
-                # 使用PoseDrawer绘制
-                frame = pose_drawer.draw_frame(
-                    frame,
-                    pose_results,
-                    hands_results,
-                    face_results
-                )
-                
-                # 发送姿态数据
-                pose_sender.send_pose_data(
-                    room="default_room",
-                    pose_results=pose_results,
-                    face_results=face_results,
-                    hands_results=hands_results,
-                    timestamp=time.time()
-                )
-
-            # 编码并发送帧
-            ret, buffer = cv2.imencode('.jpg', frame)
-            if ret:
-                frame_bytes = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-            else:
-                logger.warning("帧编码失败")
-
+            # 生成字节流
+            frame_bytes = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                   
         except Exception as e:
-            logger.error(f"处理帧时出错: {str(e)}")
+            logger.error(f"生成帧失败: {e}")
             time.sleep(0.1)
-            continue
 
 @app.route('/camera_status')
 def camera_status():
@@ -279,11 +243,15 @@ def camera_status():
 
 @socketio.on('connect')
 def handle_connect():
-    logger.info('客户端已连接')
+    """处理客户端连接"""
+    logger.info("客户端已连接")
+    pose_sender.connect(socketio)
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    logger.info('客户端已断开连接')
+    """处理客户端断开连接"""
+    logger.info("客户端已断开")
+    pose_sender.disconnect()
 
 @app.route('/api/upload_audio', methods=['POST'])
 def upload_audio():
@@ -345,6 +313,59 @@ def handle_error(error):
         'error': str(error)
     }), 500
 
+@app.route('/camera/settings', methods=['GET', 'POST'])
+def camera_settings():
+    """获取或更新相机设置"""
+    if request.method == 'GET':
+        return jsonify(camera_manager.get_settings())
+        
+    settings = request.json
+    success = camera_manager.update_settings(settings)
+    return jsonify({'success': success})
+
+@app.route('/camera/reset', methods=['POST'])
+def reset_camera():
+    """重置相机设置"""
+    success = camera_manager.reset_settings()
+    return jsonify({'success': success})
+
+@app.route('/status')
+def get_status():
+    """获取当前状态"""
+    try:
+        status = {
+            'camera': {
+                'isActive': camera_manager.is_running,
+                'fps': camera_manager.current_fps
+            },
+            'room': {
+                'isConnected': socket_manager.is_connected,
+                'roomId': socket_manager.current_room
+            }
+        }
+        return jsonify(status)
+    except Exception as e:
+        logger.error(f"获取状态失败: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+def main():
+    """主函数"""
+    try:
+        # 启动服务器
+        logger.info(f"服务器启动在 http://localhost:5000")
+        logger.info(f"模板目录: {app.template_folder}")
+        logger.info(f"静态文件目录: {app.static_folder}")
+        
+        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+        
+    except Exception as e:
+        logger.error(f"服务器错误: {e}")
+        
+    finally:
+        # 清理资源
+        camera_manager.release()
+        pose_sender.release()
+
 if __name__ == '__main__':
     try:
         # 确保必要的目录存在
@@ -352,11 +373,7 @@ if __name__ == '__main__':
         os.makedirs('templates', exist_ok=True)
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         
-        logger.info(f"服务器启动在 http://localhost:5000")
-        logger.info(f"模板目录: {template_dir}")
-        logger.info(f"静态文件目录: {static_dir}")
-        
-        socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+        main()
     except Exception as e:
         logger.error(f"服务器启动失败: {str(e)}")
         sys.exit(1)
