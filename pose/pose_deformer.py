@@ -14,9 +14,7 @@ class PoseDeformer:
         if smoothing_window < 3:
             raise ValueError("Smoothing window must be at least 3")
         self.smoothing_window = smoothing_window
-        self._last_deformed = None
         # 变形参数
-        self._smoothing_factor = 0.3  # 平滑因子
         self._blend_radius = 20  # 区域混合半径
         self._min_scale = 0.5  # 最小缩放
         self._max_scale = 2.0  # 最大缩放
@@ -108,26 +106,9 @@ class PoseDeformer:
                 # 混合所有变形区域
                 result = self._blend_regions(frame, transformed_regions)
             
-            # 应用时间平滑
-            if self._last_deformed is not None:
-                # 确保数据类型匹配
-                result = result.astype(np.float32)
-                last = self._last_deformed.astype(np.float32)
-                
-                result = cv2.addWeighted(
-                    last,
-                    self._smoothing_factor,
-                    result,
-                    1 - self._smoothing_factor,
-                    0
-                ).astype(frame.dtype)
-            
-            self._last_deformed = result.copy()
             return result
         
         except Exception as e:
-            # 重置状态
-            self._last_deformed = None
             raise ValueError(f"Deformation failed: {str(e)}")
         
     def _calculate_transform(self, 
