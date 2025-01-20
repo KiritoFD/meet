@@ -470,6 +470,67 @@
         .status-inactive {
             color: #F44336 !important;
         }
+
+        .status-info {
+            margin-bottom: 16px;
+            padding: 12px;
+        }
+
+        .room-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .controls-with-status {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-dot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #00aeec;
+            font-size: 13px;
+        }
+
+        .room-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .room-title h3 {
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        #roomInput {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .status-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #dc3545;  /* 默认红色 */
+        }
+
+        .status-indicator.active {
+            background-color: #4CAF50;  /* 绿色 */
+        }
     </style>
 </head>
 <body>
@@ -484,42 +545,72 @@
 
         <div class="right-panel">
             <div class="controls-group">
-                <h3>摄像头状态</h3>
-                <div class="room-controls">
-                    <input type="text" id="roomInput" placeholder="输入房间号">
-                    <button onclick="joinRoom()" id="joinBtn">加入房间</button>
-                </div>
-                <div class="controls">
+                <div class="button-group">
                     <button id="startBtn">启动摄像头</button>
                     <button id="stopBtn" disabled>停止摄像头</button>
                 </div>
+                <div class="status-dot">
+                    <span class="status-indicator" id="cameraIndicator"></span>
+                    <span id="cameraStatus">未启动</span>
+                </div>
             </div>
 
             <div class="controls-group">
-                <h3>显示设置</h3>
+                <div class="room-title">
+                    <h3>房间设置</h3>
+                    <input type="text" id="roomInput" placeholder="输入房间号">
+                </div>
                 <div class="button-group">
-                    <button>切换预览</button>
-                    <button>切换骨骼显示</button>
+                    <button id="joinBtn">加入房间</button>
+                    <button id="leaveBtn">离开房间</button>
                 </div>
-                <div class="slider-container">
-                    <div class="slider-label">
-                        <span>骨骼线条粗细</span>
-                        <span>2</span>
-                    </div>
-                    <input type="range" id="lineWidthSlider" min="1" max="10" value="2">
+                <div class="status-dot">
+                    <span class="status-indicator" id="roomIndicator"></span>
+                    <span id="roomStatus">未连接</span>
                 </div>
             </div>
 
             <div class="controls-group">
-                <h3>模型设置</h3>
-                <button class="outline" style="margin-bottom: 12px;">上传模型</button>
+                <h3>相机参数设置</h3>
                 <div class="slider-container">
                     <div class="slider-label">
-                        <span>模型大小</span>
-                        <span>1.0</span>
+                        <span>亮度</span>
+                        <span id="brightnessValue">50</span>
                     </div>
-                    <input type="range" id="modelSizeSlider" min="0.1" max="2" value="1.0" step="0.1">
+                    <input type="range" id="brightnessSlider" min="0" max="100" value="50">
                 </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>对比度</span>
+                        <span id="contrastValue">50</span>
+                    </div>
+                    <input type="range" id="contrastSlider" min="0" max="100" value="50">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>曝光</span>
+                        <span id="exposureValue">-6</span>
+                    </div>
+                    <input type="range" id="exposureSlider" min="-13" max="0" value="-6">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>增益</span>
+                        <span id="gainValue">0</span>
+                    </div>
+                    <input type="range" id="gainSlider" min="0" max="100" value="0">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>分辨率</span>
+                    </div>
+                    <select id="resolutionSelect" style="width: 100%; margin-top: 8px; padding: 4px;">
+                        <option value="640x480">640x480</option>
+                        <option value="1280x720">1280x720</option>
+                        <option value="1920x1080">1920x1080</option>
+                    </select>
+                </div>
+                <button id="resetCameraBtn" class="outline" style="margin-top: 12px;">重置设置</button>
             </div>
 
             <div class="controls-group">
@@ -577,9 +668,6 @@
                     </div>
                     <div id="volumeValue">0 dB</div>
                 </div>
-
-                <!-- 新增捕获初始帧按钮 -->
-                <button id="captureInitialBtn" onclick="captureInitial()">Capture Initial</button>
             </div>
         </div>
     </main>
@@ -758,24 +846,6 @@
         // 每秒更新一次状态
         setInterval(updateStreamStatus, 1000);
     });
-
-    async function captureInitial() {
-        try {
-            const response = await fetch('/capture_initial', {
-                method: 'POST'
-            });
-            const data = await response.json();
-            
-            if (data.success) {
-                alert('Initial frame captured successfully!');
-            } else {
-                alert('Failed to capture initial frame: ' + data.error);
-            }
-        } catch (error) {
-            console.error('Error capturing initial frame:', error);
-            alert('Error capturing initial frame');
-        }
-    }
     </script>
 </body>
 </html>

@@ -1,24 +1,26 @@
 from typing import List, Dict, Optional
 import numpy as np
-from .pose_data import PoseData, DeformRegion, BindingPoint
+from .types import PoseData, DeformRegion, BindingPoint
 
 class PoseBinding:
-    """处理姿态关键点到图像区域的绑定"""
+    """姿态绑定器，负责生成变形控制点"""
     
     def __init__(self):
-        """初始化"""
+        """初始化绑定器"""
         # TODO: 初始化绑定配置和数据结构
         pass
         
-    def create_binding(self, frame: np.ndarray, pose: PoseData) -> Dict[str, DeformRegion]:
-        """创建初始帧的绑定信息
+    def generate_binding_points(self, 
+                              frame_shape: tuple,
+                              pose_data: PoseData) -> Dict:
+        """生成绑定点
         
         Args:
-            frame: 初始图像帧
-            pose: 初始姿态数据
+            frame_shape: 图像尺寸 (height, width)
+            pose_data: 姿态数据
             
         Returns:
-            区域名称到DeformRegion的映射
+            包含绑定点的字典
         """
         # TODO: 实现以下步骤
         # 1. 根据姿态关键点划分变形区域
