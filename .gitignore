@@ -56,6 +56,12 @@ build/
 Thumbs.db
 
 # Git LFS
+<<<<<<< HEAD
 .git/lfs/
 .gitattributes
 meet6.tar.gz
+=======
+*.tar.gz
+.git/lfs/
+.gitattributes
+>>>>>>> fdf218d3e97c4fe6232fb8e4e12b32bd4f93348a

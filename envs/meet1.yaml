@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 name: meet1
+=======
+name: meet
+>>>>>>> fdf218d3e97c4fe6232fb8e4e12b32bd4f93348a
 channels:
   - nvidia
   - defaults
