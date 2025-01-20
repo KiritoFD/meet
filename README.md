@@ -7,79 +7,42 @@
 
 由于原理的创新，即使我们的系统出现故障，也不会显现出你未经收拾的房间的画面，而只会显示背景，大大提高了不收拾房间就开正式会议的危险程度（我一直害怕传统的虚拟背景会突然崩溃）；更好的是，我们正在努力通过得到的数据自动把你摆到正确的位置上--再也不用调整摄像头角度了，尤其是如果你的摄像头在笔记本电脑的键盘上，你就会知道这是多么有用。
 
-
-
 本项目基于 MediaPipe 的实时人体姿态估计与异物消除系统，实现了上述功能。
 
 希望我们的项目能让你轻松而放心地以最佳的真实面貌地出现在正式的视频会议里。
 
-
-
 ## 快速开始
 
-### 方法0：如果你不想自己安装conda,请运行setup.bat（windows）或setup.sh（linux）
+### 环境配置
 
+1. 安装 Anaconda
+   - 从 https://www.anaconda.com/download 下载并安装
 
+2. 创建虚拟环境
+   ```bash
+   # 创建环境
+   conda env create -f envs/meet1.yaml
+   ```
+如果失败，可以使用对应平台的配置文件：
+- Windows: `envs/meet_windows.yaml`
+- Linux: `envs/meet_linux.yaml`
 
-如果想自己动手（我们的安装脚本并不那么可靠）
-=======
-0.安装软件：
+3. 激活环境
+   ```bash
+   conda activate meet
+   ```
 
+注意：环境配置文件适用于所有平台(Windows/Linux/MacOS)。如果在特定平台遇到问题，请参考 [常见问题](docs/troubleshooting.md)。
 
-先安装anaconda
-https://www.anaconda.com/download/success 下载
+### 运行程序
 
+1. 启动发送端
+   ```bash
+   python run.py send
+   ```
 
-### 方法1
-    
-在项目根目录下运行（根据系统选择对应的配置文件）：
-
-    # Windows系统：
-    conda env create -f meet_windows.yaml
-    # Linux系统：
-    conda env create -f meet_linux.yaml
-=======
-win+r 打开cmd ,输入自己的anaconda安装路径
-
-
-然后用anaconda prompt 输入以下命令：
-
-    conda activate meet6
-之后就可以选择meet6环境运行代码了(选择解释器)
-
-
-### 方法2：使用打包好的环境
-
-1. 解压环境：
-
-0.安装软件：
-
-先安装anaconda
-https://www.anaconda.com/download/success 下载
-安装WinRAR用于解压
-https://www.win-rar.com/download.html?&L=0
-1. 解压环境：
-
-
-
-    cd meet6
-复制当前路径
-
-用anaconda prompt 进入项目根目录，输入以下命令：
-(本压缩包目前在dev分支，如果发现找不到压缩包的切换到dev分支下载一下)
-
-    tar -xvf meet6.tar.gz -C 
-在这一行后粘贴刚才复制的路径，enter
-
-    conda activate meet6
-运行代码时解释器选择meet6环境
-
-    cd meet
-
-运行run.py
-程序运行后，打开浏览器访问 `http://127.0.0.1:5000/`。
-
-
+2. 访问页面
+   打开浏览器访问 `http://127.0.0.1:5000/`
 
 ## 功能
 
@@ -98,43 +61,103 @@ https://www.win-rar.com/download.html?&L=0
 
 ## 项目结构
 ```
-meet/
-├── frontend/           # 前端资源统一目录
-│   ├── static/        # 静态资源
-│   │   ├── js/       # JavaScript文件
-│   │   │   ├── poseRenderer.js  # 姿态渲染器
-│   │   │   └── app.js           # 主应用逻辑
-│   │   ├── css/      # 样式文件
-│   │   └── img/      # 图片资源
-│   └── pages/        # 页面文件
-│       ├── components/  # 可复用组件
-│       │   └── room_controls.html  # 房间控制组件
-│       ├── display.html    # 发送端页面
-│       └── receiver.html   # 接收端页面
-├── pose/              # 姿态处理模块
-│   ├── detector.py    # 姿态检测器
-│   ├── processor.py   # 姿态数据处理
-│   └── drawer.py      # 姿态绘制
-├── room/              # 房间管理模块
-│   └── manager.py     # 房间管理器
-├── receive/           # 接收端模块
-│   ├── app.py        # 接收端应用
-│   ├── manager.py    # 接收端管理器
-│   ├── transform.py  # 姿态变换
-│   └── static.py     # 静态文件服务
-├── connect/          # 连接处理模块
-│   ├── pose_sender.py    # 姿态数据发送
-│   └── socket_manager.py # Socket连接管理
-├── utils/            # 工具函数
-│   ├── compression.py  # 数据压缩
-│   └── image.py       # 图像处理
-├── config/           # 配置文件
-│   └── settings.py   # 全局配置
-├── run.py            # 发送端入口
-├── receiver.py       # 接收端入口
-├── requirements.txt  # 项目依赖
-├── README.md         # 项目说明
-└── LICENSE           # 许可证
+project/
+├── pose/                   # 姿态处理模块
+│   ├── detector.py        # 姿态检测器
+│   ├── drawer.py          # 姿态绘制
+│   └── types.py           # 数据类型定义
+│
+├── receive/               # 接收端模块
+│   ├── app.py            # 接收端应用
+│   ├── manager.py        # 接收端管理器
+│   ├── processor.py      # 数据处理器
+│   └── display.py        # 显示管理器
+│
+├── connect/               # 网络连接模块
+│   ├── socket_manager.py  # Socket管理
+│   └── pose_sender.py     # 姿态数据发送
+│
+├── tools/                # 工具脚本
+│   ├── demo.py           # 演示程序
+│   └── create_model.py   # 模型创建工具
+│
+├── utils/                # 工具函数
+│   ├── logger.py         # 日志工具
+│   ├── image.py          # 图像处理
+│   └── compression.py    # 数据压缩
+│
+├── frontend/             # 前端界面
+│   ├── pages/           # 页面模板
+│   │   ├── display.html    # 发送端页面
+│   │   └── receiver.html   # 接收端页面
+│   ├── static/          # 静态资源
+│   │   ├── js/         # JavaScript文件
+│   │   ├── css/        # 样式文件
+│   │   └── img/        # 图片资源
+│   └── components/      # 可复用组件
+│       └── room_controls.html  # 房间控制组件
+│
+├── config/              # 配置文件
+│   └── settings.py      # 全局配置
+│
+├── tests/               # 测试用例
+│   ├── conftest.py     # 测试配置
+│   ├── connect/        # 连接模块测试
+│   ├── pose/           # 姿态模块测试
+│   ├── integration/    # 集成测试
+│   └── performance/    # 性能测试
+│
+├── docs/                # 文档
+│   ├── pose/           # 姿态模块文档
+│   ├── connect/        # 连接模块文档
+│   ├── config/         # 配置说明
+│   ├── testing/        # 测试说明
+│   └── usage/          # 使用说明
+│
+├── run.py              # 主程序入口
+├── pytest.ini          # 测试配置
+└── envs/               # 环境配置
+     ├── meet_windows.yaml  # Windows环境配置
+     └── meet_linux.yaml    # Linux环境配置
+```
+
+## 主要模块说明
+
+### 姿态处理 (pose/)
+- detector.py: MediaPipe姿态检测
+- drawer.py: 姿态可视化绘制
+- types.py: 数据结构定义
+
+### 网络连接 (connect/)
+- socket_manager.py: WebSocket连接管理
+- pose_sender.py: 姿态数据发送
+
+### 前端界面 (frontend/)
+- display.html: 发送端页面
+- receiver.html: 接收端页面
+- room_controls.html: 房间控制组件
+
+### 测试用例 (tests/)
+- 单元测试
+- 集成测试
+- 性能测试
+- 稳定性测试
+
+## 启动说明
+
+### 发送端
+```bash
+python run.py send [--camera CAMERA_ID] [--room ROOM_ID]
+```
+
+### 接收端
+```bash
+python run.py receive [--room ROOM_ID]
+```
+
+### 启动演示程序
+```bash
+python run.py demo
 ```
 
 ## 未来改进
