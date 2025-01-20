@@ -1589,7 +1589,7 @@ def _generate_test_pose(self) -> Dict:
 ###### send_pose_data 方法
 - 发送姿态数据，将姿态数据添加到优先级队列中，根据优先级和数据类型选择发送端点。
 ```python
-def send_pose_data(self, pose_data: Dict, priority: int = 5) -> bool:
+def send_pose_data(self, room: str, pose_results: Dict,    timestamp: float = None, priority: str = 'normal'，raise_errors: bool = False) -> bool:
 ```
 
 ###### _validate_data_fast 方法
