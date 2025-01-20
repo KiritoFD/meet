@@ -1,11 +1,68 @@
 import mediapipe as mp
 import cv2
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, NamedTuple, List, Union
+import numpy as np
+from config.settings import POSE_CONFIG
+from .types import Landmark
 
 logger = logging.getLogger(__name__)
 
+class PoseKeypoint(NamedTuple):
+    """姿态关键点定义"""
+    id: int
+    name: str
+    parent_id: int = -1
+
 class PoseDetector:
+    """统一的姿态检测器"""
+    
+    # 从配置加载关键点定义
+    KEYPOINTS = {
+        name: PoseKeypoint(
+            id=data['id'],
+            name=data['name'],
+            parent_id=data['parent_id']
+        )
+        for name, data in POSE_CONFIG['detector']['keypoints'].items()
+    }
+    
+    # 从配置加载连接定义
+    CONNECTIONS = POSE_CONFIG['detector']['connections']
+    
+    @classmethod
+    def get_keypoint_id(cls, name: str) -> int:
+        """获取关键点ID"""
+        return cls.KEYPOINTS[name].id
+    
+    @classmethod
+    def get_region_keypoints(cls, region: str) -> List[int]:
+        """获取区域对应的关键点ID列表"""
+        return [cls.get_keypoint_id(name) for name in cls.CONNECTIONS[region]]
+    
+    @staticmethod
+    def mediapipe_to_keypoints(landmarks) -> List[Landmark]:
+        """将 MediaPipe 关键点转换为内部格式
+        
+        Args:
+            landmarks: MediaPipe 姿态关键点
+            
+        Returns:
+            List[Landmark]: 转换后的关键点列表
+        """
+        if landmarks is None:
+            return []
+            
+        return [
+            Landmark(
+                x=float(lm.x),
+                y=float(lm.y),
+                z=float(lm.z),
+                visibility=float(lm.visibility)
+            )
+            for lm in landmarks.landmark
+        ]
+    
     def __init__(self):
         self.mp_pose = mp.solutions.pose
         self.mp_hands = mp.solutions.hands

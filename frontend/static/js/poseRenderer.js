@@ -2,6 +2,7 @@ class PoseRenderer {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
+        this.landmarks = [];
         
         // 设置线条样式
         this.styles = {
@@ -51,6 +52,60 @@ class PoseRenderer {
         };
     }
     
+    updatePose(poseData) {
+        this.landmarks = poseData.landmarks;
+        this.render();
+    }
+    
+    render() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // 绘制关键点
+        this.landmarks.forEach(landmark => {
+            const x = landmark.x * this.canvas.width;
+            const y = landmark.y * this.canvas.height;
+            
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            this.ctx.fillStyle = `rgba(255, 0, 0, ${landmark.visibility})`;
+            this.ctx.fill();
+        });
+        
+        // 绘制连接线
+        this.drawConnections();
+    }
+    
+    drawConnections() {
+        // 定义关键点连接关系
+        const connections = [
+            [11, 12], // 肩膀
+            [11, 13], [13, 15], // 左臂
+            [12, 14], [14, 16], // 右臂
+            [11, 23], [23, 25], [25, 27], // 左腿
+            [12, 24], [24, 26], [26, 28]  // 右腿
+        ];
+        
+        connections.forEach(([start, end]) => {
+            const startPoint = this.landmarks[start];
+            const endPoint = this.landmarks[end];
+            
+            if (startPoint && endPoint) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(
+                    startPoint.x * this.canvas.width,
+                    startPoint.y * this.canvas.height
+                );
+                this.ctx.lineTo(
+                    endPoint.x * this.canvas.width,
+                    endPoint.y * this.canvas.height
+                );
+                this.ctx.strokeStyle = '#00ff00';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+            }
+        });
+    }
+    
     drawPose(poseData) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
@@ -80,20 +135,6 @@ class PoseRenderer {
             }
             if (poseData.right_hand) {
                 this.drawHandLandmarks(poseData.right_hand);
-            }
-        }
-    }
-    
-    drawConnections(landmarks, connections) {
-        for (const [start, end] of connections) {
-            if (landmarks[start] && landmarks[end]) {
-                const startPoint = this.transformPoint(landmarks[start]);
-                const endPoint = this.transformPoint(landmarks[end]);
-                
-                this.ctx.beginPath();
-                this.ctx.moveTo(startPoint.x, startPoint.y);
-                this.ctx.lineTo(endPoint.x, endPoint.y);
-                this.ctx.stroke();
             }
         }
     }
