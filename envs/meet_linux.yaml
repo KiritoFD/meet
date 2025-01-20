@@ -1,0 +1,28 @@
+name: meet6
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip>=23.0
+  - numpy>=1.24
+  - pytest>=7.0
+  - pytest-asyncio>=0.21
+  - pytest-cov>=4.1
+  - pytest-timeout>=2.1
+  - psutil>=5.9
+  - aiohttp>=3.8
+  - websockets>=11.0
+  - pyjwt>=2.8
+  - opencv>=4.8
+  - pip:
+    - python-socketio>=5.8
+    - python-engineio>=4.5
+    - websocket-client>=1.6
+    - uvicorn>=0.24
+    - fastapi>=0.104
+    - orjson>=3.9
+    - msgpack>=1.0
+    - prometheus-client>=0.18
+    - opencv-python>=4.8
+    - opencv-contrib-python>=4.8 

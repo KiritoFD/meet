@@ -1,0 +1,25 @@
+# 服务器配置
+server:
+  host: "0.0.0.0"
+  port: 5000
+  max_connections: 10
+
+# Socket配置
+socket:
+  ping_timeout: 60
+  ping_interval: 25
+  max_connections: 10
+  reconnect_attempts: 5
+  reconnect_delay: 1000
+  heartbeat_interval: 25000
+
+# 音频配置
+audio:
+  sample_rate: 44100
+  channels: 2
+  chunk_size: 1024
+
+# 姿态检测配置
+pose:
+  min_detection_confidence: 0.5
+  min_tracking_confidence: 0.5 

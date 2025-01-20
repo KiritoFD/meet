@@ -21,7 +21,7 @@
 
 ## 快速开始
 
-### 方法1：使用打包好的环境（推荐）
+### 环境配置
 
 1. 解压环境：
 先安装anaconda https://www.anaconda.com/download/success 下载
