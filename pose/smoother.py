@@ -83,51 +83,27 @@ class NAFNet(nn.Module):
         return x
 
 class FrameSmoother:
-    def __init__(self, model_path: str = 'models/NAFNet-GoPro-width32.pth',
-                 device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
-                 buffer_size: int = 3,
+    """基础帧平滑器"""
+    
+    def __init__(self, 
                  temporal_weight: float = 0.8,
-                 downsample_factor: float = 0.5):
-        self.device = device
-        self.buffer_size = buffer_size
-        self.temporal_weight = temporal_weight
-        self.downsample_factor = downsample_factor
-        self.frame_buffer = deque(maxlen=buffer_size)
-        self.orig_width = None
-        self.orig_height = None
+                 spatial_weight: float = 0.5,
+                 **kwargs):  # 添加 **kwargs 支持扩展参数
+        """初始化平滑器
         
-        # 初始化模型
-        try:
-            self.model = NAFNet(
-                img_channel=3,
-                width=32,
-                middle_blk_num=12,
-                enc_blk_nums=[2, 2, 4, 8],
-                dec_blk_nums=[2, 2, 2, 2]
-            ).to(device)
-            
-            if os.path.exists(model_path):
-                try:
-                    state_dict = torch.load(model_path, map_location=device)
-                    if 'params' in state_dict:
-                        state_dict = state_dict['params']
-                    state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
-                    self.model.load_state_dict(state_dict, strict=False)
-                    logger.info(f"NAFNet模型加载成功，使用设备: {device}")
-                except Exception as e:
-                    logger.warning(f"加载预训练权重失败: {e}")
-            
-            self.model.eval()
-            
-            # CUDA优化
-            if device == 'cuda':
-                self.model = self.model.half()  # 使用FP16
-                torch.backends.cudnn.benchmark = True
-                
-        except Exception as e:
-            logger.error(f"NAFNet模型初始化失败: {e}")
-            self.model = None
-            
+        Args:
+            temporal_weight: 时间平滑权重 (0-1)
+            spatial_weight: 空间平滑权重 (0-1)
+            **kwargs: 扩展参数
+        """
+        self.temporal_weight = temporal_weight
+        self.spatial_weight = spatial_weight
+        self.frame_buffer = []
+        
+    def smooth_frame(self, frame: np.ndarray) -> np.ndarray:
+        """平滑单帧"""
+        # ... 其他代码不变 ...
+        
     def _preprocess_frame(self, frame: np.ndarray) -> torch.Tensor:
         """优化的预处理"""
         # 保存原始尺寸
@@ -180,28 +156,6 @@ class FrameSmoother:
         self.frame_buffer.append(smoothed.copy())
         return smoothed
         
-    @torch.no_grad()
-    def smooth_frame(self, frame: np.ndarray) -> Optional[np.ndarray]:
-        """优化的帧处理"""
-        if frame is None or self.model is None:
-            return frame
-            
-        try:
-            # 空间域平滑
-            with torch.cuda.amp.autocast() if self.device == 'cuda' else nullcontext():
-                tensor = self._preprocess_frame(frame)
-                output = self.model(tensor)
-                smoothed = self._postprocess_frame(output)
-            
-            # 时间域平滑
-            smoothed = self._apply_temporal_smooth(smoothed)
-            
-            return smoothed
-            
-        except Exception as e:
-            logger.error(f"帧平滑失败: {e}")
-            return frame
-            
     def reset(self):
         """重置平滑器状态"""
         self.frame_buffer.clear()

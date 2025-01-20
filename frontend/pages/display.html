@@ -577,6 +577,9 @@
                     </div>
                     <div id="volumeValue">0 dB</div>
                 </div>
+
+                <!-- 新增捕获初始帧按钮 -->
+                <button id="captureInitialBtn" onclick="captureInitial()">Capture Initial</button>
             </div>
         </div>
     </main>
@@ -755,6 +758,24 @@
         // 每秒更新一次状态
         setInterval(updateStreamStatus, 1000);
     });
+
+    async function captureInitial() {
+        try {
+            const response = await fetch('/capture_initial', {
+                method: 'POST'
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Initial frame captured successfully!');
+            } else {
+                alert('Failed to capture initial frame: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error capturing initial frame:', error);
+            alert('Error capturing initial frame');
+        }
+    }
     </script>
 </body>
 </html>
