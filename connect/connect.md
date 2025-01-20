@@ -2244,9 +2244,9 @@ sequenceDiagram
 
 
 
-## 5. 关键  问题和解决方案
+# 5. 关键  问题和解决方案
 
-### 5.1 实时性问题
+## 5.1 实时性问题
 **问题:**
 - 网络延迟导致动作不同步
 - 数据堆积造成内存增长
@@ -2268,7 +2268,7 @@ class UnifiedSender:
         await self._rate_limit()
 ```
 
-### 5.2 可靠性问题
+## 5.2 可靠性问题
 **问题:**
 - 网络断开需要重连
 - 数据可能丢失
@@ -2288,7 +2288,7 @@ class RoomManager:
         await self._broadcast_state_update(room_id, state)
 ```
 
-### 5.3 性能问题
+## 5.3 性能问题
 **问题:**
 - CPU使用率过高
 - 内存泄漏
@@ -2306,65 +2306,39 @@ class PerformanceMonitor:
         self.alerts = AlertManager()
 ```
 
-## 6. 实现优先级
+# 6. 实现优先级
 
-### 6.1 第一阶段 - 基础功能
+## 6.1 第一阶段 - 基础功能
 1. 简化SocketManager
 2. 实现UnifiedSender
 3. 基础房间管理
 
-### 6.2 第二阶段 - 性能优化
+## 6.2 第二阶段 - 性能优化
 1. 实现性能监控
 2. 添加带宽控制
 3. 优化数据压缩
 
-### 6.3 第三阶段 - 可靠性提升
+## 6.3 第三阶段 - 可靠性提升
 1. 完善错误处理
 2. 添加状态同步
 3. 实现数据验证
 
-## 7. 关键接口
 
-### 7.1 数据发送
-```python
-async def send_pose_data(
-    pose_data: Dict[str, Any],
-    room_id: str,
-    priority: int = 5
-) -> bool
-```
-
-### 7.2 房间管理
-```python
-async def join_room(
-    room_id: str,
-    user_id: str,
-    role: str = 'member'
-) -> bool
-```
-
-### 7.3 性能监控
-```python
-def get_performance_metrics() -> Dict[str, float]:
-    """返回关键性能指标"""
-    pass
-```
-
-## 8. 测试重点
+# 7. 测试重点
 - 网络断开重连
 - 高并发数据发送
 - 内存泄漏检测
 - 性能压力测试
 
-## 9. 注意事项
+# 8. 注意事项
 - 避免阻塞操作
 - 及时清理资源
 - 做好日志记录
 - 优先保证实时性
 
-# 10. Connect 模块测试规范
+# 9. Connect 模块测试规范
 
-## 10.1 测试文件结构
+## 9.1 测试文件结构
 ```
 tests/connect/
 ├── __init__.py
@@ -2376,9 +2350,9 @@ tests/connect/
 └── test_stability.py          # 稳定性测试
 ```
 
-## 10.2 核心测试场景
+## 9.2 核心测试场景
 
-### 10.2.1 实时性测试
+### 9.2.1 实时性测试
 ```python
 class TestRealtime:
     def test_latency(self):
@@ -2396,7 +2370,7 @@ class TestRealtime:
         # 发送大量数据验证带宽限制
 ```
 
-### 10.2.2 可靠性测试
+### 9.2.2 可靠性测试
 ```python
 class TestReliability:
     def test_reconnection(self):
@@ -2411,7 +2385,7 @@ class TestReliability:
         # 发送数据并验证接收
 ```
 
-### 10.2.3 性能测试
+### 9.2.3 性能测试
 ```python
 class TestPerformance:
     def test_high_load(self):
@@ -2428,29 +2402,29 @@ class TestPerformance:
         # 模拟多用户场景
 ```
 
-## 3. 测试优先级
+### 9.3.3 测试优先级
 
-### 3.1 P0级测试（必须通过）
+### 9.3.1 P0级测试（必须通过）
 - 基本连接功能
 - 数据发送接收
 - 房间基本操作
 - 错误恢复机制
 
-### 3.2 P1级测试（重要）
+### 9.3.2 P1级测试（重要）
 - 性能指标监控
 - 并发操作处理
 - 网络异常处理
 - 数据完整性验证
 
-### 3.3 P2级测试（次要）
+### 9.3.3 P2级测试（次要）
 - 边界条件测试
 - 压力测试
 - 长期稳定性
 - 资源使用监控
 
-## 4. 测试数据准备
+# 10. 测试数据准备
 
-### 4.1 姿态数据生成器
+## 10.1 姿态数据生成器
 ```python
 def generate_test_pose(landmark_count: int = 33) -> Dict:
     return {
@@ -2466,7 +2440,7 @@ def generate_test_pose(landmark_count: int = 33) -> Dict:
     }
 ```
 
-### 4.2 音频数据生成器
+## 10.2 音频数据生成器
 ```python
 def generate_test_audio(duration: float = 1.0) -> bytes:
     sample_rate = 44100
@@ -2474,22 +2448,22 @@ def generate_test_audio(duration: float = 1.0) -> bytes:
     return samples.tobytes()
 ```
 
-## 5. 测试环境要求
+## 10.2 测试环境要求
 
-### 5.1 硬件要求
+### 10.2.1 硬件要求
 - CPU: >= 4核
 - 内存: >= 8GB
 - 网络: >= 100Mbps
 
-### 5.2 软件要求
+### 10.2.2 软件要求
 - Python 3.12
 - pytest >= 7.0
 - pytest-asyncio
 - pytest-cov
 
-## 6. 测试报告要求
+# 11. 测试报告要求
 
-### 6.1 性能报告
+## 11.1 性能报告
 ```python
 def generate_performance_report():
     return {
@@ -2509,7 +2483,7 @@ def generate_performance_report():
     }
 ```
 
-### 6.2 覆盖率要求
+## 11.2 覆盖率要求
 - 单元测试覆盖率 > 90%
 - 集成测试覆盖率 > 80%
 - 关键路径覆盖率 = 100%
