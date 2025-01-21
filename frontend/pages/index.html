@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>姿态检测</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>实时姿态检测</h1>
+        
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <button id="startBtn" class="btn">开始</button>
+            <button id="stopBtn" class="btn" disabled>停止</button>
+            <button id="captureBtn" class="btn">捕获参考帧</button>
+        </div>
+        
+        <!-- 状态显示 -->
+        <div class="status-panel">
+            <div id="fpsDisplay">FPS: --</div>
+            <div id="statusDisplay">状态: 未启动</div>
+        </div>
+        
+        <!-- 视频显示 -->
+        <div class="video-container">
+            <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Video Stream">
+        </div>
+        
+        <!-- 姿态数据显示 -->
+        <div class="pose-data">
+            <h3>姿态数据</h3>
+            <pre id="poseInfo"></pre>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="/static/js/poseRenderer.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html> 

@@ -18,6 +18,11 @@ from connect.errors import (
 )
 import random
 import gc
+import cv2
+from pose import PosePipeline, PoseData
+from flask_socketio import SocketIO
+
+logger = logging.getLogger(__name__)
 
 class QueueItem:
     """队列项目包装类，用于优先级比较"""
@@ -35,109 +40,74 @@ class QueueItem:
 class PoseSender:
     """姿态数据发送器"""
     
-    def __init__(self, socket_manager):
-        """初始化发送器"""
-        self._socket_manager = socket_manager
-        self._monitoring = False
-        self._monitoring_thread = None
-        self._lock = threading.Lock()
-        self._send_queue = queue.PriorityQueue(maxsize=100)  # 默认队列大小
-        self._endpoints = []
-        self._current_endpoint_index = 0
+    def __init__(self, config: Dict = None):
+        """初始化发送器
         
-        # 性能监控相关
-        self._frame_count = 0
-        self._error_count = 0
-        self._latency_history = []
-        self._consecutive_failures = 0
-        self._last_send_time = time.time()
-        self._last_cleanup_time = time.time()
-        self._degraded = False  # 修改为_degraded
-        self._retry_delay = 1.0
-        self._sampling_rate = 1.0
-        self._frame_interval = 1.0 / 30  # 默认30fps
+        Args:
+            config: 配置字典
+        """
+        self.socketio = None
+        self.is_connected = False
+        self.config = config or {}
         
-        # 初始化性能阈值
-        self._performance_thresholds = {
-            'min_fps': 30,
-            'max_latency': 50,
-            'max_cpu_usage': 80,
-            'max_memory_growth': 500,
-            'max_consecutive_failures': 3
-        }
+        # 处理状态
+        self.last_send_time = 0
+        self.send_interval = self.config.get('send_interval', 0.033)  # ~30fps
         
-        # 统计数据
-        self._stats = {
-            'sent_frames': 0,
-            'failed_frames': 0,
-            'total_latency': 0,
-            'max_latency': 0,
-            'min_latency': float('inf'),
-            'last_error': None,
-            'current_fps': float('inf'),
-            'current_latency': 0,
-            'error_rate': 0,
-            'cpu_usage': 0,
-            'memory_usage': 0
-        }
+    def connect(self, socketio: SocketIO):
+        """连接到Socket.IO服务器
         
-        # 性能监控数据
-        self._performance_data = []
-        self._start_time = time.time()
+        Args:
+            socketio: Socket.IO服务器实例
+        """
+        self.socketio = socketio
+        self.is_connected = True
+        logger.info("PoseSender已连接")
         
-        # 告警回调
-        self._alert_callback = None
+    def disconnect(self):
+        """断开连接"""
+        self.is_connected = False
+        logger.info("PoseSender已断开")
         
-        # 配置相关
-        self._protocol_version = 'v1'
-        self._target_fps = 30
-        self._frame_interval = 1.0 / self._target_fps
-        self._sampling_rate = 1.0
-        self._compression_enabled = False
-        self._bandwidth_limit = float('inf')
-        self._timeout = 5.0
-        self._retry_count = 3
-        self._qos_levels = {'low', 'medium', 'high'}
-        self._current_qos = 'medium'
-        self._time_offset = 0
-        self._recovery_strategy = 'exponential_backoff'
-        self._optimization_level = 'none'
+    def process_and_send(self, frame) -> Optional[np.ndarray]:
+        """处理帧并发送姿态数据
         
-        # 队列相关
-        self._priority_levels = 3
-        self._cleanup_threshold = 0.8
-        self._adaptive_capacity = True
-        
-        # 添加性能监控相关属性
-        self._performance_data = []
-        self._start_time = time.time()
-        self._performance_thresholds = {
-            'min_fps': 25,
-            'max_latency': 50,
-            'max_cpu_usage': 30,
-            'max_memory_growth': 100,
-            'max_consecutive_failures': 3
-        }
-        self._degraded = False
-        self._alert_callback = None
-        
-        # 添加缺失的初始化
-        self._last_send_time = time.time()
-        self._priority_enabled = True
-        self._current_room = None
-        self._endpoints = []
-        self._current_endpoint_index = 0
-        self._degraded_mode = False
-        self._last_cleanup_time = time.time()
-        self._consecutive_failures = 0
-        self._last_frame_time = time.time()
-        self._sampling_rate = 1.0
-        self._cpu_usage = 0
-        self._optimization_level = 'none'
-        self._compression_enabled = False
-        self._current_endpoint_index = 0
-        self._endpoints = []
-        
+        Args:
+            frame: 输入图像帧
+            
+        Returns:
+            处理后的图像帧
+        """
+        try:
+            # 检查是否可以发送
+            current_time = time.time()
+            if current_time - self.last_send_time < self.send_interval:
+                return frame
+                
+            # 检查连接状态
+            if not self.is_connected or not self.socketio:
+                return frame
+                
+            # TODO: 处理姿态数据
+            pose_data = {
+                'timestamp': current_time,
+                'landmarks': []  # 添加实际的关键点数据
+            }
+            
+            # 发送数据
+            self.socketio.emit('pose_data', pose_data)
+            self.last_send_time = current_time
+            
+            return frame
+            
+        except Exception as e:
+            logger.error(f"处理和发送失败: {str(e)}")
+            return frame
+            
+    def release(self):
+        """释放资源"""
+        self.disconnect()
+
     def cleanup(self) -> None:
         """清理资源"""
         with self._lock:
@@ -916,22 +886,13 @@ class PoseSender:
         }
 
     def send_pose_data(self, room: str, pose_results: Dict,
-                       face_results: Dict = None, hands_results: Dict = None, timestamp: float = None, priority: str = 'normal',
-                       raise_errors: bool = False) -> bool:
+                      face_results: Dict = None, 
+                      hands_results: Dict = None, 
+                      timestamp: float = None, 
+                      priority: str = 'normal',
+                      raise_errors: bool = False) -> bool:
         """发送姿态数据"""
         try:
-            # 数据验证
-            if not self._validate_data(room, pose_results):
-                if raise_errors:
-                    raise InvalidDataError("Invalid pose data format")
-                return False
-            
-            # 检查连接状态
-            if not self.is_connected():
-                if raise_errors:
-                    raise ConnectionError("Connection failed")
-                return False
-            
             # 准备数据
             data = {
                 'room': room,
@@ -942,56 +903,37 @@ class PoseSender:
                 'priority': {'high': 2, 'normal': 1, 'low': 0}.get(priority, 1)
             }
             
-            # 应用时间偏移
-            if hasattr(self, '_time_offset'):
-                data['timestamp'] += self._time_offset
-            
-            # 检查队列状态
-            if hasattr(self, 'queue_size') and self._send_queue.qsize() >= self.queue_size:
-                return False
-            
-            try:
-                # 选择端点
-                if self._endpoints:
-                    endpoint = self._endpoints[self._current_endpoint_index]
-                    self._current_endpoint_index = (self._current_endpoint_index + 1) % len(self._endpoints)
-                    success = self._socket_manager.emit('pose_data', data, endpoint=endpoint)
-                else:
-                    success = self._socket_manager.emit('pose_data', data)
-                
-                if not success:
-                    # 发送失败时尝试入队
-                    if hasattr(self, 'queue_size'):
-                        try:
-                            self._send_queue.put_nowait(QueueItem(
-                                data['priority'],
-                                data['timestamp'],
-                                data
-                            ))
-                            return True  # 入队成功
-                        except queue.Full:
-                            return False
-                    return False
-                
+            # 发送数据
+            if self._socket is not None:
+                self._socket.emit('pose_data', data)
                 return True
-                
-            except Exception as e:
-                if raise_errors:
-                    if isinstance(e, (InvalidDataError, ConnectionError, SendError)):
-                        raise
-                    raise SendError(str(e))
-                return False
+            return False
             
         except Exception as e:
             if raise_errors:
-                if isinstance(e, (InvalidDataError, ConnectionError, SendError)):
-                    raise
-                raise SendError(str(e))
+                raise
+            logger.error(f"发送失败: {e}")
             return False
-
-    def _validate_data_fast(self, room: str, pose_results: Dict) -> bool:
-        """快速数据验证"""
-        return bool(room and isinstance(pose_results, dict) and 'landmarks' in pose_results)
+            
+    def _validate_data(self, room: str, pose_results: Dict) -> bool:
+        """验证数据格式"""
+        if not room or not isinstance(pose_results, dict):
+            return False
+            
+        if 'landmarks' not in pose_results:
+            return False
+            
+        landmarks = pose_results['landmarks']
+        if not isinstance(landmarks, list) or not landmarks:
+            return False
+            
+        for point in landmarks:
+            if not isinstance(point, dict):
+                return False
+            if not all(k in point for k in ['x', 'y', 'z', 'visibility']):
+                return False
+                
+        return True
 
     def _get_current_fps(self) -> float:
         """获取当前帧率"""

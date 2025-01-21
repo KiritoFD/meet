@@ -3,10 +3,11 @@ import torch.nn as nn
 import numpy as np
 import cv2
 import logging
-from typing import Optional
+from typing import Optional, List
 from collections import deque
 import os
 from contextlib import nullcontext
+from .types import PoseData, Landmark
 
 logger = logging.getLogger(__name__)
 
@@ -83,51 +84,88 @@ class NAFNet(nn.Module):
         return x
 
 class FrameSmoother:
-    def __init__(self, model_path: str = 'models/NAFNet-GoPro-width32.pth',
-                 device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
-                 buffer_size: int = 3,
+    """基础帧平滑器"""
+    
+    def __init__(self, 
                  temporal_weight: float = 0.8,
-                 downsample_factor: float = 0.5):
-        self.device = device
-        self.buffer_size = buffer_size
-        self.temporal_weight = temporal_weight
-        self.downsample_factor = downsample_factor
-        self.frame_buffer = deque(maxlen=buffer_size)
-        self.orig_width = None
-        self.orig_height = None
+                 spatial_weight: float = 0.5,
+                 **kwargs):  # 添加 **kwargs 支持扩展参数
+        """初始化平滑器
         
-        # 初始化模型
-        try:
-            self.model = NAFNet(
-                img_channel=3,
-                width=32,
-                middle_blk_num=12,
-                enc_blk_nums=[2, 2, 4, 8],
-                dec_blk_nums=[2, 2, 2, 2]
-            ).to(device)
+        Args:
+            temporal_weight: 时间平滑权重 (0-1)
+            spatial_weight: 空间平滑权重 (0-1)
+            **kwargs: 扩展参数
+        """
+        self.temporal_weight = temporal_weight
+        self.spatial_weight = spatial_weight
+        self.frame_buffer = []
+        
+    def _smooth_points(self, points: np.ndarray) -> np.ndarray:
+        """平滑关键点坐标
+        
+        Args:
+            points: 关键点坐标数组 [N, 3]
             
-            if os.path.exists(model_path):
-                try:
-                    state_dict = torch.load(model_path, map_location=device)
-                    if 'params' in state_dict:
-                        state_dict = state_dict['params']
-                    state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
-                    self.model.load_state_dict(state_dict, strict=False)
-                    logger.info(f"NAFNet模型加载成功，使用设备: {device}")
-                except Exception as e:
-                    logger.warning(f"加载预训练权重失败: {e}")
+        Returns:
+            平滑后的坐标数组 [N, 3]
+        """
+        if not self.frame_buffer:
+            self.frame_buffer.append(points.copy())
+            return points
             
-            self.model.eval()
+        # 时间域平滑
+        smoothed = (
+            self.temporal_weight * points + 
+            (1 - self.temporal_weight) * self.frame_buffer[-1]
+        )
+        
+        # 空间域平滑（可选）
+        if self.spatial_weight > 0:
+            kernel = np.array([0.25, 0.5, 0.25])  # 简单的1D平滑核
+            for i in range(3):  # x, y, z
+                smoothed[:, i] = np.convolve(
+                    smoothed[:, i],
+                    kernel,
+                    mode='same'
+                )
+        
+        # 更新缓冲区
+        self.frame_buffer.append(smoothed.copy())
+        if len(self.frame_buffer) > 5:  # 保持固定大小的缓冲区
+            self.frame_buffer.pop(0)
             
-            # CUDA优化
-            if device == 'cuda':
-                self.model = self.model.half()  # 使用FP16
-                torch.backends.cudnn.benchmark = True
-                
-        except Exception as e:
-            logger.error(f"NAFNet模型初始化失败: {e}")
-            self.model = None
+        return smoothed
+        
+    def smooth(self, pose_data: PoseData) -> PoseData:
+        """平滑姿态数据
+        
+        Args:
+            pose_data: 输入的姿态数据
             
+        Returns:
+            平滑后的姿态数据
+        """
+        # 获取关键点坐标数组
+        points = pose_data.values
+        
+        # 应用平滑
+        smoothed = self._smooth_points(points)
+        
+        # 创建新的姿态数据
+        return PoseData(
+            landmarks=[
+                Landmark(x=x, y=y, z=z)
+                for x, y, z in smoothed
+            ],
+            timestamp=pose_data.timestamp,
+            confidence=pose_data.confidence
+        )
+        
+    def reset(self):
+        """重置平滑器状态"""
+        self.frame_buffer.clear()
+
     def _preprocess_frame(self, frame: np.ndarray) -> torch.Tensor:
         """优化的预处理"""
         # 保存原始尺寸
@@ -161,48 +199,4 @@ class FrameSmoother:
             if frame.shape[:2] != (self.orig_height, self.orig_width):
                 frame = cv2.resize(frame, (self.orig_width, self.orig_height), 
                                  interpolation=cv2.INTER_LINEAR)
-            return frame
-        
-    def _apply_temporal_smooth(self, current_frame: np.ndarray) -> np.ndarray:
-        """时间域平滑"""
-        if not self.frame_buffer:
-            self.frame_buffer.append(current_frame.copy())
-            return current_frame
-            
-        # 使用指数加权移动平均
-        smoothed = cv2.addWeighted(
-            current_frame, self.temporal_weight,
-            self.frame_buffer[-1], 1 - self.temporal_weight,
-            0
-        )
-        
-        # 存储当前帧的副本
-        self.frame_buffer.append(smoothed.copy())
-        return smoothed
-        
-    @torch.no_grad()
-    def smooth_frame(self, frame: np.ndarray) -> Optional[np.ndarray]:
-        """优化的帧处理"""
-        if frame is None or self.model is None:
-            return frame
-            
-        try:
-            # 空间域平滑
-            with torch.cuda.amp.autocast() if self.device == 'cuda' else nullcontext():
-                tensor = self._preprocess_frame(frame)
-                output = self.model(tensor)
-                smoothed = self._postprocess_frame(output)
-            
-            # 时间域平滑
-            smoothed = self._apply_temporal_smooth(smoothed)
-            
-            return smoothed
-            
-        except Exception as e:
-            logger.error(f"帧平滑失败: {e}")
-            return frame
-            
-    def reset(self):
-        """重置平滑器状态"""
-        self.frame_buffer.clear()
-        torch.cuda.empty_cache() if self.device == 'cuda' else None 
+            return frame 

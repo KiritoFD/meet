@@ -1,0 +1,282 @@
+/* 基础样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 头部样式 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.header h1 {
+    font-size: 24px;
+    color: #1a73e8;
+}
+
+/* 按钮样式 */
+.btn {
+    padding: 8px 16px;
+    margin: 0 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.btn.primary {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.btn.danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* 主要内容区域 */
+.main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+/* 视频区域 */
+.video-section {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.video-container img,
+.video-container canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.pose-overlay {
+    pointer-events: none;
+}
+
+.video-controls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status {
+    display: flex;
+    gap: 20px;
+}
+
+/* 数据面板 */
+.data-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.data-panel, .settings-panel {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.data-content {
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#poseInfo {
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* 设置面板 */
+.settings-content {
+    margin-top: 15px;
+}
+
+.setting-item {
+    margin-bottom: 15px;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.setting-item input[type="range"] {
+    width: 100%;
+    margin: 5px 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .data-section {
+        flex-direction: row;
+    }
+    
+    .data-panel, .settings-panel {
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .controls {
+        margin-top: 10px;
+    }
+    
+    .data-section {
+        flex-direction: column;
+    }
+}
+
+.controls-group {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.room-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.room-title h3 {
+    margin: 0;
+    white-space: nowrap;
+}
+
+#roomInput {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.status-dot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #00aeec;
+    font-size: 13px;
+}
+
+.status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #dc3545;  /* 默认红色 */
+}
+
+.status-indicator.active {
+    background-color: #4CAF50;  /* 绿色 */
+}
+
+/* 移除多余的空白 */
+.status-info {
+    display: none;
+}
+
+.left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.video-container {
+    flex: 1;
+    min-height: 400px;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.pose-container {
+    height: 300px;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+#preview {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#poseCanvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}

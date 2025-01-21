@@ -114,5 +114,22 @@ POSE_CONFIG = {
             'nose': (150, 200, 180),       # 青绿色
             'mouth': (140, 160, 210)       # 淡紫色
         }
+    },
+    'smoother': {
+        # 基础平滑参数
+        'temporal_weight': 0.8,
+        'spatial_weight': 0.5,
+        
+        # 变形平滑参数
+        'deform_threshold': 30,
+        'edge_width': 3,
+        'motion_scale': 0.5,
+        
+        # 质量评估参数
+        'quality_weights': {
+            'temporal': 0.4,
+            'spatial': 0.3,
+            'edge': 0.3
+        }
     }
 } 
