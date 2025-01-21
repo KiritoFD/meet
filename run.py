@@ -18,6 +18,7 @@ from audio.processor import AudioProcessor
 from pose.pose_binding import PoseBinding
 from pose.detector import PoseDetector
 from pose.types import PoseData
+from render import Renderer, Camera
 
 # 配置日志格式
 logging.basicConfig(
@@ -407,31 +408,15 @@ def get_status():
         return jsonify({'error': str(e)}), 500
 
 def main():
-    """主函数"""
+    renderer = Renderer(width=800, height=600)
+    camera = Camera()
+    
     try:
-        # 启动服务器
-        logger.info(f"服务器启动在 http://localhost:5000")
-        logger.info(f"模板目录: {app.template_folder}")
-        logger.info(f"静态文件目录: {app.static_folder}")
-        
-        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
-        
-    except Exception as e:
-        logger.error(f"服务器错误: {e}")
-        
+        while True:
+            if not renderer.render():
+                break
     finally:
-        # 清理资源
-        camera_manager.release()
-        pose_sender.release()
+        renderer.cleanup()
 
-if __name__ == '__main__':
-    try:
-        # 确保必要的目录存在
-        os.makedirs('static', exist_ok=True)
-        os.makedirs('templates', exist_ok=True)
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-        
-        main()
-    except Exception as e:
-        logger.error(f"服务器启动失败: {str(e)}")
-        sys.exit(1)
+if __name__ == "__main__":
+    main()
