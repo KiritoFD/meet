@@ -5,6 +5,7 @@ channels:
   - https://repo.anaconda.com/pkgs/main
   - https://repo.anaconda.com/pkgs/r
   - https://repo.anaconda.com/pkgs/msys2
+  - conda-forge
 dependencies:
   - blas=1.0=mkl
   - brotli-python=1.0.9=py312hd77b12b_8
@@ -247,4 +248,7 @@ dependencies:
       - widgetsnbextension==4.0.13
       - wsproto==1.2.0
       - yapf==0.43.0
-prefix: C:\Users\28961\anaconda3\envs\meet6
+      - lz4==4.3.2
+      - glfw
+      - PyOpenGL
+      - PyOpenGL-accelerate
