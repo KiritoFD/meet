@@ -580,6 +580,33 @@
         .debug-info span {
             color: #00ff00;
         }
+
+        .verification-result {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .verification-result.success {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid #4CAF50;
+        }
+
+        .verification-result.failure {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid #F44336;
+        }
+
+        .result-header {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .result-details {
+            color: #666;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -611,6 +638,10 @@
                     <span class="status-indicator" id="cameraIndicator"></span>
                     <span id="cameraStatus">未启动</span>
                 </div>
+                <div id="verificationResult" class="verification-result" style="display: none;">
+                    <div class="result-header"></div>
+                    <div class="result-details"></div>
+                </div>
             </div>
 
             <div class="controls-group">
@@ -625,6 +656,18 @@
                 <div class="status-dot">
                     <span class="status-indicator" id="roomIndicator"></span>
                     <span id="roomStatus">未连接</span>
+                </div>
+            </div>
+
+            <div class="controls-group">
+                <h3>身份验证</h3>
+                <div class="button-group">
+                    <button id="captureReferenceBtn" class="outline">捕获参考帧</button>
+                    <button id="verifyIdentityBtn">验证身份</button>
+                </div>
+                <div id="verificationResult" class="verification-result" style="display: none;">
+                    <div class="result-header"></div>
+                    <div class="result-details"></div>
                 </div>
             </div>
 
@@ -671,11 +714,7 @@
                 <button id="resetCameraBtn" class="outline" style="margin-top: 12px;">重置设置</button>
             </div>
 
-            <div class="controls-group">
-                <h3>背景设置</h3>
-                <button class="outline" style="margin-bottom: 12px;">上传背景</button>
-                <button>移除背景</button>
-            </div>
+            
 
             <div class="control-panel">
                 <!-- 音频控制按钮 -->
@@ -764,6 +803,7 @@
                     preview.src = '/video_feed';
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
+                    document.getElementById('cameraIndicator').classList.add('active');
                     updateDebugInfo('摄像头已开启');
                 }
             } catch (error) {
@@ -779,6 +819,7 @@
                     preview.src = '';
                     startBtn.disabled = false;
                     stopBtn.disabled = true;
+                    document.getElementById('cameraIndicator').classList.remove('active');
                     updateDebugInfo('摄像头已关闭');
                 }
             } catch (error) {
@@ -903,6 +944,100 @@
 
         // 每秒更新一次状态
         setInterval(updateStreamStatus, 1000);
+
+        document.getElementById('captureReferenceBtn').addEventListener('click', async function() {
+            try {
+                // 检查摄像头指示器状态
+                const cameraIndicator = document.getElementById('cameraIndicator');
+                if (!cameraIndicator.classList.contains('active')) {
+                    alert('请先启动摄像头');
+                    return;
+                }
+                
+                // 发送捕获请求
+                const response = await fetch('/capture_reference', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('verificationResult');
+                const headerDiv = resultDiv.querySelector('.result-header');
+                const detailsDiv = resultDiv.querySelector('.result-details');
+                
+                resultDiv.style.display = 'block';
+                
+                if (data.success) {
+                    if (data.verification.passed) {
+                        resultDiv.className = 'verification-result success';
+                        headerDiv.textContent = '验证通过！';
+                        detailsDiv.textContent = `相似度: ${(data.verification.confidence * 100).toFixed(1)}%`;
+                    } else {
+                        resultDiv.className = 'verification-result failure';
+                        headerDiv.textContent = '验证失败';
+                        detailsDiv.textContent = data.verification.message || 
+                            `相似度过低: ${(data.verification.confidence * 100).toFixed(1)}%`;
+                    }
+                } else {
+                    resultDiv.className = 'verification-result failure';
+                    headerDiv.textContent = '捕获失败';
+                    detailsDiv.textContent = data.message;
+                }
+            } catch (error) {
+                console.error('捕获参考帧失败:', error);
+                const resultDiv = document.getElementById('verificationResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'verification-result failure';
+                resultDiv.querySelector('.result-header').textContent = '错误';
+                resultDiv.querySelector('.result-details').textContent = '捕获参考帧失败，请重试';
+            }
+        });
+
+        document.getElementById('verifyIdentityBtn').addEventListener('click', async function() {
+            try {
+                // 检查摄像头指示器状态
+                const cameraIndicator = document.getElementById('cameraIndicator');
+                if (!cameraIndicator.classList.contains('active')) {
+                    alert('请先启动摄像头');
+                    return;
+                }
+                
+                // 发送验证请求
+                const response = await fetch('/verify_identity', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('verificationResult');
+                const headerDiv = resultDiv.querySelector('.result-header');
+                const detailsDiv = resultDiv.querySelector('.result-details');
+                
+                resultDiv.style.display = 'block';
+                
+                if (data.success) {
+                    if (data.verification.passed) {
+                        resultDiv.className = 'verification-result success';
+                        headerDiv.textContent = '身份验证通过！';
+                        detailsDiv.textContent = `相似度: ${(data.verification.confidence * 100).toFixed(1)}%`;
+                    } else {
+                        resultDiv.className = 'verification-result failure';
+                        headerDiv.textContent = '身份验证失败';
+                        detailsDiv.textContent = data.verification.message || 
+                            `相似度过低: ${(data.verification.confidence * 100).toFixed(1)}%`;
+                    }
+                } else {
+                    resultDiv.className = 'verification-result failure';
+                    headerDiv.textContent = '验证失败';
+                    detailsDiv.textContent = data.message;
+                }
+            } catch (error) {
+                console.error('身份验证失败:', error);
+                const resultDiv = document.getElementById('verificationResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'verification-result failure';
+                resultDiv.querySelector('.result-header').textContent = '错误';
+                resultDiv.querySelector('.result-details').textContent = '身份验证失败，请重试';
+            }
+        });
     });
     </script>
 </body>

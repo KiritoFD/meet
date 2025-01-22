@@ -5,7 +5,9 @@ import torch.nn as nn
 from torchvision import transforms
 import mediapipe as mp
 import os
-from .models.anime_gan import AnimeGANv2Generator
+from models.anime_gan import AnimeGANv2Generator
+import time
+from face.face_verification import FaceVerifier
 
 class SimpleAnimeGenerator(nn.Module):
     def __init__(self):
@@ -105,77 +107,100 @@ class AvatarGenerator:
         ])
     
     def capture_reference(self):
-        """从摄像头捕捉参考照片"""
+        """从摄像头捕捉参考照片并进行人脸验证"""
+        # 检查摄像头是否可用
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
-            print("无法打开摄像头")
+            print("错误：摄像头未打开，请先打开摄像头")
             return None
             
+        # 设置摄像头参数
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         
+        # 初始化人脸验证器
+        face_verifier = FaceVerifier(similarity_threshold=0.6)
         reference_image = None
+        verification_passed = False
+        
+        print("请面对摄像头保持自然表情...")
+        print("按空格键拍照，按q退出")
         
         while True:
             ret, frame = cap.read()
             if not ret:
+                print("错误：无法读取摄像头画面")
                 break
                 
             # 显示实时预览
             preview_frame = frame.copy()
             
             # 检测人脸
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = self.face_mesh.process(frame_rgb)
+            face_location = face_verifier.get_face_location(frame)
             
-            if results.multi_face_landmarks:
+            if face_location:
                 # 获取人脸边界框
-                h, w = frame.shape[:2]
-                landmarks = results.multi_face_landmarks[0].landmark
+                top, right, bottom, left = face_location
                 
-                x_min = w
-                y_min = h
-                x_max = 0
-                y_max = 0
+                # 检查人脸位置和大小是否合适
+                face_width = right - left
+                face_height = bottom - top
+                center_x = (left + right) / 2
+                center_y = (top + bottom) / 2
                 
-                for landmark in landmarks:
-                    x = int(landmark.x * w)
-                    y = int(landmark.y * h)
-                    x_min = min(x_min, x)
-                    y_min = min(y_min, y)
-                    x_max = max(x_max, x)
-                    y_max = max(y_max, y)
-                
-                # 绘制人脸框
-                cv2.rectangle(preview_frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
-                
-                # 检查人脸位置
-                face_width = x_max - x_min
-                face_height = y_max - y_min
-                center_x = (x_min + x_max) / 2
-                center_y = (y_min + y_max) / 2
-                
-                if (0.3 * w < face_width < 0.7 * w and
-                    abs(center_x - w/2) < w * 0.1 and
-                    abs(center_y - h/2) < h * 0.1):
+                if (0.3 * frame.shape[1] < face_width < 0.7 * frame.shape[1] and
+                    abs(center_x - frame.shape[1]/2) < frame.shape[1] * 0.1 and
+                    abs(center_y - frame.shape[0]/2) < frame.shape[0] * 0.1):
+                    
+                    # 绘制绿色边框表示位置合适
+                    cv2.rectangle(preview_frame, (left, top), (right, bottom), (0, 255, 0), 2)
                     cv2.putText(preview_frame, "Position OK - Press SPACE", 
                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    
+                    # 检查按键
+                    key = cv2.waitKey(1) & 0xFF
                     if key == ord(' '):  # 空格键拍照
-                        reference_image = frame.copy()
-                        break
+                        # 设置为参考帧
+                        if face_verifier.set_reference(frame):
+                            reference_image = frame.copy()
+                            print("参考帧已捕获，请稍等...")
+                            
+                            # 等待2秒进行验证
+                            time.sleep(2)
+                            
+                            # 进行人脸验证
+                            result = face_verifier.verify_face(frame)
+                            if result.is_same_person:
+                                print(f"验证通过！相似度: {result.confidence:.2f}")
+                                verification_passed = True
+                                break
+                            else:
+                                print(f"验证失败，请重试。相似度: {result.confidence:.2f}")
+                                face_verifier.clear_reference()
+                        else:
+                            print("未能正确捕获人脸，请重试")
                 else:
+                    # 绘制红色边框表示需要调整位置
+                    cv2.rectangle(preview_frame, (left, top), (right, bottom), (0, 0, 255), 2)
                     cv2.putText(preview_frame, "Adjust Position", 
                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            else:
+                cv2.putText(preview_frame, "No Face Detected", 
+                          (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             
             cv2.imshow('Camera', preview_frame)
             
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):  # q键退出
+            if cv2.waitKey(1) & 0xFF == ord('q'):  # q键退出
                 break
         
         cap.release()
         cv2.destroyAllWindows()
-        return reference_image
+        
+        if verification_passed:
+            return reference_image
+        else:
+            print("参考帧捕获失败或验证未通过")
+            return None
 
     def generate_avatar(self, image):
         """生成动漫风格头像"""

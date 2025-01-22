@@ -10,11 +10,52 @@ import cv2
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-# 配置日志
+# 创建输出目录
+output_dir = os.path.join(project_root, 'output')
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+# 配置日志输出到文件
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(output_dir, 'test.log')),
+        logging.StreamHandler()
+    ]
 )
+
+def pytest_configure(config):
+    """配置pytest"""
+    # 添加输出目录到pytest配置
+    config.option.output_dir = output_dir
+    
+    # 初始化metadata字典
+    if not hasattr(config, '_metadata'):
+        config._metadata = {}
+    
+    # 添加项目信息到metadata
+    config._metadata.update({
+        'Project': 'Avatar System',
+        'output_dir': str(output_dir)
+    })
+
+    # 配置HTML报告
+    if hasattr(config, '_html'):
+        config._html.style_css = '''
+            body { font-family: Arial, sans-serif; }
+            h2 { color: #2C3E50; }
+            .passed { color: #27AE60; }
+            .failed { color: #E74C3C; }
+            .skipped { color: #F39C12; }
+        '''
+
+def pytest_sessionstart(session):
+    """测试会话开始时的处理"""
+    # 清理旧的测试报告
+    for file in os.listdir(output_dir):
+        if file.endswith('.xml') or file.endswith('.html'):
+            os.remove(os.path.join(output_dir, file))
 
 @pytest.fixture(scope="session")
 def test_frame():
