@@ -6,9 +6,15 @@ import logging
 import numpy as np
 import cv2
 
-# 配置项目路径
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
+# 获取项目根目录并添加到 Python 路径
+project_root = str(Path(__file__).parent.parent.absolute())
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# 打印调试信息
+print(f"Current working directory: {os.getcwd()}")
+print(f"Project root: {project_root}")
+print(f"Python path: {sys.path}")
 
 # 创建输出目录
 output_dir = os.path.join(project_root, 'output')
@@ -84,10 +90,6 @@ def mock_socket():
     socket.emit = Mock(return_value=True)
     socket.connected = True
     return socket
-
-# 打印调试信息
-print("Added to Python path:", project_root)
-print("Current sys.path:", sys.path)
 
 @pytest.fixture(autouse=True)
 def setup_test_env():

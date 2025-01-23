@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from .pose_data import PoseData, DeformRegion, BindingPoint
 from config.settings import POSE_CONFIG
 import logging
+from .binding import BindingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +17,14 @@ class BindingConfig:
     joint_limits: Dict[str, Tuple[float, float]]
 
 class PoseBinding:
-    """处理姿态关键点到图像区域的绑定"""
+    """姿态绑定类"""
     
-    def __init__(self, config: BindingConfig):
-        """初始化绑定器"""
-        self.config = config
+    def __init__(self, config: BindingConfig = None):
+        self.config = config or BindingConfig()
+        self.reference_frame = None
+        self.landmarks = None
+        self.weights = None
+        self.valid = False
         self.keypoints = POSE_CONFIG['detector']['keypoints']
         self.connections = POSE_CONFIG['detector']['connections']
         self._last_valid_binding = None
@@ -114,6 +118,67 @@ class PoseBinding:
                 'required': False
             }
         }
+
+    def create_binding(self, frame: np.ndarray, pose_data: PoseData):
+        """创建姿态绑定"""
+        try:
+            # 验证输入
+            if frame is None or pose_data is None:
+                raise ValueError("Frame and pose_data cannot be None")
+                
+            # 存储参考帧
+            self.reference_frame = frame.copy()
+            
+            # 处理关键点
+            self.landmarks = self._process_landmarks(pose_data.landmarks)
+            
+            # 计算权重
+            self.weights = self._compute_weights()
+            
+            # 设置有效标志
+            self.valid = True
+            
+            return self
+            
+        except Exception as e:
+            self.valid = False
+            raise ValueError(f"Failed to create binding: {str(e)}")
+    
+    def _process_landmarks(self, landmarks):
+        """处理关键点数据"""
+        processed = []
+        for lm in landmarks:
+            if lm['visibility'] < self.config.min_confidence:
+                continue
+            processed.append({
+                'x': lm['x'],
+                'y': lm['y'],
+                'z': lm['z'],
+                'visibility': lm['visibility']
+            })
+        return processed
+    
+    def _compute_weights(self):
+        """计算变形权重"""
+        if not self.landmarks:
+            return None
+            
+        # 创建权重矩阵
+        height, width = self.reference_frame.shape[:2]
+        weights = np.zeros((height * width, len(self.landmarks)))
+        
+        # 计算每个像素点的权重
+        for i, landmark in enumerate(self.landmarks):
+            y, x = np.mgrid[0:height, 0:width]
+            dist = np.sqrt((x - landmark['x'] * width) ** 2 + 
+                         (y - landmark['y'] * height) ** 2)
+            weights[:, i] = np.exp(-dist.flatten() / 100)  # 使用高斯权重
+            
+        # 归一化权重
+        row_sums = weights.sum(axis=1)
+        weights = weights / row_sums[:, np.newaxis]
+        
+        return weights
 
     def create_binding(self, frame: np.ndarray, pose_data: PoseData) -> List[DeformRegion]:
         """创建初始帧的区域绑定"""

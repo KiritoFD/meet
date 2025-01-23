@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Tuple
 import numpy as np
 from dataclasses import dataclass
 from .render_core import ModelRenderer
@@ -21,6 +21,21 @@ class SkeletonBinding:
     valid: bool = False
     renderer: Optional[ModelRenderer] = None
     model_matrix: np.ndarray = None  # 新增：3D模型变换矩阵
+
+@dataclass
+class BindingConfig:
+    """姿态绑定配置"""
+    smoothing_factor: float = 0.5
+    min_confidence: float = 0.3
+    joint_limits: Dict[str, Tuple[float, float]] = None
+
+    def __post_init__(self):
+        if self.joint_limits is None:
+            self.joint_limits = {
+                'shoulder': (-90, 90),
+                'elbow': (0, 145),
+                'knee': (0, 160)
+            }
 
 class PoseBinding:
     def __init__(self, config: Dict[str, Any]):

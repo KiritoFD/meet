@@ -264,22 +264,59 @@ class TestPoseBinding:
         assert len(fallback_regions) == len(initial_regions)
 
     def test_performance(self, setup_binding, mock_frame, mock_pose_data):
-        """测试性能"""
+        """测试性能和资源使用"""
         import time
+        import gc
         
-        # 测试绑定创建性能
+        # 强制垃圾回收
+        gc.collect()
+        
+        # 1. 测试绑定创建性能
         start_time = time.time()
         regions = setup_binding.create_binding(mock_frame, mock_pose_data)
-        end_time = time.time()
+        creation_time = time.time() - start_time
         
-        assert end_time - start_time < 0.01  # 10ms限制
+        # 绑定创建应该在10ms内完成
+        assert creation_time < 0.01, f"绑定创建耗时 {creation_time*1000:.2f}ms 超过限制"
         
-        # 测试内存使用
+        # 2. 测试更新性能
+        update_times = []
+        for angle in range(0, 90, 10):
+            pose = self._create_test_pose(angle=float(angle))
+            start_time = time.time()
+            setup_binding.update_binding(regions, pose)
+            update_times.append(time.time() - start_time)
+        
+        avg_update_time = sum(update_times) / len(update_times)
+        assert avg_update_time < 0.005, f"平均更新时间 {avg_update_time*1000:.2f}ms 超过限制"
+        
+        # 3. 测试内存使用
         import psutil
         process = psutil.Process()
-        memory_info = process.memory_info()
         
-        assert memory_info.rss / (1024 * 1024) < 100  # 100MB限制
+        # 记录初始内存
+        gc.collect()  # 再次强制垃圾回收
+        initial_memory = process.memory_info().rss
+        
+        # 执行一系列操作
+        test_iterations = 5
+        for _ in range(test_iterations):
+            regions = setup_binding.create_binding(mock_frame, mock_pose_data)
+            for angle in range(0, 90, 30):
+                pose = self._create_test_pose(angle=float(angle))
+                setup_binding.update_binding(regions, pose)
+        
+        # 强制清理
+        regions = None
+        gc.collect()
+        
+        # 检查内存增长
+        final_memory = process.memory_info().rss
+        memory_increase = (final_memory - initial_memory) / (1024 * 1024)  # MB
+        
+        # 平均每次迭代的内存增长应该小于5MB
+        assert memory_increase / test_iterations < 5, \
+            f"平均每次迭代内存增长 {memory_increase/test_iterations:.2f}MB 超过限制"
 
     @staticmethod
     def _create_test_pose(angle: float = 0, visibility: float = 1.0) -> PoseData:
@@ -299,3 +336,196 @@ class TestPoseBinding:
             timestamp=time.time(),
             confidence=visibility
         )
+
+    def test_binding_update(self, setup_binding, mock_frame, mock_pose_data):
+        """测试绑定更新功能"""
+        # 创建初始绑定
+        initial_regions = setup_binding.create_binding(mock_frame, mock_pose_data)
+        assert len(initial_regions) > 0
+        
+        # 创建新姿态数据
+        updated_pose = self._create_test_pose(angle=45)  # 45度角的新姿态
+        updated_regions = setup_binding.update_binding(initial_regions, updated_pose)
+        
+        # 验证更新后的区域
+        assert len(updated_regions) == len(initial_regions)
+        for region in updated_regions:
+            assert region.binding_points is not None
+            assert len(region.binding_points) > 0
+            assert region.mask is not None
+
+    def test_binding_validation(self, setup_binding, mock_frame):
+        """测试绑定验证功能"""
+        # 测试不同可见度的关键点
+        visibilities = [0.1, 0.3, 0.5, 0.8]
+        for vis in visibilities:
+            pose_data = self._create_test_pose(visibility=vis)
+            valid = setup_binding._validate_landmarks(pose_data.landmarks)
+            expected = vis >= setup_binding.config.min_confidence
+            assert valid == expected, f"可见度 {vis} 的验证结果应为 {expected}"
+
+    def test_region_topology(self, setup_binding, mock_frame, mock_pose_data):
+        """测试区域拓扑关系"""
+        regions = setup_binding.create_binding(mock_frame, mock_pose_data)
+        
+        # 验证区域连接关系
+        for region in regions:
+            if region.name == 'torso':
+                # 躯干应该与四肢相连
+                connected = ['left_upper_arm', 'right_upper_arm', 
+                           'left_upper_leg', 'right_upper_leg']
+                region_names = [r.name for r in regions]
+                for conn in connected:
+                    if conn in region_names:
+                        assert any(self._regions_connected(region, r) 
+                                 for r in regions if r.name == conn)
+
+    def test_mask_properties(self, setup_binding, mock_frame, mock_pose_data):
+        """测试蒙版属性"""
+        regions = setup_binding.create_binding(mock_frame, mock_pose_data)
+        
+        for region in regions:
+            mask = region.mask
+            # 验证蒙版基本属性
+            assert mask.dtype == np.uint8
+            assert mask.shape == mock_frame.shape[:2]
+            assert np.min(mask) >= 0
+            assert np.max(mask) <= 255
+            
+            # 验证蒙版连通性
+            num_labels, _ = cv2.connectedComponents(mask)
+            assert num_labels <= 2, f"{region.name} 区域蒙版应该是连通的"
+
+    def test_binding_point_weights(self, setup_binding, mock_frame, mock_pose_data):
+        """测试绑定点权重"""
+        regions = setup_binding.create_binding(mock_frame, mock_pose_data)
+        
+        for region in regions:
+            weights = [bp.weight for bp in region.binding_points]
+            # 验证权重基本属性
+            assert all(0 <= w <= 1 for w in weights), "权重应在 [0,1] 范围内"
+            assert len(weights) >= 2, "每个区域应至少有2个绑定点"
+            
+            # 验证权重分布
+            if region.name == 'torso':
+                # 躯干区域权重应该更均匀
+                weight_std = np.std(weights)
+                assert weight_std < 0.3, "躯干区域权重分布应该相对均匀"
+
+    def test_memory_management(self, setup_binding, mock_frame, mock_pose_data):
+        """测试内存管理"""
+        import psutil
+        process = psutil.Process()
+        initial_memory = process.memory_info().rss
+        
+        # 创建多个绑定
+        for _ in range(10):
+            regions = setup_binding.create_binding(mock_frame, mock_pose_data)
+            assert len(regions) > 0
+        
+        # 验证内存使用
+        current_memory = process.memory_info().rss
+        memory_increase = (current_memory - initial_memory) / (1024 * 1024)  # MB
+        assert memory_increase < 50, "内存增长不应超过50MB"
+
+    def test_error_recovery(self, setup_binding, mock_frame, mock_pose_data):
+        """测试错误恢复机制"""
+        # 首先创建有效绑定
+        valid_regions = setup_binding.create_binding(mock_frame, mock_pose_data)
+        assert len(valid_regions) > 0
+        
+        # 测试各种错误情况
+        error_cases = [
+            # None 输入应该抛出 "Frame and pose_data cannot be None"
+            (None, mock_pose_data, ValueError, "Frame and pose_data cannot be None"),
+            (mock_frame, None, ValueError, "Frame and pose_data cannot be None"),
+            
+            # 空帧应该抛出 "Empty frame"
+            (np.zeros((0, 0, 3)), mock_pose_data, ValueError, "Empty frame"),
+            
+            # 空关键点应该返回上一个有效绑定
+            (mock_frame, PoseData(
+                landmarks=[],
+                timestamp=time.time(),
+                confidence=0.0
+            ), None, None)
+        ]
+        
+        for frame, pose, expected_error, error_msg in error_cases:
+            if expected_error:
+                with pytest.raises(expected_error, match=error_msg):
+                    setup_binding.create_binding(frame, pose)
+            else:
+                # 应该返回上一个有效绑定或空列表
+                result = setup_binding.create_binding(frame, pose)
+                assert result is not None
+                if len(result) > 0:
+                    assert len(result) == len(valid_regions)
+
+    def _regions_connected(self, region1, region2):
+        """辅助方法：检查两个区域是否相连"""
+        # 简单的重叠检测
+        intersection = cv2.bitwise_and(region1.mask, region2.mask)
+        return np.any(intersection > 0)
+
+    def test_memory_cleanup(self, setup_binding, mock_frame, mock_pose_data):
+        """测试内存清理"""
+        import gc
+        import weakref
+        
+        # 清理之前的缓存
+        setup_binding._last_valid_binding = None
+        gc.collect()
+        
+        # 创建弱引用以跟踪对象
+        regions = setup_binding.create_binding(mock_frame, mock_pose_data)
+        refs = [weakref.ref(region) for region in regions]
+        
+        # 记录初始引用计数
+        initial_refs = sum(1 for ref in refs if ref() is not None)
+        
+        # 删除原始对象
+        del regions
+        gc.collect()
+        
+        # 获取剩余引用计数
+        remaining = sum(1 for ref in refs if ref() is not None)
+        
+        # 允许保留缓存的对象
+        cached_count = len(setup_binding._last_valid_binding or [])
+        assert remaining <= cached_count, \
+            f"除缓存外仍有 {remaining - cached_count} 个区域对象未被清理"
+        
+        # 清理缓存后应该没有剩余对象
+        setup_binding._last_valid_binding = None
+        gc.collect()
+        final_remaining = sum(1 for ref in refs if ref() is not None)
+        assert final_remaining == 0, \
+            f"清理缓存后仍有 {final_remaining} 个区域对象未被清理"
+
+    def test_resource_management(self, setup_binding):
+        """测试资源管理"""
+        import tracemalloc
+        
+        # 启动内存跟踪
+        tracemalloc.start()
+        
+        # 执行一系列操作
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        pose = self._create_test_pose()
+        
+        for _ in range(5):
+            regions = setup_binding.create_binding(frame, pose)
+            del regions
+        
+        # 获取内存快照
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+        
+        # 停止跟踪
+        tracemalloc.stop()
+        
+        # 检查内存泄漏
+        for stat in top_stats[:3]:  # 只检查前3个最大的分配
+            assert stat.size / (1024 * 1024) < 1, \
+                f"可能的内存泄漏: {stat.size/1024/1024:.1f}MB at {stat.traceback}"
