@@ -7,7 +7,7 @@ import mediapipe as mp
 import numpy as np
 import logging
 import time
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from camera.manager import CameraManager
 from pose.drawer import PoseDrawer  # 确保从正确的路径导入
 from connect.pose_sender import PoseSender
@@ -20,6 +20,9 @@ from pose.detector import PoseDetector
 from pose.types import PoseData
 from face.face_verification import FaceVerifier
 from avatar_generator.generator import AvatarGenerator
+from model.xiadie.xiadie_model import XiaoDieModel
+from pose.smoother import PoseSmoother
+from pose.detector import PoseEvaluator
 
 # 配置日志格式
 logging.basicConfig(
@@ -90,6 +93,13 @@ initial_regions = None
 # 初始化处理器
 audio_processor = AudioProcessor()
 audio_processor.set_socketio(socketio)
+
+# 初始化小蝶模型
+xiadie_model = XiaoDieModel()
+
+# 初始化组件
+pose_smoother = PoseSmoother()
+pose_evaluator = PoseEvaluator()
 
 def check_camera_settings(cap):
     """检查摄像头实际参数"""
@@ -303,15 +313,39 @@ def camera_status():
 
 @socketio.on('connect')
 def handle_connect():
-    """处理客户端连接"""
-    logger.info("客户端已连接")
-    pose_sender.connect(socketio)
+    logger.info(f"Client connected: {request.sid}")
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    """处理客户端断开连接"""
-    logger.info("客户端已断开")
-    pose_sender.disconnect()
+    logger.info(f"Client disconnected: {request.sid}")
+
+@socketio.on('join_room')
+def handle_join_room(room_id):
+    join_room(room_id)
+    logger.info(f"Client {request.sid} joined room {room_id}")
+
+@socketio.on('pose_data')
+def handle_pose_data(data):
+    try:
+        room = data.get('room')
+        pose_data = data.get('pose')
+        
+        if not room or not pose_data:
+            return
+            
+        # 处理姿态数据
+        processed_data = {
+            'pose': pose_smoother.smooth(pose_data),
+            'quality': pose_evaluator.evaluate(pose_data),
+            'timestamp': time.time(),
+            'sender': request.sid
+        }
+        
+        # 广播给房间内其他成员
+        emit('pose_data', processed_data, room=room, skip_sid=request.sid)
+        
+    except Exception as e:
+        logger.error(f"处理姿态数据错误: {str(e)}")
 
 @app.route('/api/upload_audio', methods=['POST'])
 def upload_audio():
@@ -456,6 +490,26 @@ def verify_identity():
             'success': False,
             'message': f'错误: {str(e)}'
         })
+
+@app.route('/process_frame', methods=['POST'])
+def process_frame():
+    """处理视频帧"""
+    try:
+        success, frame = camera_manager.read()
+        if not success:
+            return jsonify({'success': False, 'message': '无法获取摄像头画面'})
+            
+        # 使用小蝶模型处理帧
+        result = xiadie_model.process_frame(frame)
+        
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+        
+    except Exception as e:
+        logger.error(f"处理帧错误: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
 
 def main():
     """主函数"""

@@ -132,4 +132,41 @@ POSE_CONFIG = {
             'edge': 0.3
         }
     }
+}
+
+XIADIE_CONFIG = {
+    'model_path': 'model/xiadie/model.pth',
+    'device': 'cuda',  # 或 'cpu'
+    'batch_size': 1,
+    'input_size': (256, 256),
+    # 其他配置参数...
+}
+
+# 添加 Jitsi Meet 配置
+JITSI_CONFIG = {
+    'domain': 'meet.jit.si',
+    'options': {
+        'width': '100%',
+        'height': '100%',
+        'configOverwrite': {
+            'startWithAudioMuted': False,
+            'startWithVideoMuted': True,
+            'disableDeepLinking': True
+        },
+        'interfaceConfigOverwrite': {
+            'TOOLBAR_BUTTONS': [
+                'microphone', 'camera', 'closedcaptions', 'desktop',
+                'fullscreen', 'hangup', 'chat', 'settings', 'raisehand',
+                'videoquality', 'filmstrip', 'shortcuts'
+            ]
+        }
+    }
+}
+
+# 添加 WebSocket 配置
+SOCKET_CONFIG = {
+    'ping_timeout': 60,
+    'ping_interval': 25,
+    'cors_allowed_origins': '*',
+    'max_http_buffer_size': 1e8
 } 
