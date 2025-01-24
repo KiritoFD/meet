@@ -19,6 +19,9 @@ from pose.pose_binding import PoseBinding
 from pose.detector import PoseDetector
 from pose.types import PoseData
 from face.face_verification import FaceVerifier
+from connect.jitsi.transport import JitsiTransport
+from connect.jitsi.meeting_manager import JitsiMeetingManager
+from config.jitsi_config import JITSI_CONFIG
 
 # 配置日志格式
 logging.basicConfig(
@@ -480,27 +483,26 @@ def init_pose_system():
         logger.error(f"姿态系统初始化失败: {str(e)}")
         raise
 
-def main():
-    """主函数"""
-    try:
-        # 初始化姿态系统
-        pose_detector, pose_binding, pose_drawer = init_pose_system()
-        logger.info("姿态系统初始化成功")
-        
-        # 启动服务器
-        logger.info(f"服务器启动在 http://localhost:5000")
-        logger.info(f"模板目录: {app.template_folder}")
-        logger.info(f"静态文件目录: {app.static_folder}")
-        
-        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
-        
-    except Exception as e:
-        logger.error(f"程序运行失败: {str(e)}")
-        
-    finally:
-        # 清理资源
-        camera_manager.release()
-        pose_sender.release()
+async def setup_jitsi():
+    transport = JitsiTransport(JITSI_CONFIG)
+    meeting_manager = JitsiMeetingManager(JITSI_CONFIG)
+    
+    return transport, meeting_manager
+
+async def main():
+    transport, meeting_manager = await setup_jitsi()
+    
+    # 创建房间
+    room_id = await meeting_manager.create_meeting("test_room")
+    
+    # 连接到房间
+    await transport.connect(room_id)
+    
+    # 设置姿态数据处理器
+    @transport.on_pose_data
+    async def handle_pose_data(data: bytes):
+        # 处理接收到的姿态数据
+        pass
 
 if __name__ == '__main__':
     try:
