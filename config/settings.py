@@ -35,6 +35,7 @@ FLASK_CONFIG = {
 # MediaPipe 配置
 MEDIAPIPE_CONFIG = {
     'pose': {
+        'static_mode': False,
         'static_image_mode': False,
         'model_complexity': 1,
         'enable_segmentation': False,
@@ -59,6 +60,15 @@ MEDIAPIPE_CONFIG = {
 # 添加姿态检测和变形相关配置
 POSE_CONFIG = {
     'detector': {
+        'static_mode': False,
+        'model_complexity': 1,
+        'enable_segmentation': False,
+        'smooth_landmarks': True,
+        'min_detection_confidence': 0.5,
+        'min_tracking_confidence': 0.5,
+        'min_confidence': 0.5,
+        'smooth_factor': 0.5,
+        
         'keypoints': {
             # 躯干
             'nose': {'id': 0, 'name': 'nose', 'parent_id': -1},

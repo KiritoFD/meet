@@ -17,10 +17,35 @@ class BindingConfig:
     joint_limits: Dict[str, Tuple[float, float]]
 
 class PoseBinding:
-    """姿态绑定类"""
+    """姿态绑定类
+    
+    此类负责处理姿态数据与图像区域的绑定关系，支持身体和面部的区域划分与变形控制。
+    
+    Attributes:
+        config (BindingConfig): 绑定配置参数
+        reference_frame (np.ndarray): 参考帧图像
+        landmarks (List[Dict]): 关键点列表
+        weights (np.ndarray): 绑定权重
+        valid (bool): 绑定是否有效
+        keypoints (Dict): 关键点配置
+        connections (Dict): 关键点连接关系
+        _last_valid_binding (Dict[str, DeformRegion]): 上一个有效的绑定结果
+        _frame_size (Tuple[int, int]): 当前处理图像的尺寸
+        region_configs (Dict): 区域配置信息
+    """
     
     def __init__(self, config: BindingConfig = None):
-        self.config = config or BindingConfig()
+        """初始化姿态绑定器"""
+        # 使用默认值创建配置
+        self.config = config or BindingConfig(
+            smoothing_factor=0.5,
+            min_confidence=0.3,
+            joint_limits={
+                'shoulder': (-90, 90),
+                'elbow': (0, 145),
+                'knee': (0, 160)
+            }
+        )
         self.reference_frame = None
         self.landmarks = None
         self.weights = None
@@ -32,49 +57,28 @@ class PoseBinding:
         
         # 区域配置
         self.region_configs = {
-            # 身体区域 (必需)
             'torso': {
-                'indices': [11, 12, 23, 24],
+                'indices': [11, 12, 23, 24],  # 肩部和臀部关键点
                 'min_points': 3,
                 'required': True
             },
-            'left_upper_arm': {
-                'indices': [11, 13],
+            'left_arm': {
+                'indices': [11, 13, 15],  # 左肩、左肘、左腕
                 'min_points': 2,
                 'required': False
             },
-            'left_lower_arm': {
-                'indices': [13, 15],
+            'right_arm': {
+                'indices': [12, 14, 16],  # 右肩、右肘、右腕
                 'min_points': 2,
                 'required': False
             },
-            'right_upper_arm': {
-                'indices': [12, 14],
+            'left_leg': {
+                'indices': [23, 25, 27],  # 左髋、左膝、左踝
                 'min_points': 2,
                 'required': False
             },
-            'right_lower_arm': {
-                'indices': [14, 16],
-                'min_points': 2,
-                'required': False
-            },
-            'left_upper_leg': {
-                'indices': [23, 25],
-                'min_points': 2,
-                'required': False
-            },
-            'left_lower_leg': {
-                'indices': [25, 27],
-                'min_points': 2,
-                'required': False
-            },
-            'right_upper_leg': {
-                'indices': [24, 26],
-                'min_points': 2,
-                'required': False
-            },
-            'right_lower_leg': {
-                'indices': [26, 28],
+            'right_leg': {
+                'indices': [24, 26, 28],  # 右髋、右膝、右踝
                 'min_points': 2,
                 'required': False
             },
@@ -119,8 +123,19 @@ class PoseBinding:
             }
         }
 
-    def create_binding(self, frame: np.ndarray, pose_data: PoseData):
-        """创建姿态绑定"""
+    def create_binding(self, frame: np.ndarray, pose_data: PoseData) -> Dict[str, DeformRegion]:
+        """创建图像区域与姿态的绑定关系
+        
+        Args:
+            frame (np.ndarray): 输入图像帧
+            pose_data (PoseData): 姿态数据
+            
+        Returns:
+            Dict[str, DeformRegion]: 区域绑定信息字典，key为区域名称，value为对应的DeformRegion对象
+            
+        Raises:
+            ValueError: 当输入参数无效时抛出
+        """
         try:
             # 验证输入
             if frame is None or pose_data is None:
@@ -412,13 +427,14 @@ class PoseBinding:
             return np.zeros_like(frame)
 
     def _calculate_weights(self, points: List[np.ndarray], region_type: str) -> List[float]:
-        """计算绑定点权重
+        """计算控制点权重
         
-        返回未归一化的原始权重值：
-        - 躯干区域: 0.4或0.6
-        - 肢体区域: 0.3或0.7
-        - 面部轮廓: 0.5
-        - 其他面部特征: 0.8
+        Args:
+            points (List[np.ndarray]): 控制点列表
+            region_type (str): 区域类型，影响权重计算策略
+            
+        Returns:
+            List[float]: 控制点权重列表
         """
         n_points = len(points)
         
@@ -456,7 +472,14 @@ class PoseBinding:
         return weights
 
     def _validate_landmarks(self, landmarks: List[Dict]) -> bool:
-        """验证关键点可见度"""
+        """验证关键点有效性
+        
+        Args:
+            landmarks (List[Dict]): 关键点列表
+            
+        Returns:
+            bool: 关键点是否有效
+        """
         return all(lm['visibility'] >= self.config.min_confidence for lm in landmarks)
 
     def update_binding(self, regions: List[DeformRegion], pose: PoseData) -> List[DeformRegion]:

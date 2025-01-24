@@ -19,7 +19,6 @@ from pose.pose_binding import PoseBinding
 from pose.detector import PoseDetector
 from pose.types import PoseData
 from face.face_verification import FaceVerifier
-from avatar_generator.generator import AvatarGenerator
 
 # 配置日志格式
 logging.basicConfig(
@@ -90,6 +89,9 @@ initial_regions = None
 # 初始化处理器
 audio_processor = AudioProcessor()
 audio_processor.set_socketio(socketio)
+
+# 初始化检测器
+pose_detector = PoseDetector()
 
 def check_camera_settings(cap):
     """检查摄像头实际参数"""
@@ -457,9 +459,34 @@ def verify_identity():
             'message': f'错误: {str(e)}'
         })
 
+def init_pose_system():
+    """初始化姿态处理系统"""
+    try:
+        # 初始化姿态检测器
+        logger.info("正在初始化姿态检测器...")
+        pose_detector = PoseDetector()
+        
+        # 初始化姿态绑定器
+        logger.info("正在初始化姿态绑定器...")
+        pose_binding = PoseBinding()
+        
+        # 初始化绘制器
+        logger.info("正在初始化姿态绘制器...")
+        pose_drawer = PoseDrawer()
+        
+        return pose_detector, pose_binding, pose_drawer
+        
+    except Exception as e:
+        logger.error(f"姿态系统初始化失败: {str(e)}")
+        raise
+
 def main():
     """主函数"""
     try:
+        # 初始化姿态系统
+        pose_detector, pose_binding, pose_drawer = init_pose_system()
+        logger.info("姿态系统初始化成功")
+        
         # 启动服务器
         logger.info(f"服务器启动在 http://localhost:5000")
         logger.info(f"模板目录: {app.template_folder}")
@@ -468,7 +495,7 @@ def main():
         socketio.run(app, host='0.0.0.0', port=5000, debug=True)
         
     except Exception as e:
-        logger.error(f"服务器错误: {e}")
+        logger.error(f"程序运行失败: {str(e)}")
         
     finally:
         # 清理资源

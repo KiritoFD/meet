@@ -2,6 +2,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from animation.controller import AnimationController
 
 def test_expressions():
     """测试多种表情"""

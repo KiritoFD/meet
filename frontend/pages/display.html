@@ -734,6 +734,17 @@
                     <div class="result-details"></div>
                 </div>
             </div>
+            
+            <div class="meeting-container">
+                <div class="controls-group">
+                        <h3>姿态会议</h3>
+                        <div class="button-group">
+                            <button id="startMeetingBtn" onclick="startPoseMeeting()">开始会议</button>
+                            <button id="leaveMeetingBtn" onclick="leavePoseMeeting()" disabled>离开会议</button>
+                        </div>
+                    </div>
+                    <div id="meetContainer" style="height: 500px; display: none;"></div>
+                </div>
 
             <div class="controls-group">
                 <h3>相机参数设置</h3>
@@ -778,16 +789,6 @@
                 <button id="resetCameraBtn" class="outline" style="margin-top: 12px;">重置设置</button>
             </div>
 
-            <div class="meeting-container">
-            <div class="controls-group">
-                    <h3>姿态会议</h3>
-                    <div class="button-group">
-                        <button id="startMeetingBtn" onclick="startPoseMeeting()">开始会议</button>
-                        <button id="leaveMeetingBtn" onclick="leavePoseMeeting()" disabled>离开会议</button>
-                    </div>
-                </div>
-                <div id="meetContainer" style="height: 500px; display: none;"></div>
-            </div>
 
             <div class="control-panel">
                 <!-- 音频控制按钮 -->
