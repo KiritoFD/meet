@@ -18,4 +18,6 @@ __all__ = [
     'RoomManager', 
     'PoseSender',
     'PoseProtocol'
-] 
+]
+
+"""Jitsi Connect Package""" 
