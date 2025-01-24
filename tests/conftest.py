@@ -29,6 +29,14 @@ def get_cv2():
     except ImportError:
         return None
 
+@pytest.fixture
+def jwt():
+    """提供jwt模块"""
+    jwt = get_jwt()
+    if jwt is None:
+        pytest.skip("PyJWT not available")
+    return jwt
+
 # 打印调试信息
 print(f"Current working directory: {os.getcwd()}")
 print(f"Project root: {project_root}")
@@ -96,14 +104,6 @@ def config():
             'token_expiry': 3600
         }
     }
-
-@pytest.fixture
-def jwt():
-    """提供jwt模块"""
-    jwt = get_jwt()
-    if jwt is None:
-        pytest.skip("PyJWT not available")
-    return jwt
 
 @pytest.fixture
 def jwt_handler(config):
