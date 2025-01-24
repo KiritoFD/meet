@@ -197,4 +197,16 @@ class TestJitsiClient:
         await client.close()
         
         assert 'connected' in states
-        assert 'closed' in states 
+        assert 'closed' in states
+
+    @pytest.mark.asyncio
+    async def test_connect_with_jitsi_meet(self, client, mock_jitsi):
+        await client.connect("test_room")
+        mock_jitsi.connect.assert_called_once()
+        assert client.is_connected()
+
+    @pytest.mark.asyncio
+    async def test_reconnect_with_jitsi_meet(self, client, mock_jitsi):
+        mock_jitsi.connect.side_effect = [JitsiError(), None]
+        await client.connect("test_room")
+        assert mock_jitsi.connect.call_count == 2 

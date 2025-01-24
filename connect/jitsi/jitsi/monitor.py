@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Callable
+from typing import Dict, List, Optional, Callable, Any
 import asyncio
 import logging
 from collections import deque
@@ -143,4 +143,4 @@ class JitsiMonitor:
             
         latest = self._connection_metrics[-1]
         if latest.state != 'connected':
-            logger.warning(f"Connection state: {latest.state}") 
+            logger.warning(f"Connection state: {latest.state}")
