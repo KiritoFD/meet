@@ -19,9 +19,19 @@ from pose.pose_binding import PoseBinding
 from pose.detector import PoseDetector
 from pose.types import PoseData
 from face.face_verification import FaceVerifier
-from connect.jitsi.transport import JitsiTransport
-from connect.jitsi.meeting_manager import JitsiMeetingManager
-from config.jitsi_config import JITSI_CONFIG
+# from connect.jitsi.transport import JitsiTransport
+# from connect.jitsi.meeting_manager import JitsiMeetingManager
+# from config.jitsi_config import JITSI_CONFIG
+import asyncio
+import absl.logging
+
+# 抑制 TensorFlow 警告
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=INFO, 2=WARNING, 3=ERROR
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
+absl.logging.set_verbosity(absl.logging.ERROR)
+
+# 禁用 mediapipe 的调试日志
+logging.getLogger('mediapipe').setLevel(logging.ERROR)
 
 # 配置日志格式
 logging.basicConfig(
@@ -484,34 +494,68 @@ def init_pose_system():
         raise
 
 async def setup_jitsi():
-    transport = JitsiTransport(JITSI_CONFIG)
-    meeting_manager = JitsiMeetingManager(JITSI_CONFIG)
+    # transport = JitsiTransport(JITSI_CONFIG)
+    # meeting_manager = JitsiMeetingManager(JITSI_CONFIG)
     
-    return transport, meeting_manager
+    return None, None
 
 async def main():
-    transport, meeting_manager = await setup_jitsi()
+    # ... 其他代码 ...
     
-    # 创建房间
-    room_id = await meeting_manager.create_meeting("test_room")
+    # 注释掉 Jitsi 相关的初始化和设置
+    '''
+    # 初始化 Jitsi 会议管理器
+    meeting_manager = JitsiMeetingManager(JITSI_CONFIG)
+    await meeting_manager.start()
     
-    # 连接到房间
-    await transport.connect(room_id)
-    
-    # 设置姿态数据处理器
-    @transport.on_pose_data
-    async def handle_pose_data(data: bytes):
-        # 处理接收到的姿态数据
-        pass
-
-if __name__ == '__main__':
     try:
-        # 确保必要的目录存在
-        os.makedirs('static', exist_ok=True)
-        os.makedirs('templates', exist_ok=True)
+        default_room_id = "default_room"
+        host_id = "host_1"
+        room_id = await meeting_manager.create_meeting(
+            room_id=default_room_id,
+            host_id=host_id
+        )
+        logger.info(f"Created default meeting room: {room_id}")
+    except Exception as e:
+        logger.error(f"Failed to create default meeting room: {e}")
+        raise
+    '''
+    
+    try:
+        # 直接使用 Flask 的 run 方法
+        app.run(
+            host='0.0.0.0',
+            port=5000,
+            debug=True  # 开发模式
+        )
+    except Exception as e:
+        logger.error(f"Failed to start web server: {e}")
+        raise
+    finally:
+        pass
+        # await meeting_manager.stop()  # 注释掉
+
+if __name__ == "__main__":
+    # 配置日志
+    logging.basicConfig(level=logging.INFO)
+    
+    # 抑制 TensorFlow 和 Mediapipe 警告
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    logging.getLogger('tensorflow').setLevel(logging.ERROR)
+    absl.logging.set_verbosity(absl.logging.ERROR)
+    logging.getLogger('mediapipe').setLevel(logging.ERROR)
+    
+    try:
+        # 创建必要的目录
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         
-        main()
+        # 运行主程序
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n程序被用户中断")
     except Exception as e:
-        logger.error(f"服务器启动失败: {str(e)}")
-        sys.exit(1)
+        print(f"程序出错: {e}")
+        logger.exception("程序异常退出")
+    finally:
+        # 清理资源
+        cv2.destroyAllWindows()
