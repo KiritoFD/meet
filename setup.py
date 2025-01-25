@@ -9,11 +9,12 @@ setup(
         "pytest",
         "pytest-asyncio",
         "pytest-cov",
-        "psutil",
+        "psutil>=5.8.0",
         "PyJWT>=2.8.0",
         "aiohttp>=3.8.0",
         "python-socketio>=5.0.0",
-        "dataclasses-json>=0.5.0"
+        "dataclasses-json>=0.5.0",
+        "prometheus_client>=0.11.0",
     ],
     extras_require={
         'cv': ["opencv-python>=4.0.0"],
@@ -29,6 +30,12 @@ setup(
             "opencv-python>=4.0.0",
             "mediapipe>=0.8.0",
             "tensorflow>=2.0.0"
+        ],
+        'test': [
+            'pytest>=7.0.0',
+            'pytest-asyncio>=0.15.1',
+            'pytest-cov>=4.0.0',
+            'pytest-html>=3.0.0'
         ]
     },
     python_requires='>=3.8',

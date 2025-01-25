@@ -123,14 +123,11 @@ def mock_socket():
     socket.emit = Mock(return_value=True)
     return socket
 
-@pytest.fixture
-def event_loop():
-    """创建事件循环"""
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    """提供事件循环策略"""
     import asyncio
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
+    return asyncio.WindowsSelectorEventLoopPolicy()
 
 def generate_test_pose(landmark_count: int = 33) -> dict:
     """生成测试姿态数据"""

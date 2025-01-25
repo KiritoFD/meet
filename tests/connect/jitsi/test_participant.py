@@ -88,4 +88,4 @@ class TestJitsiParticipant:
         participant.remove_role("speaker")
         assert not participant.has_role("speaker")
         assert participant.has_role("moderator")
-        assert participant.has_role("presenter") 
+        assert participant.has_role("presenter")
