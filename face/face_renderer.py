@@ -135,6 +135,21 @@ class AnimeStyleRenderer:
         
         return result
 
+    def _calculate_normal_map(self, displacement_map):
+        """从位移贴图生成法线贴图"""
+        dx = cv2.Sobel(displacement_map, cv2.CV_32F, 1, 0, ksize=3)
+        dy = cv2.Sobel(displacement_map, cv2.CV_32F, 0, 1, ksize=3)
+        
+        normal_map = np.zeros((*displacement_map.shape, 3))
+        normal_map[..., 0] = dx
+        normal_map[..., 1] = dy
+        normal_map[..., 2] = 1.0
+        
+        norm = np.linalg.norm(normal_map, axis=2, keepdims=True)
+        normal_map /= norm
+        
+        return cv2.cvtColor(normal_map, cv2.COLOR_BGR2RGB)
+
 def main():
     # 初始化渲染器
     renderer = AnimeStyleRenderer()

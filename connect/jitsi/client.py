@@ -1,7 +1,7 @@
 from typing import Dict, Optional, Any
 import asyncio
+from lib.jitsi import JitsiMeet
 from lib import (
-    JitsiMeet,
     JitsiConnection as BaseConnection,
     JitsiConference as BaseConference
 )
@@ -50,4 +50,24 @@ class JitsiClient:
         if self._conference:
             await self._conference.leave()
         if self._connection:
-            await self._connection.disconnect() 
+            await self._connection.disconnect()
+
+class JitsiMeetingController:
+    def __init__(self):
+        self._hand_raise_queue = []  # 举手队列
+        self._current_speaker = None  # 当前发言人
+        
+    async def request_speak(self, user_id: str):
+        """申请发言"""
+        if user_id not in self._hand_raise_queue:
+            self._hand_raise_queue.append(user_id)
+            
+    async def grant_speak(self, user_id: str):
+        """授予发言权"""
+        if user_id in self._hand_raise_queue:
+            self._hand_raise_queue.remove(user_id)
+            self._current_speaker = user_id
+            
+    async def revoke_speak(self):
+        """收回发言权"""
+        self._current_speaker = None 

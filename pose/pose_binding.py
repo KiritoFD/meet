@@ -522,3 +522,23 @@ class PoseBinding:
         
         # 如果更新失败，返回上一个有效的绑定
         return updated_regions if updated_regions else self._last_valid_binding or []
+
+    def fuse_multimodal_data(self, rgb_frame, depth_frame, thermal_frame):
+        """融合多模态数据"""
+        # 对齐不同传感器数据
+        aligned_data = self._align_sensors(rgb_frame, depth_frame, thermal_frame)
+        
+        # 提取几何特征
+        geometry_features = self._extract_geometry_features(aligned_data['depth'])
+        
+        # 提取纹理特征
+        texture_features = self._extract_texture_features(aligned_data['rgb'])
+        
+        # 融合特征
+        fused_features = self.fusion_network(
+            geometry_features, 
+            texture_features,
+            aligned_data['thermal']
+        )
+        
+        return self._decode_features(fused_features)

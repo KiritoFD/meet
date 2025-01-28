@@ -370,7 +370,7 @@ class TestProcessorPerformance:
         initial_objects = len(gc.get_objects())
         for _ in range(1000):
             processor.compress(mock_pose_data)
-            del processor.get_metrics()  # 清理指标数据
+            processor.clear_metrics()  # 清理指标数据
             
         gc.collect()
         final_objects = len(gc.get_objects())

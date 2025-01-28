@@ -107,6 +107,17 @@ class FaceTracker:
         
         return result
 
+    def capture_highres_scan(self, frame_count=300):
+        """高精度三维扫描"""
+        point_cloud = []
+        for _ in range(frame_count):
+            frame = self.capture_frame()
+            depth_map = self._get_depth_map(frame)
+            landmarks = self.extract_features(frame)
+            point_cloud.append(self._project_to_3d(landmarks, depth_map))
+        
+        return self._reconstruct_surface(point_cloud)
+
 def main():
     tracker = FaceTracker()
     

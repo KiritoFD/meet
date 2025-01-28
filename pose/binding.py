@@ -2,6 +2,7 @@ from typing import List, Dict, Optional, Any, Tuple
 import numpy as np
 from dataclasses import dataclass
 from .render_core import ModelRenderer
+from concurrent.futures import ThreadPoolExecutor
 
 @dataclass
 class Bone:
@@ -55,3 +56,38 @@ class PoseBinding:
             valid=True,
             renderer=ModelRenderer(self.config)
         ) 
+
+    def compute_weights(self, points: np.ndarray, bones: List[Bone]) -> np.ndarray:
+        """基于热扩散算法的权重计算"""
+        weights = np.zeros((len(points), len(bones)))
+        
+        # 并行计算每个顶点
+        with ThreadPoolExecutor() as executor:
+            futures = []
+            for i, point in enumerate(points):
+                futures.append(executor.submit(
+                    self._calculate_vertex_weights, point, bones
+                ))
+            for i, future in enumerate(futures):
+                weights[i] = future.result()
+                
+        # 归一化处理
+        weights = np.exp(weights) / np.sum(np.exp(weights), axis=1, keepdims=True)
+        return weights
+
+    def _calculate_vertex_weights(self, point: np.ndarray, bones: List[Bone]):
+        """单个顶点的权重计算"""
+        weights = np.zeros(len(bones))
+        for j, bone in enumerate(bones):
+            # 计算到骨骼的最短距离
+            start = bone.start_point
+            end = bone.end_point
+            vec = end - start
+            t = np.dot(point - start, vec) / (np.linalg.norm(vec)**2 + 1e-6)
+            t = np.clip(t, 0, 1)
+            proj = start + t * vec
+            distance = np.linalg.norm(point - proj)
+            
+            # 使用指数衰减函数计算权重
+            weights[j] = np.exp(-distance / bone.influence_radius)
+        return weights 

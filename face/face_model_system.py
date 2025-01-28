@@ -14,6 +14,8 @@ class PersonalModel:
     texture: np.ndarray
     landmarks_mean: np.ndarray
     landmarks_std: np.ndarray
+    displacement: np.ndarray
+    normal_map: np.ndarray
 
 @dataclass
 class FacialFeatures:
@@ -69,7 +71,7 @@ class FaceModelSystem:
         texture = self._generate_base_texture(features_list[0])
         
         print("个人模型生成完成！")
-        return PersonalModel(mesh, texture, landmarks_mean, landmarks_std)
+        return PersonalModel(mesh, texture, landmarks_mean, landmarks_std, np.zeros((512, 512, 3)), np.zeros((512, 512, 3)))
     
     def _generate_base_texture(self, features: FacialFeatures) -> np.ndarray:
         """生成基础纹理图"""
@@ -164,6 +166,45 @@ class FaceModelSystem:
         vis.destroy_window()
         
         return np.asarray(image)
+
+    def create_detailed_mesh(self, features_list: List[FacialFeatures]) -> PersonalModel:
+        """创建高精度人体网格"""
+        # 1. 生成基础网格
+        base_mesh = self._create_base_mesh(features_list)
+        
+        # 2. 添加细节层
+        displacement_map = self._calculate_displacement(base_mesh, features_list)
+        normal_map = self._calculate_normal_map(displacement_map)
+        
+        # 3. 多分辨率处理
+        subdivided_mesh = base_mesh.subdivide_loop(number_of_cuts=3)
+        subdivided_mesh.vertices += displacement_map * 0.1  # 应用位移贴图
+        
+        # 4. 生成UV映射
+        self._generate_uv_map(subdivided_mesh)
+        
+        return PersonalModel(
+            mesh=subdivided_mesh,
+            texture=self._generate_pbr_texture(normal_map),
+            displacement=displacement_map,
+            normal_map=normal_map
+        )
+
+    def _reconstruct_surface(self, point_cloud):
+        """泊松表面重建"""
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(point_cloud)
+        
+        # 执行泊松重建
+        mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
+            pcd, depth=9, linear_fit=True
+        )
+        
+        # 移除低密度区域
+        vertices_to_remove = densities < np.quantile(densities, 0.01)
+        mesh.remove_vertices_by_mask(vertices_to_remove)
+        
+        return mesh
 
 def main():
     system = FaceModelSystem()

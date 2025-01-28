@@ -1506,3 +1506,37 @@ class TestJitsiMonitor:
         # 验证内存使用
         memory_usage = monitor.get_memory_usage()
         assert memory_usage['resident_mb'] < 100  # 内存使用应控制在100MB以内 
+
+    @pytest.mark.asyncio
+    async def test_alert_handling():
+        """测试告警触发机制"""
+        alerts = []
+        monitor = JitsiMonitor({})
+        monitor.add_alert_handler(lambda a: alerts.append(a))
+        
+        # 触发CPU告警
+        monitor.record_system_metrics(SystemMetrics(cpu_usage=0.9, memory_usage=0.5))
+        assert len(alerts) == 1
+        assert "CPU" in alerts[0]
+        
+        # 触发网络告警
+        monitor.record_connection_metrics(ConnectionMetrics(packet_loss=0.85))
+        assert len(alerts) == 2
+        assert "packet loss" in alerts[1]
+
+    @pytest.mark.asyncio
+    async def test_connection_health_check(monitor):
+        """测试连接健康检查"""
+        # 记录正常指标
+        for _ in range(3):
+            monitor.record_connection_metrics(ConnectionMetrics(
+                latency=0.2, packet_loss=0.05, state="connected"
+            ))
+        
+        # 记录异常指标
+        monitor.record_connection_metrics(ConnectionMetrics(
+            latency=1.5, packet_loss=0.3, state="connected"
+        ))
+        
+        # 执行健康检查
+        await monitor._check_connection_health() 

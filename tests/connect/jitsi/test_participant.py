@@ -89,3 +89,30 @@ class TestJitsiParticipant:
         assert not participant.has_role("speaker")
         assert participant.has_role("moderator")
         assert participant.has_role("presenter")
+
+def test_participant_roles():
+    """测试角色管理功能"""
+    participant = JitsiParticipant("user_123")
+    participant.add_role("speaker")
+    assert "speaker" in participant.roles
+    participant.remove_role("speaker")
+    assert "speaker" not in participant.roles
+
+def test_activity_tracking():
+    """测试活动时间追踪"""
+    participant = JitsiParticipant("user_123")
+    initial_time = participant.get_stats()['last_active']
+    
+    time.sleep(0.1)
+    participant.update_activity()
+    assert participant.get_stats()['last_active'] > initial_time
+
+def test_data_recording():
+    """测试数据传输统计"""
+    participant = JitsiParticipant("user_123")
+    participant.record_message(1024, is_sent=True)
+    participant.record_message(512, is_sent=False)
+    
+    stats = participant.get_stats()
+    assert stats['data_sent'] == 1024
+    assert stats['data_received'] == 512

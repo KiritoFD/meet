@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, patch, AsyncMock, MagicMock
 from typing import Dict, List
 import time
 import random
@@ -1037,3 +1037,52 @@ class TestJitsiTransport:
             
             for i in range(len(states) - 1):
                 assert states[i+1] in valid_transitions[states[i]]
+
+@pytest.fixture
+def mock_config():
+    return {
+        'jitsi_host': 'localhost',
+        'jitsi_port': 8080,
+        'buffer_size': 30,
+        'retry_limit': 3,
+        'timeout': 5.0,
+        'batch_size': 5,
+        'conference': {
+            'room_id': 'test_room',
+            'data_channel_options': {'ordered': True}
+        }
+    }
+
+@pytest.mark.asyncio
+async def test_transport_connect_success(mock_config):
+    """测试成功建立连接"""
+    transport = JitsiTransport(mock_config)
+    transport._jitsi = MagicMock()
+    transport._jitsi.connect = AsyncMock(return_value=MagicMock())
+    
+    result = await transport.connect('test_room')
+    assert result is True
+    assert transport._conference is not None
+
+@pytest.mark.asyncio
+async def test_transport_send_data():
+    """测试数据发送功能"""
+    transport = JitsiTransport({})
+    transport._data_channel = AsyncMock()
+    transport._data_channel.send = AsyncMock(return_value=True)
+    
+    test_data = b'test_data'
+    result = await transport.send(test_data)
+    assert result is True
+    transport._data_channel.send.assert_awaited_with(test_data)
+
+@pytest.mark.asyncio
+async def test_batch_send():
+    """测试批量发送功能"""
+    transport = JitsiTransport({'batch_size': 2})
+    transport.send = AsyncMock(side_effect=[True, True, True])
+    
+    data_list = [b'data1', b'data2', b'data3']
+    results = await transport.batch_send(data_list)
+    assert len(results) == 3
+    assert all(results)
