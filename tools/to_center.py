@@ -1,7 +1,25 @@
+"""姿态居中处理模块
+
+此模块提供姿态数据的自动居中功能，主要用于将检测到的人体姿态调整到画面中心。
+支持加权计算、平滑处理、异常点过滤等功能。可通过配置文件或运行时参数调整行为。
+
+主要功能：
+- 计算加权中心点
+- 平滑处理防抖动
+- 异常点过滤
+- 可配置参数系统
+
+使用示例：
+    >>> from tools.to_center import to_center
+    >>> success = to_center(pose_data)  # 使用默认配置
+    >>> # 使用自定义配置
+    >>> success = to_center(pose_data, {'smoothing_factor': 0.5})
+"""
+
 import numpy as np
 from typing import Optional, Dict
 from pose.pose_data import PoseData, Landmark
-from config.settings import POSE_CONFIG
+from config.settings import POSE_CONFIG, CENTER_CONFIG
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,6 +46,19 @@ class _PoseCenterizer:
                 self.weighted_indices[self.keypoints[name]['id']] = weight
             else:
                 logger.warning(f"Keypoint {name} not found in configuration")
+        
+        # 使用默认配置
+        self.config = CENTER_CONFIG.copy()
+    
+    def _filter_outliers(self, points: np.ndarray) -> np.ndarray:
+        """过滤异常点"""
+        if len(points) < 3:  # 至少需要3个点才能判断异常
+            return points
+            
+        median = np.median(points[:, :2], axis=0)
+        distances = np.linalg.norm(points[:, :2] - median, axis=1)
+        valid_mask = distances < self.config['outlier_threshold']
+        return points[valid_mask]
 
     def _compute_center(self, points: np.ndarray) -> Optional[np.ndarray]:
         """计算加权中心点
@@ -38,7 +69,10 @@ class _PoseCenterizer:
         Returns:
             计算出的中心点坐标 [x, y] 或 None（如果没有有效点）
         """
-        if points.shape[0] == 0:
+        # 先过滤异常点
+        filtered_points = self._filter_outliers(points)
+        
+        if filtered_points.shape[0] == 0:
             return None
             
         weighted_center = np.zeros(2)
@@ -47,13 +81,14 @@ class _PoseCenterizer:
         
         # 首先尝试使用核心关键点
         for idx, weight in self.weighted_indices.items():
-            if idx < len(points) and points[idx][2] > 0.7:  # 提高可见度阈值
+            # 使用配置参数
+            if idx < len(points) and points[idx][2] > self.config['visibility_threshold']:  # 提高可见度阈值
                 weighted_center += points[idx][:2] * weight
                 total_weight += weight
                 valid_points += 1
         
-        # 要求至少有2个有效的核心点
-        if valid_points < 2:
+        # 使用配置的最小有效点数
+        if valid_points < self.config['min_valid_points']:
             logger.debug("Not enough valid core points, falling back to all visible points")
             visible_mask = points[:, 2] > 0.5
             if not np.any(visible_mask):
@@ -71,7 +106,7 @@ class _PoseCenterizer:
         Returns:
             bool: 是否成功居中
         """
-        if not pose_data or not pose_data.landmarks:
+        if not pose_data或 not pose_data.landmarks:
             return False
             
         # 转换为numpy数组
@@ -93,12 +128,16 @@ class _PoseCenterizer:
         
         # 添加防抖动逻辑
         if hasattr(self, 'last_offset'):
-            # 如果新的偏移变化太大，进行平滑
-            if np.linalg.norm(offset - self.last_offset) > 0.1:
-                offset = 0.7 * self.last_offset + 0.3 * offset
-                logger.debug("Smoothing large offset change")
+            # 使用配置的平滑因子
+            smooth_factor = self.config['smoothing_factor']
+            offset = (1 - smooth_factor) * self.last_offset + smooth_factor * offset
         
         self.last_offset = offset.copy()
+        
+        # 使用配置的最大偏移距离
+        if np.linalg.norm(offset) > self.config['max_offset']:
+            offset = offset * self.config['max_offset'] / np.linalg.norm(offset)
+            logger.debug("Limiting maximum offset")
         
         # 应用偏移并确保在[0,1]范围内
         new_points = points.copy()
@@ -115,15 +154,22 @@ class _PoseCenterizer:
 # 创建全局单例
 _centerizer = _PoseCenterizer()
 
-def to_center(pose_data: PoseData) -> bool:
+def to_center(pose_data: PoseData, config: Optional[dict] = None) -> bool:
     """将姿态数据居中（原地修改）
     
     Args:
         pose_data: 要处理的姿态数据
+        config: 可选的配置参数，用于覆盖默认配置。
+               如果为None，使用settings.py中的CENTER_CONFIG
         
     Returns:
         bool: 是否成功完成居中操作
     """
+    if config:
+        # 只更新提供的配置项
+        temp_config = _centerizer.config.copy()
+        temp_config.update(config)
+        _centerizer.config = temp_config
     return _centerizer(pose_data)
 
 # 测试代码

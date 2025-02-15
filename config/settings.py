@@ -142,4 +142,13 @@ POSE_CONFIG = {
             'edge': 0.3
         }
     }
-} 
+}
+
+# 姿态居中配置
+CENTER_CONFIG = {
+    'visibility_threshold': 0.7,     # 可见度阈值
+    'min_valid_points': 2,          # 最小有效点数
+    'smoothing_factor': 0.3,        # 平滑因子
+    'max_offset': 0.1,              # 最大偏移距离
+    'outlier_threshold': 0.2        # 异常点阈值
+}

@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from pose.pose_data import PoseData, Landmark
-from to_center import center_pose, to_center
+from tools import to_center
 from config.settings import POSE_CONFIG
 
 def create_test_landmarks(num_points=33):
