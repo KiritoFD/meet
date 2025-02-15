@@ -106,7 +106,7 @@ class _PoseCenterizer:
         Returns:
             bool: 是否成功居中
         """
-        if not pose_data或 not pose_data.landmarks:
+        if not pose_data or not pose_data.landmarks:
             return False
             
         # 转换为numpy数组
