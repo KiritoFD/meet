@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from pose.pose_data import PoseData, Landmark
-from to_center import center_pose
+from to_center import center_pose, to_center
 from config.settings import POSE_CONFIG
 
 def create_test_landmarks(num_points=33):
@@ -146,3 +146,100 @@ def test_center_pose_preserve_metadata():
     
     assert centered_pose.timestamp == timestamp
     assert centered_pose.confidence == confidence
+
+def test_smoothing():
+    """测试防抖动功能"""
+    keypoints = POSE_CONFIG['detector']['keypoints']
+    
+    # 创建两帧数据，第二帧有较大偏移
+    def create_frame(offset_x, offset_y):
+        landmarks = [Landmark(x=0.0, y=0.0, z=0, visibility=0.0) for _ in range(33)]
+        # 设置核心关键点
+        landmarks[keypoints['left_shoulder']['id']] = Landmark(x=0.3+offset_x, y=0.3+offset_y, z=0, visibility=1.0)
+        landmarks[keypoints['right_shoulder']['id']] = Landmark(x=0.4+offset_x, y=0.3+offset_y, z=0, visibility=1.0)
+        landmarks[keypoints['left_hip']['id']] = Landmark(x=0.3+offset_x, y=0.5+offset_y, z=0, visibility=1.0)
+        landmarks[keypoints['right_hip']['id']] = Landmark(x=0.4+offset_x, y=0.5+offset_y, z=0, visibility=1.0)
+        return PoseData(landmarks=landmarks, timestamp=0, confidence=1.0)
+
+    # 第一帧
+    pose1 = create_frame(0, 0)
+    to_center(pose1)
+    center1 = np.array([0.5, 0.5])  # 期望的中心位置
+
+    # 第二帧（大偏移）
+    pose2 = create_frame(0.2, 0.2)  # 添加较大偏移
+    to_center(pose2)
+    
+    # 获取实际中心点
+    shoulder_center = np.mean([[pose2.landmarks[keypoints['left_shoulder']['id']].x,
+                              pose2.landmarks[keypoints['left_shoulder']['id']].y],
+                             [pose2.landmarks[keypoints['right_shoulder']['id']].x,
+                              pose2.landmarks[keypoints['right_shoulder']['id']].y]], axis=0)
+                              
+    # 由于平滑处理，实际中心点应该在0.5和原始偏移中心之间
+    assert 0.45 <= shoulder_center[0] <= 0.55
+    assert 0.45 <= shoulder_center[1] <= 0.55
+
+def test_continuous_frames():
+    """测试连续帧处理"""
+    keypoints = POSE_CONFIG['detector']['keypoints']
+    centers = []
+    
+    # 生成连续10帧，每帧都有小幅抖动
+    for i in range(10):
+        landmarks = [Landmark(x=0.0, y=0.0, z=0, visibility=0.0) for _ in range(33)]
+        noise = np.random.normal(0, 0.01, 2)  # 小幅随机抖动
+        
+        # 设置核心关键点
+        landmarks[keypoints['left_shoulder']['id']] = Landmark(x=0.3+noise[0], y=0.3+noise[1], z=0, visibility=1.0)
+        landmarks[keypoints['right_shoulder']['id']] = Landmark(x=0.4+noise[0], y=0.3+noise[1], z=0, visibility=1.0)
+        landmarks[keypoints['left_hip']['id']] = Landmark(x=0.3+noise[0], y=0.5+noise[1], z=0, visibility=1.0)
+        landmarks[keypoints['right_hip']['id']] = Landmark(x=0.4+noise[0], y=0.5+noise[1], z=0, visibility=1.0)
+        
+        pose = PoseData(landmarks=landmarks, timestamp=i, confidence=1.0)
+        to_center(pose)
+        
+        # 计算实际中心点
+        center = np.mean([[pose.landmarks[keypoints['left_shoulder']['id']].x,
+                          pose.landmarks[keypoints['left_shoulder']['id']].y],
+                         [pose.landmarks[keypoints['right_shoulder']['id']].x,
+                          pose.landmarks[keypoints['right_shoulder']['id']].y]], axis=0)
+        centers.append(center)
+    
+    # 验证中心点稳定性
+    centers = np.array(centers)
+    std_dev = np.std(centers, axis=0)
+    assert np.all(std_dev < 0.02)  # 中心点抖动应该很小
+
+def test_extreme_positions():
+    """测试极端位置情况"""
+    keypoints = POSE_CONFIG['detector']['keypoints']
+    
+    # 测试边界位置
+    extreme_positions = [
+        (0.0, 0.0),  # 左上角
+        (1.0, 0.0),  # 右上角
+        (0.0, 1.0),  # 左下角
+        (1.0, 1.0),  # 右下角
+    ]
+    
+    for pos_x, pos_y in extreme_positions:
+        landmarks = [Landmark(x=0.0, y=0.0, z=0, visibility=0.0) for _ in range(33)]
+        
+        # 设置核心关键点在极端位置
+        landmarks[keypoints['left_shoulder']['id']] = Landmark(x=pos_x, y=pos_y, z=0, visibility=1.0)
+        landmarks[keypoints['right_shoulder']['id']] = Landmark(x=pos_x+0.1, y=pos_y, z=0, visibility=1.0)
+        landmarks[keypoints['left_hip']['id']] = Landmark(x=pos_x, y=pos_y+0.1, z=0, visibility=1.0)
+        landmarks[keypoints['right_hip']['id']] = Landmark(x=pos_x+0.1, y=pos_y+0.1, z=0, visibility=1.0)
+        
+        pose = PoseData(landmarks=landmarks, timestamp=0, confidence=1.0)
+        success = to_center(pose)
+        
+        assert success
+        # 验证关键点被正确移动到中心区域
+        for lm in [pose.landmarks[keypoints['left_shoulder']['id']],
+                  pose.landmarks[keypoints['right_shoulder']['id']],
+                  pose.landmarks[keypoints['left_hip']['id']],
+                  pose.landmarks[keypoints['right_hip']['id']]]:
+            assert 0.2 <= lm.x <= 0.8
+            assert 0.2 <= lm.y <= 0.8
