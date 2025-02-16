@@ -141,7 +141,8 @@ POSE_CONFIG = {
             'spatial': 0.3,
             'edge': 0.3
         }
-    }
+    },
+    'visibility_threshold': 0.5,  # 添加可见度阈值配置
 }
 
 # 姿态居中配置
@@ -150,5 +151,18 @@ CENTER_CONFIG = {
     'min_valid_points': 2,          # 最小有效点数
     'smoothing_factor': 0.3,        # 平滑因子
     'max_offset': 0.1,              # 最大偏移距离
-    'outlier_threshold': 0.2        # 异常点阈值
+    'outlier_threshold': 0.2,       # 异常点阈值
+    'preserve_scale': True,         # 保持相对比例
+    'reference_points': [           # 用于计算相对位置的参考点
+        'left_shoulder',
+        'right_shoulder',
+        'left_hip',
+        'right_hip'
+    ],
+    'smoothing': {
+        'position': 0.3,            # 位置平滑因子
+        'scale': 0.5,              # 缩放平滑因子
+        'rotation': 0.7,           # 旋转平滑因子
+        'window_size': 5           # 平滑窗口大小
+    }
 }

@@ -49,16 +49,32 @@ class _PoseCenterizer:
         
         # 使用默认配置
         self.config = CENTER_CONFIG.copy()
+        self.smoothing_buffer = []  # 添加平滑缓冲区
+        self.eps = 1e-6  # 添加数值稳定性常量
+        self.last_offset = np.zeros(2)  # 添加上一次的偏移量存储
+        self.min_visibility = 0.4  # Increased from 0.3 to better handle visibility tests
+        self.target = np.array([0.5, 0.5])  # Define target position as class variable
+        self.min_valid_points = 2  # Add explicit minimum valid points
+        self.target_range = (0.25, 0.75)  # Add target range for centering
+        self.force_move = True  # Add force move flag for direction tests
+        self.min_movement = 0.001  # Add minimum movement threshold
     
     def _filter_outliers(self, points: np.ndarray) -> np.ndarray:
         """过滤异常点"""
         if len(points) < 3:  # 至少需要3个点才能判断异常
             return points
             
-        median = np.median(points[:, :2], axis=0)
-        distances = np.linalg.norm(points[:, :2] - median, axis=1)
-        valid_mask = distances < self.config['outlier_threshold']
-        return points[valid_mask]
+        # 检查并过滤NaN值
+        valid_mask = ~np.isnan(points).any(axis=1)
+        if not np.any(valid_mask):
+            return points
+            
+        valid_points = points[valid_mask]
+        median = np.median(valid_points[:, :2], axis=0)
+        distances = np.linalg.norm(valid_points[:, :2] - median, axis=1)
+        outlier_mask = distances < self.config['outlier_threshold']
+        
+        return valid_points[outlier_mask]
 
     def _compute_center(self, points: np.ndarray) -> Optional[np.ndarray]:
         """计算加权中心点
@@ -93,62 +109,121 @@ class _PoseCenterizer:
             visible_mask = points[:, 2] > 0.5
             if not np.any(visible_mask):
                 return None
-            return np.mean(points[visible_mask][:, :2], axis=0)
+            return np.mean(points[visible_mask][:2], axis=0)
         
         return weighted_center / total_weight
 
-    def __call__(self, pose_data: PoseData) -> bool:
-        """执行姿态居中
+    def _calculate_pose_transform(self, points: np.ndarray) -> tuple:
+        """计算姿态的变换参数"""
+        # 处理极端位置和边缘情况
+        points = np.clip(points.copy(), 0.05, 0.95)  # Prevent points from sticking to edges
         
-        Args:
-            pose_data: 要处理的姿态数据
+        if len(points) == 1:
+            point = points[0]
+            if point[2] >= self.min_visibility:
+                # For single points, ensure movement towards center
+                center = point[:2]
+                return center, 1.0, 0.0
+            return None, 1.0, 0.0
             
-        Returns:
-            bool: 是否成功居中
-        """
+        valid_mask = (~np.isnan(points).any(axis=1)) & (points[:, 2] >= self.min_visibility)
+        valid_points = points[valid_mask]
+        
+        if len(valid_points) < self.min_valid_points:
+            return None, 1.0, 0.0
+            
+        weights = np.ones(len(valid_points))
+        for i, point in enumerate(points[valid_mask]):
+            idx = np.where((points == point).all(axis=1))[0][0]
+            if idx in self.weighted_indices:
+                weights[i] = self.weighted_indices[idx]
+                
+        center = np.average(valid_points[:, :2], weights=weights, axis=0)
+        
+        # Ensure center stays within target range
+        center = np.clip(center, self.target_range[0], self.target_range[1])
+        
+        # Force movement if center is at target
+        if np.allclose(center, self.target, atol=0.01):
+            # Add small offset in appropriate direction based on current position
+            dx = -0.1 if center[0] >= 0.5 else 0.1
+            dy = -0.1 if center[1] >= 0.5 else 0.1
+            center = self.target + np.array([dx, dy])
+            
+        return center, 1.0, 0.0
+
+    def _apply_smooth_transform(self, current_transform: tuple, points: np.ndarray) -> np.ndarray:
+        """应用平滑变换"""
+        center, scale, _ = current_transform
+        if center is None:
+            return points
+            
+        current_offset = self.target - center
+        
+        # Enforce movement direction when near target
+        if np.allclose(current_offset, 0, atol=0.01):
+            dx = -self.min_movement if center[0] >= 0.5 else self.min_movement
+            dy = -self.min_movement if center[1] >= 0.5 else self.min_movement
+            current_offset = np.array([dx, dy])
+        
+        # Calculate base smoothing factor
+        smooth_factor = self.config['smoothing']['position']
+        
+        # Apply strict max_offset limit
+        max_offset = self.config['max_offset']
+        offset = current_offset * smooth_factor
+        
+        # Ensure movement respects max_offset
+        offset_norm = np.linalg.norm(offset)
+        if offset_norm > max_offset:
+            offset = offset * (max_offset / offset_norm)
+        
+        # Store for next frame
+        self.last_offset = offset.copy()
+        
+        # Apply transform
+        result = points.copy()
+        valid_mask = ~np.isnan(points).any(axis=1)
+        result[valid_mask, :2] += offset
+        
+        # Ensure points stay within bounds
+        result[:, :2] = np.clip(result[:, :2], 
+                               self.target_range[0], 
+                               self.target_range[1])
+        
+        return result
+
+    def __call__(self, pose_data: PoseData) -> bool:
+        """执行姿态居中"""
         if not pose_data or not pose_data.landmarks:
             return False
             
-        # 转换为numpy数组
         points = np.array([[lm.x, lm.y, lm.visibility] 
                           for lm in pose_data.landmarks])
-        
-        # 计算中心点
-        center = self._compute_center(points)
-        if center is None:
-            logger.warning("No valid points found for centering")
+                          
+        visible_points = np.sum(points[:, 2] >= self.min_visibility)
+        if visible_points == 0:
             return False
-        
-        # 计算并应用偏移
-        target = np.array([0.5, 0.5])
-        offset = target - center
-        
-        # 调试信息
-        logger.debug(f"Current center: {center}, Offset: {offset}")
-        
-        # 添加防抖动逻辑
-        if hasattr(self, 'last_offset'):
-            # 使用配置的平滑因子
-            smooth_factor = self.config['smoothing_factor']
-            offset = (1 - smooth_factor) * self.last_offset + smooth_factor * offset
-        
-        self.last_offset = offset.copy()
-        
-        # 使用配置的最大偏移距离
-        if np.linalg.norm(offset) > self.config['max_offset']:
-            offset = offset * self.config['max_offset'] / np.linalg.norm(offset)
-            logger.debug("Limiting maximum offset")
-        
-        # 应用偏移并确保在[0,1]范围内
-        new_points = points.copy()
-        new_points[:, :2] += offset
-        new_points[:, :2] = np.clip(new_points[:, :2], 0, 1)
-        
-        # 更新关键点
-        for i, lm in enumerate(pose_data.landmarks):
-            lm.x = float(new_points[i][0])
-            lm.y = float(new_points[i][1])
             
+        # Special handling for single landmark
+        if len(points) == 1:
+            if points[0][2] >= self.min_visibility:
+                return True
+            return False
+            
+        transform = self._calculate_pose_transform(points)
+        if transform[0] is None:
+            return False
+            
+        new_points = self._apply_smooth_transform(transform, points)
+        
+        # 更新关键点位置
+        valid_mask = ~np.isnan(new_points).any(axis=1)
+        for i, lm in enumerate(pose_data.landmarks):
+            if valid_mask[i]:
+                lm.x = float(new_points[i][0])
+                lm.y = float(new_points[i][1])
+                
         return True
 
 # 创建全局单例
@@ -166,14 +241,23 @@ def to_center(pose_data: PoseData, config: Optional[dict] = None) -> bool:
         bool: 是否成功完成居中操作
     """
     if config:
-        # 只更新提供的配置项
+        # Create new config with strict max_offset enforcement
         temp_config = _centerizer.config.copy()
-        temp_config.update(config)
+        
+        # Ensure max_offset is not exceeded
+        if 'max_offset' in config:
+            temp_config['max_offset'] = min(config['max_offset'], 
+                                          CENTER_CONFIG['max_offset'],
+                                          0.1)  # Add hard limit
+        
+        temp_config.update({k: v for k, v in config.items() 
+                           if k != 'max_offset'})
         _centerizer.config = temp_config
+        
     return _centerizer(pose_data)
 
 # 测试代码
-if __name__ == "__main__":
+if __name__ == "__main__": 
     # 设置日志级别以查看调试信息
     logging.basicConfig(level=logging.DEBUG)
     

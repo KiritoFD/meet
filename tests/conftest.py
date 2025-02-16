@@ -176,3 +176,11 @@ def setup_test_env():
     """设置测试环境"""
     # 这里可以添加其他测试环境设置
     pass
+
+import os
+import sys
+import pytest
+
+# 添加项目根目录到 Python 路径
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
