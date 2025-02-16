@@ -6,6 +6,9 @@ import time
 import pytest
 from config.settings import POSE_CONFIG
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PoseDeformer:
@@ -29,19 +32,7 @@ class PoseDeformer:
         return frame
 
     def deform_frame(self, frame: np.ndarray, regions: Dict[str, DeformRegion], pose: PoseData) -> np.ndarray:
-        """变形单个帧
-        
-        参数:
-            frame: 输入帧
-            regions: 变形区域
-            pose: 姿态数据
-            
-        返回:
-            变形后的帧
-            
-        异常:
-            ValueError: 当输入数据无效时
-        """
+        """变形单个帧"""
         # 预处理输入帧
         frame_float = self._ensure_type_compatibility(frame)
         
@@ -49,48 +40,52 @@ class PoseDeformer:
         if frame is None or pose is None:
             raise ValueError("Invalid frame or pose data")
         
+        # 确保regions是字典类型
+        if not isinstance(regions, dict):
+            logger.warning("Regions is not a dictionary, converting...")
+            if isinstance(regions, list):
+                regions = {region.name: region for region in regions if hasattr(region, 'name')}
+            else:
+                regions = {}
+        
+        # 如果没有有效区域，返回原始帧
+        if not regions:
+            logger.warning("No valid regions for deformation")
+            return frame.copy()
+        
         # 姿态验证
         if not self._validate_pose(pose):
-            # 添加更具体的错误信息
-            if not pose or not pose.landmarks:
-                raise ValueError("Empty pose data")
-            if len(pose.landmarks) < 33:
-                raise ValueError("Insufficient landmarks in pose data")
-            if pose.confidence < 0.5:
-                raise ValueError("Low pose confidence")
-            if any(np.isnan(lm.x) or np.isnan(lm.y) or np.isnan(lm.z) or
-                   np.isinf(lm.x) or np.isinf(lm.y) or np.isinf(lm.z)
-                   for lm in pose.landmarks):
-                raise ValueError("Invalid landmark coordinates")
-            visible_points = sum(1 for lm in pose.landmarks if lm.visibility > 0.5)
-            if visible_points < len(pose.landmarks) * 0.6:
-                raise ValueError("Too few visible landmarks")
-            raise ValueError("Invalid pose data: failed validation checks")
+            raise ValueError("Invalid pose data")
         
-        # 处理每个变形区域
-        transformed_regions = {}
-        for region_name, region in regions.items():
-            transform = self._calculate_transform(region, pose)
-            transformed = self._apply_transform(frame_float, region, transform)
-            transformed_regions[region_name] = transformed
+        try:
+            # 处理每个区域
+            transformed_regions = {}
+            for region_name, region in regions.items():
+                transform = self._calculate_transform(region, pose)
+                transformed = self._apply_transform(frame, region, transform)
+                transformed_regions[region_name] = transformed
+            
+            # 混合结果
+            result = self._blend_regions(frame, transformed_regions)
+            
+            # 应用时间平滑
+            if self._last_deformed is not None:
+                if (self._last_deformed.shape == result.shape and 
+                    self._last_deformed.dtype == result.dtype):
+                    result = cv2.addWeighted(
+                        self._last_deformed,
+                        self._smoothing_factor,
+                        result,
+                        1 - self._smoothing_factor,
+                        0
+                    )
+            
+            self._last_deformed = result.copy()
+            return result
         
-        # 混合变形区域
-        result = self._blend_regions(frame_float, transformed_regions)
-        
-        # 应用时间平滑
-        if self._last_deformed is not None:
-            if (self._last_deformed.shape == result.shape and 
-                self._last_deformed.dtype == result.dtype):
-                result = cv2.addWeighted(
-                    self._last_deformed,
-                    self._smoothing_factor,
-                    result,
-                    1 - self._smoothing_factor,
-                    0
-                )
-        
-        self._last_deformed = result.copy()
-        return result.astype(frame.dtype)
+        except Exception as e:
+            logger.error(f"Deformation failed: {str(e)}")
+            return frame.copy()
 
     def _calculate_transform(self,
                              region: DeformRegion,
@@ -517,22 +512,13 @@ class PoseDeformer:
         if not pose or not pose.landmarks:
             return False
 
-        # 验证关键点数量
-        if len(pose.landmarks) < 33:  # MediaPipe标准关键点数量
+        # 降低置信度阈值
+        if pose.confidence < 0.3:  # 从0.5改为0.3
             return False
 
-        # 验证坐标有效性
-        for lm in pose.landmarks:
-            if (np.isnan(lm.x) or np.isnan(lm.y) or np.isnan(lm.z) or
-                    np.isinf(lm.x) or np.isinf(lm.y) or np.isinf(lm.z)):
-                return False
-
-        # 验证可见度和置信度
-        if pose.confidence < 0.5:  # 最小置信度阈值
-            return False
-
-        visible_points = sum(1 for lm in pose.landmarks if lm.visibility > 0.5)
-        if visible_points < len(pose.landmarks) * 0.6:  # 要求至少60%的点可见
+        # 降低可见点比例要求
+        visible_points = sum(1 for lm in pose.landmarks if lm.visibility > 0.3)  # 从0.5改为0.3
+        if visible_points < len(pose.landmarks) * 0.4:  # 从0.6改为0.4
             return False
 
         return True

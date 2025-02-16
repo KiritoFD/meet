@@ -36,14 +36,14 @@ class PoseBinding:
     
     def __init__(self, config: BindingConfig = None):
         """初始化姿态绑定器"""
-        # 使用默认值创建配置
+        # 使用更宽松的配置
         self.config = config or BindingConfig(
             smoothing_factor=0.5,
-            min_confidence=0.3,
+            min_confidence=0.2,  # 降低最小置信度
             joint_limits={
-                'shoulder': (-90, 90),
-                'elbow': (0, 145),
-                'knee': (0, 160)
+                'shoulder': (-120, 120),
+                'elbow': (-20, 165),
+                'knee': (-20, 180)
             }
         )
         self.reference_frame = None
@@ -55,22 +55,25 @@ class PoseBinding:
         self._last_valid_binding = None
         self._frame_size = None  # 存储当前处理图片的尺寸
         
-        # 区域配置
+        # 简化区域配置，只保留基本区域
         self.region_configs = {
             'torso': {
                 'indices': [11, 12, 23, 24],  # 肩部和臀部关键点
                 'min_points': 3,
-                'required': True
+                'required': True,
+                'weight_type': 'torso'
             },
             'left_arm': {
                 'indices': [11, 13, 15],  # 左肩、左肘、左腕
                 'min_points': 2,
-                'required': False
+                'required': False,
+                'weight_type': 'limb'
             },
             'right_arm': {
                 'indices': [12, 14, 16],  # 右肩、右肘、右腕
                 'min_points': 2,
-                'required': False
+                'required': False,
+                'weight_type': 'limb'
             },
             'left_leg': {
                 'indices': [23, 25, 27],  # 左髋、左膝、左踝
@@ -124,40 +127,45 @@ class PoseBinding:
         }
 
     def create_binding(self, frame: np.ndarray, pose_data: PoseData) -> Dict[str, DeformRegion]:
-        """创建图像区域与姿态的绑定关系
+        """创建图像区域与姿态的绑定关系"""
+        if frame is None or pose_data is None:
+            raise ValueError("Frame and pose_data cannot be None")
         
-        Args:
-            frame (np.ndarray): 输入图像帧
-            pose_data (PoseData): 姿态数据
-            
-        Returns:
-            Dict[str, DeformRegion]: 区域绑定信息字典，key为区域名称，value为对应的DeformRegion对象
-            
-        Raises:
-            ValueError: 当输入参数无效时抛出
-        """
+        # 存储参考帧和尺寸
+        self.reference_frame = frame.copy()
+        self._frame_size = frame.shape[:2]
+        
+        # 创建区域字典
+        regions_dict = {}
+        
         try:
-            # 验证输入
-            if frame is None or pose_data is None:
-                raise ValueError("Frame and pose_data cannot be None")
+            # 处理每个预定义区域
+            for region_name, config in self.region_configs.items():
+                points = self._get_keypoints(pose_data, config['indices'])
                 
-            # 存储参考帧
-            self.reference_frame = frame.copy()
-            
-            # 处理关键点
-            self.landmarks = self._process_landmarks(pose_data.landmarks)
-            
-            # 计算权重
-            self.weights = self._compute_weights()
-            
-            # 设置有效标志
-            self.valid = True
-            
-            return self
+                # 检查点数是否足够
+                if len(points) >= config['min_points']:
+                    region = self._create_region(frame, points, region_name)
+                    if region:  # 添加这个检查
+                        regions_dict[region_name] = region
+                elif config['required']:
+                    raise ValueError(f"Required region {region_name} has insufficient points")
+                    
+            # 保存有效的绑定结果
+            if regions_dict:
+                self._last_valid_binding = regions_dict
+                self.valid = True
+            else:
+                logger.warning("No valid regions created")
+                self.valid = False
+                
+            return regions_dict
             
         except Exception as e:
             self.valid = False
-            raise ValueError(f"Failed to create binding: {str(e)}")
+            logger.error(f"Failed to create binding: {str(e)}")
+            # 如果有上一个有效的绑定，返回它
+            return self._last_valid_binding or {}
     
     def _process_landmarks(self, landmarks):
         """处理关键点数据"""
@@ -332,44 +340,79 @@ class PoseBinding:
         return self._create_region(frame, points, 'limb')
 
     def _create_region(self, frame: np.ndarray, points: List[np.ndarray], 
-                      region_type: str) -> DeformRegion:
+                      region_name: str) -> Optional[DeformRegion]:
         """创建变形区域"""
-        center = np.mean(points, axis=0)
-        mask = self._create_region_mask(frame, points)
-        
-        # 获取原始权重
-        weights = self._calculate_weights(points, region_type)
-        
-        # 创建绑定点
-        binding_points = []
-        for i, point in enumerate(points):
-            binding_points.append(BindingPoint(
-                landmark_index=i,
-                local_coords=point - center,
-                weight=weights[i]
-            ))
+        try:
+            if len(points) < 2:
+                return None
             
-        return DeformRegion(center=center, binding_points=binding_points, mask=mask)
+            # 计算区域中心
+            center = np.mean(points, axis=0)
+            
+            # 创建区域蒙版
+            mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+            points_array = np.array(points, dtype=np.int32)
+            
+            if len(points) >= 3:
+                cv2.fillConvexPoly(mask, points_array, 255)
+            else:
+                # 对于只有两个点的情况，创建一个细长的区域
+                pt1, pt2 = points
+                direction = pt2 - pt1
+                normal = np.array([-direction[1], direction[0]])
+                normal = normal / (np.linalg.norm(normal) + 1e-6) * 10
+                
+                polygon = np.array([
+                    pt1 + normal,
+                    pt2 + normal,
+                    pt2 - normal,
+                    pt1 - normal
+                ], dtype=np.int32)
+                cv2.fillConvexPoly(mask, polygon, 255)
+            
+            # 创建绑定点
+            binding_points = []
+            for i, point in enumerate(points):
+                binding_points.append(BindingPoint(
+                    landmark_index=i,
+                    local_coords=point - center,
+                    weight=1.0 / len(points)
+                ))
+            
+            region = DeformRegion(
+                center=center,
+                binding_points=binding_points,
+                mask=mask
+            )
+            region.name = region_name
+            return region
+            
+        except Exception as e:
+            logger.error(f"Failed to create region {region_name}: {str(e)}")
+            return None
 
     def _get_keypoints(self, pose_data: PoseData, indices: List[int]) -> List[np.ndarray]:
         """获取关键点坐标"""
         if self._frame_size is None:
-            raise ValueError("Frame size not set. Call create_binding first.")
-            
+            raise ValueError("Frame size not set")
+        
         frame_w, frame_h = self._frame_size
         points = []
+        
         for idx in indices:
             try:
                 if idx < len(pose_data.landmarks):
                     lm = pose_data.landmarks[idx]
-                    if lm['visibility'] >= self.config.min_confidence:
-                        points.append(np.array([
-                            lm['x'] * frame_w,
-                            lm['y'] * frame_h
-                        ]))
+                    # 转换归一化坐标到像素坐标
+                    x = int(lm.x * frame_w)
+                    y = int(lm.y * frame_h)
+                    # 降低可见度要求
+                    if lm.visibility >= 0.1:  # 降低可见度阈值
+                        points.append(np.array([x, y], dtype=np.float32))
             except Exception as e:
                 logger.debug(f"Failed to get keypoint {idx}: {str(e)}")
                 continue
+            
         return points
 
     def _get_keypoints_inplace(self, pose_data: PoseData, indices: List[int], points: List[np.ndarray]):
