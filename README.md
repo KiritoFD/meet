@@ -20,7 +20,7 @@
 ## 优势功能
 - 人物自动居中，不用调整摄像头角度：
     
-    由于使用了姿态数据，可以方便地计算中心点并把人物移动到画面中心，免除了调整摄像头角度的麻烦（尤其是某些摄像头在键盘区的笔记本）
+    由于使用了姿态数据，可以方便地计算中心点并把人物移动到画面中心，免去了调整摄像头角度的麻烦（尤其是某些摄像头在键盘区的笔记本）
 - 方便的裸眼3D：
 
     姿态关键点数据直接省去了深度估计步骤，使用[Deep3D](https://github.com/HypoX64/Deep3D)项目代码进行简化后方便地达成了裸眼3D效果，接收端资源占用大大减少
@@ -28,6 +28,7 @@
   完成人体建模和骨骼动画部分后可以方便地升级成为VR全息会议
 
 ## 快速开始
+![alt text](<Screenshot 2025-02-17 165926.png>)
 ### 环境配置
 
 1. 解压环境：
@@ -47,91 +48,95 @@
 
 ```
 project/
-├── run.py                # 主程序入口
-├── requirements.txt      # Python依赖
-│
-├── config/              # 配置文件
+├── run.py                     # 主程序入口
+├── requirements.txt           # Python依赖
+├── config/                    # 配置文件
 │   ├── __init__.py
-│   ├── settings.py      # 全局配置
-│   └── config.yaml      # YAML配置文件
-│
-├── camera/             # 摄像头模块
+│   ├── settings.py           # 全局配置
+│   └── config.yaml           # YAML配置
+├── camera/                    # 摄像头模块
 │   ├── __init__.py
-│   └── manager.py      # 摄像头管理
-│
-├── pose/               # 姿态检测模块
+│   └── manager.py            # 摄像头管理
+├── pose/                      # 姿态检测模块
 │   ├── __init__.py
-│   ├── detector.py     # 姿态检测器
-│   ├── drawer.py       # 姿态绘制
-│   ├── smoother.py     # 平滑处理
-│   ├── binding.py      # 姿态绑定
-│   ├── deformer.py     # 图像变形处理
-│   ├── types.py        # 类型定义
-│   ├── pose_data.py    # 姿态数据结构
-│   └── pose_binding.py # 姿态绑定实现
-│
-├── connect/            # 连接模块
+│   ├── detector.py           # 检测器
+│   ├── drawer.py             # 绘制器
+│   ├── smoother.py           # 平滑器
+│   ├── binding.py            # 绑定器
+│   ├── deformer.py           # 变形器
+│   ├── types.py              # 类型定义
+│   ├── pose_data.py          # 数据结构
+│   └── pose_binding.py       # 绑定实现
+├── connect/                   # 连接模块
 │   ├── __init__.py
-│   ├── socket_manager.py  # Socket管理
-│   ├── pose_sender.py    # 姿态数据发送
-│   ├── pose_protocol.py  # 数据协议
-│   └── room_manager.py   # 房间管理
-│
-├── receive/            # 接收端模块
+│   ├── socket_manager.py     # Socket管理
+│   ├── pose_sender.py        # 数据发送
+│   ├── pose_protocol.py      # 数据协议
+│   └── room_manager.py       # 房间管理
+├── receive/                   # 接收端
 │   ├── __init__.py
-│   ├── app.py          # 接收端应用
-│   ├── manager.py      # 接收端管理
-│   └── static.py       # 静态资源处理
-│
-├── audio/              # 音频模块
+│   ├── app.py                # 应用程序
+│   ├── manager.py            # 管理器
+│   └── static.py             # 静态资源
+├── audio/                     # 音频
 │   ├── __init__.py
-│   └── processor.py    # 音频处理
-│
-├── tools/              # 工具脚本
+│   └── processor.py          # 处理器
+├── tools/                     # 工具集
 │   ├── __init__.py
-│   ├── demo.py         # 演示程序
-│   └── to_center.py    # 姿态居中处理
-│
-├── docs/               # 文档
-│   ├── README.md       # 文档索引
-│   ├── config/         # 配置文档
-│   ├── testing/        # 测试文档
-│   ├── usage/          # 使用说明
-│   ├── pose/           # 姿态模块文档
-│   ├── room/           # 房间管理文档
-│   ├── receive/        # 接收端文档
-│   └── frontend/       # 前端文档
-│
-├── frontend/           # 前端资源
-│   ├── pages/          # 页面模板
-│   │   ├── display.html    # 发送端页面
-│   │   └── receiver.html   # 接收端页面
-│   ├── components/     # 可复用组件
-│   └── static/         # 静态资源
-│       ├── js/         # JavaScript文件
-│       ├── css/        # 样式文件
-│       └── models/     # 3D模型文件
-│
-├── envs/               # 环境配置
-│   ├── setup.bat       # Windows环境配置
-│   ├── setup.sh        # Linux环境配置
-│   ├── setup.py        # Python环境配置
-│   ├── meet.yaml       # 通用环境配置
-│
-└── tests/              # 测试用例
+│   ├── demo.py               # 演示器
+│   └── to_center.py          # 居中器
+├── docs/                      # 文档
+│   ├── README.md             # 索引
+│   ├── config/               # 配置说明
+│   ├── testing/              # 测试说明
+│   ├── usage/                # 使用说明
+│   ├── pose/                 # 姿态说明
+│   ├── room/                 # 房间说明
+│   ├── receive/              # 接收说明
+│   └── frontend/             # 前端说明
+├── frontend/                  # 前端
+│   ├── pages/                # 页面
+│   │   ├── display.html      # 发送页
+│   │   └── receiver.html     # 接收页
+│   ├── components/           # 组件
+│   └── static/               # 资源
+│       ├── js/               # 脚本
+│       ├── css/              # 样式
+│       └── models/           # 模型
+├── envs/                     # 环境
+│   ├── setup.bat             # Windows配置
+│   ├── setup.sh              # Linux配置
+│   ├── setup.py             # Python配置
+│   └── meet.yaml            # 通用配置
+└── tests/                    # 测试
     ├── __init__.py
-    ├── conftest.py     # 测试配置
-    ├── test_system.py  # 系统测试
-    ├── test_connect.py # 连接测试
-    ├── test_smoother.py # 平滑器测试
-    ├── test_to_center.py # 居中处理测试
-    └── connect/        # 连接模块测试
+    ├── conftest.py          # 配置
+    ├── test_system.py       # 系统测试
+    ├── test_connect.py      # 连接测试
+    ├── test_smoother.py     # 平滑测试
+    ├── test_to_center.py    # 居中测试
+    └── connect/             # 连接测试
         ├── __init__.py
-        ├── test_integration.py    # 集成测试
-        └── test_pose_protocol.py  # 协议测试
+        ├── test_integration.py    # 集成
+        └── test_pose_protocol.py  # 协议
 ```
 
-
+## 项目规模
+```
+类别统计 (2024.01)
+-------------------------------------------------------------------------------
+语言类型                     文件数          空行          注释          代码行
+-------------------------------------------------------------------------------
+Python                        156           4632          4249         18200
+Markdown                       50           1218             9          5937
+HTML                           4            232             8          1514
+JavaScript                     2             84            30           482
+配置文件                       7             43            35           394
+其他                          8             59            15            288
+-------------------------------------------------------------------------------
+总计                         227           6268          4346         26815
+-------------------------------------------------------------------------------
+```
 
 ## 开发任务 (TODO)
 
@@ -275,3 +280,4 @@ mypy==0.910
 - develop: 开发分支
 - feature/*: 功能分支
 - bugfix/*: 修复分支
+````
