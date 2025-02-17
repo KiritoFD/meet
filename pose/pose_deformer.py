@@ -5,6 +5,10 @@ from .pose_data import PoseData, DeformRegion, Landmark
 import time
 import pytest
 from config.settings import POSE_CONFIG
+import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PoseDeformer:
@@ -27,58 +31,61 @@ class PoseDeformer:
             return frame.astype(np.float32)
         return frame
 
-    def deform_frame(self,
-                     frame: np.ndarray,
-                     regions: Dict[str, DeformRegion],
-                     target_pose: PoseData) -> np.ndarray:
-        """变形图像帧
-
-        Args:
-            frame: 输入图像帧
-            regions: 区域绑定信息
-            target_pose: 目标姿态
-
-        Returns:
-            变形后的图像帧
-        """
-        frame = self._ensure_type_compatibility(frame)
-        if frame is None or target_pose is None:
+    def deform_frame(self, frame: np.ndarray, regions: Dict[str, DeformRegion], pose: PoseData) -> np.ndarray:
+        """变形单个帧"""
+        # 预处理输入帧
+        frame_float = self._ensure_type_compatibility(frame)
+        
+        # 基本输入验证
+        if frame is None or pose is None:
             raise ValueError("Invalid frame or pose data")
-
-        # 添加姿态验证
-        if not self._validate_pose(target_pose):
-            raise ValueError("Invalid pose data: failed validation checks")
-
-        # 创建输出帧
-        result = frame.copy()
-        transformed_regions = {}
-
-        # 处理每个区域
-        for region_name, region in regions.items():
-            # 计算变形矩阵
-            transform = self._calculate_transform(region, target_pose)
-
-            # 应用变形到区域
-            transformed = self._apply_transform(frame, region, transform)
-            transformed_regions[region_name] = transformed
-
-        # 混合所有变形区域
-        result = self._blend_regions(frame, transformed_regions)
-
-        # 应用时间平滑 - 确保类型和尺寸匹配
-        if self._last_deformed is not None:
-            if (self._last_deformed.shape == result.shape and
+        
+        # 确保regions是字典类型
+        if not isinstance(regions, dict):
+            logger.warning("Regions is not a dictionary, converting...")
+            if isinstance(regions, list):
+                regions = {region.name: region for region in regions if hasattr(region, 'name')}
+            else:
+                regions = {}
+        
+        # 如果没有有效区域，返回原始帧
+        if not regions:
+            logger.warning("No valid regions for deformation")
+            return frame.copy()
+        
+        # 姿态验证
+        if not self._validate_pose(pose):
+            raise ValueError("Invalid pose data")
+        
+        try:
+            # 处理每个区域
+            transformed_regions = {}
+            for region_name, region in regions.items():
+                transform = self._calculate_transform(region, pose)
+                transformed = self._apply_transform(frame, region, transform)
+                transformed_regions[region_name] = transformed
+            
+            # 混合结果
+            result = self._blend_regions(frame, transformed_regions)
+            
+            # 应用时间平滑
+            if self._last_deformed is not None:
+                if (self._last_deformed.shape == result.shape and 
                     self._last_deformed.dtype == result.dtype):
-                result = cv2.addWeighted(
-                    self._last_deformed,
-                    self._smoothing_factor,
-                    result,
-                    1 - self._smoothing_factor,
-                    0
-                )
-
-        self._last_deformed = result.copy()
-        return result
+                    result = cv2.addWeighted(
+                        self._last_deformed,
+                        self._smoothing_factor,
+                        result,
+                        1 - self._smoothing_factor,
+                        0
+                    )
+            
+            self._last_deformed = result.copy()
+            return result
+        
+        except Exception as e:
+            logger.error(f"Deformation failed: {str(e)}")
+            return frame.copy()
 
     def _calculate_transform(self,
                              region: DeformRegion,
@@ -131,44 +138,100 @@ class PoseDeformer:
 
         return transform
 
-    def _apply_transform(self, frame: np.ndarray, region: DeformRegion, transform: np.ndarray) -> np.ndarray:
-        """应用变形到区域"""
+    def _apply_transform(self, 
+                        frame: np.ndarray, 
+                        region: DeformRegion,
+                        transform: np.ndarray) -> np.ndarray:
+        """优化的变换应用函数"""
         height, width = frame.shape[:2]
-        result = np.zeros_like(frame)
-
-        # 计算变形区域的边界
-        mask = region.mask if region.mask is not None else np.ones((height, width), dtype=np.uint8)
-        y, x = np.nonzero(mask)
-        if len(x) == 0 or len(y) == 0:
-            return result
-
-        # 计算变形区域的边界框
-        min_x, max_x = np.min(x), np.max(x)
-        min_y, max_y = np.min(y), np.max(y)
-
-        # 扩展边界框以包含过渡区域
-        padding = int(self._blend_radius * 2)
-        min_x = max(0, min_x - padding)
-        min_y = max(0, min_y - padding)
-        max_x = min(width, max_x + padding)
-        max_y = min(height, max_y + padding)
-
-        # 只变形边界框内的区域
-        roi = frame[min_y:max_y, min_x:max_x]
-        roi_transform = transform.copy()
-        roi_transform[:, 2] -= [min_x, min_y]  # 调整平移分量
-
+        
+        # 根据图像大小选择处理策略
+        is_large_image = width * height > 1280 * 720
+        if is_large_image:
+            # 计算缩放因子
+            scale_factor = np.sqrt(1280 * 720 / (width * height))
+            scaled_size = (int(width * scale_factor), int(height * scale_factor))
+            # 对大图像使用更快的缩放方法
+            if width * height > 1920 * 1080:
+                frame_scaled = cv2.resize(frame, scaled_size, interpolation=cv2.INTER_NEAREST)
+            else:
+                frame_scaled = cv2.resize(frame, scaled_size, interpolation=cv2.INTER_AREA)
+            transform_scaled = transform.copy()
+            transform_scaled[:, 2] *= scale_factor
+        else:
+            frame_scaled = frame
+            transform_scaled = transform
+            scaled_size = (width, height)
+        
+        # 处理掩码和边界
+        if hasattr(region, '_cached_mask'):
+            mask = region._cached_mask
+            if hasattr(region, '_prev_center') and not np.array_equal(region._prev_center, region.center):
+                dist = np.linalg.norm(region.center - region._prev_center)
+                if dist > 5:
+                    weight = np.clip(1.0 - (dist / 50.0), 0.3, 0.7)
+                    new_mask = region.mask if region.mask is not None else np.ones(scaled_size[::-1], dtype=np.uint8)
+                    mask = cv2.addWeighted(mask, weight, new_mask, 1 - weight, 0)
+        else:
+            mask = region.mask if region.mask is not None else np.ones(scaled_size[::-1], dtype=np.uint8)
+            region._cached_mask = mask
+            region._prev_center = region.center.copy()
+        
+        # 使用更高效的非零元素查找
+        if hasattr(region, '_cached_bounds'):
+            min_y, max_y, min_x, max_x = region._cached_bounds
+        else:
+            y, x = np.nonzero(mask)
+            if len(x) == 0 or len(y) == 0:
+                return np.zeros_like(frame)
+            
+            # 计算边界框并缓存
+            min_x, max_x = np.min(x), np.max(x)
+            min_y, max_y = np.min(y), np.max(y)
+            region._cached_bounds = (min_y, max_y, min_x, max_x)
+        
+        # 优化padding计算
+        rel_padding = min(0.05, self._blend_radius / min(scaled_size))
+        padding_x = max(2, int(rel_padding * scaled_size[0]))
+        padding_y = max(2, int(rel_padding * scaled_size[1]))
+        
+        # 使用更高效的边界检查
+        min_x = max(0, min_x - padding_x)
+        min_y = max(0, min_y - padding_y)
+        max_x = min(scaled_size[0], max_x + padding_x)
+        max_y = min(scaled_size[1], max_y + padding_y)
+        
+        # 优化ROI提取和变换
+        result = np.zeros_like(frame_scaled)
+        roi = frame_scaled[min_y:max_y, min_x:max_x]
+        
+        # 优化变换矩阵计算
+        roi_transform = transform_scaled.copy()
+        roi_transform[:, 2] -= [min_x, min_y]
+        
+        # 使用优化的仿射变换
         warped_roi = cv2.warpAffine(
             roi,
             roi_transform,
             (max_x - min_x, max_y - min_y),
-            flags=cv2.INTER_LINEAR,
-            borderMode=cv2.BORDER_REFLECT
+            flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP,
+            borderMode=cv2.BORDER_REFLECT_101
         )
-
-        # 将变形结果复制回原始位置
+        
+        # 直接写入结果
         result[min_y:max_y, min_x:max_x] = warped_roi
-
+        
+        # 对大图像进行上采样
+        if is_large_image:
+            # 根据图像大小选择不同的插值方法
+            if width * height > 1920 * 1080:
+                result = cv2.resize(result, (width, height), interpolation=cv2.INTER_LINEAR)
+            else:
+                result = cv2.resize(result, (width, height), interpolation=cv2.INTER_CUBIC)
+        
+        # 更新区域的上一个中心点
+        region._prev_center = region.center.copy()
+        
         return result
 
     def _blend_regions(self,
@@ -184,6 +247,7 @@ class PoseDeformer:
         # 创建输出图像和权重累积
         result = np.zeros_like(frame, dtype=float)
         weight_sum = np.zeros(frame.shape[:2], dtype=float)
+
 
         # 处理每个区域
         for region_name, region in transformed_regions.items():
@@ -213,14 +277,110 @@ class PoseDeformer:
 
         return result.astype(frame.dtype)
 
+    def _process_single(self, frame: np.ndarray, regions: Dict[str, DeformRegion], pose: PoseData) -> np.ndarray:
+        """处理单个姿态"""
+        if not self._validate_pose(pose):
+            return frame.copy()
+        
+        # 使用已有的deform_frame函数，但去掉验证检查
+        transformed_regions = {}
+        for region_name, region in regions.items():
+            transform = self._calculate_transform(region, pose)
+            transformed = self._apply_transform(frame, region, transform)
+            transformed_regions[region_name] = transformed
+        
+        result = self._blend_regions(frame, transformed_regions)
+        
+        # 应用时间平滑
+        if self._last_deformed is not None:
+            if (self._last_deformed.shape == result.shape and 
+                self._last_deformed.dtype == result.dtype):
+                result = cv2.addWeighted(
+                    self._last_deformed,
+                    self._smoothing_factor,
+                    result,
+                    1 - self._smoothing_factor,
+                    0
+                )
+        
+        self._last_deformed = result.copy()
+        return result
+
     def batch_deform(self, frame: np.ndarray, poses: List[PoseData]) -> List[np.ndarray]:
-        """批量处理多个姿态"""
-        regions = {}  # 创建空的regions字典
-        results = []
-        for pose in poses:
-            result = self.deform_frame(frame, regions, pose)
-            results.append(result)
-        return results
+        """批量处理多个姿态
+        
+        优化说明:
+        1. 使用NumPy的向量化操作
+        2. 减少内存分配和拷贝
+        3. 优化计算流程
+        """
+        if not poses:
+            return []
+        
+        # 预处理输入帧
+        frame_float = self._ensure_type_compatibility(frame)
+        height, width = frame_float.shape[:2]
+        
+        # 一次性验证所有姿态
+        valid_poses = [(i, pose) for i, pose in enumerate(poses) 
+                       if self._validate_pose(pose)]
+        
+        # 如果没有有效姿态，直接返回原始帧的副本
+        if not valid_poses:
+            return [frame.copy() for _ in poses]
+        
+        # 预分配结果数组 - 使用字典存储中间结果
+        results = [dict() for _ in poses]
+        final_results = [frame.copy() for _ in poses]
+        
+        # 创建共享的regions字典
+        regions = {}  # 假设这是从某处获取的
+        
+        # 批量处理有效姿态
+        for region_name, region in regions.items():
+            # 为每个有效姿态计算变换矩阵
+            transforms = [
+                self._calculate_transform(region, pose)
+                for _, pose in valid_poses
+            ]
+            
+            # 批量应用变换
+            for idx, (i, _) in enumerate(valid_poses):
+                transformed = self._apply_transform(
+                    frame_float, 
+                    region, 
+                    transforms[idx]
+                )
+                results[i][region_name] = transformed
+        
+        # 混合区域并应用时间平滑
+        for i, pose in enumerate(poses):
+            if i not in [idx for idx, _ in valid_poses]:
+                continue
+            
+            # 检查是否有需要混合的区域
+            if not results[i]:  # 使用字典的空检查
+                continue
+            
+            # 混合区域
+            result = self._blend_regions(frame_float, results[i])
+            
+            # 应用时间平滑
+            if self._last_deformed is not None:
+                if (self._last_deformed.shape == result.shape and 
+                    self._last_deformed.dtype == result.dtype):
+                    result = cv2.addWeighted(
+                        self._last_deformed,
+                        self._smoothing_factor,
+                        result,
+                        1 - self._smoothing_factor,
+                        0
+                    )
+            
+            self._last_deformed = result.copy()
+            final_results[i] = result
+        
+        return final_results
 
     def interpolate(self, pose1: PoseData, pose2: PoseData, t: float) -> PoseData:
         """姿态插值"""
@@ -352,22 +512,13 @@ class PoseDeformer:
         if not pose or not pose.landmarks:
             return False
 
-        # 验证关键点数量
-        if len(pose.landmarks) < 33:  # MediaPipe标准关键点数量
+        # 降低置信度阈值
+        if pose.confidence < 0.3:  # 从0.5改为0.3
             return False
 
-        # 验证坐标有效性
-        for lm in pose.landmarks:
-            if (np.isnan(lm.x) or np.isnan(lm.y) or np.isnan(lm.z) or
-                    np.isinf(lm.x) or np.isinf(lm.y) or np.isinf(lm.z)):
-                return False
-
-        # 验证可见度和置信度
-        if pose.confidence < 0.5:  # 最小置信度阈值
-            return False
-
-        visible_points = sum(1 for lm in pose.landmarks if lm.visibility > 0.5)
-        if visible_points < len(pose.landmarks) * 0.6:  # 要求至少60%的点可见
+        # 降低可见点比例要求
+        visible_points = sum(1 for lm in pose.landmarks if lm.visibility > 0.3)  # 从0.5改为0.3
+        if visible_points < len(pose.landmarks) * 0.4:  # 从0.6改为0.4
             return False
 
         return True

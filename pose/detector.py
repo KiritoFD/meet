@@ -70,12 +70,12 @@ class PoseDetector:
         # MediaPipe配置
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(
-            static_image_mode=config['static_mode'],
-            model_complexity=config['model_complexity'],
-            smooth_landmarks=config['smooth_landmarks'],
-            enable_segmentation=config['enable_segmentation'],
-            min_detection_confidence=config['min_detection_confidence'],
-            min_tracking_confidence=config['min_tracking_confidence']
+            static_image_mode=True,  # 改为True以获得更准确的单帧检测
+            model_complexity=2,      # 使用更复杂的模型
+            smooth_landmarks=False,  # 单帧不需要平滑
+            enable_segmentation=False,
+            min_detection_confidence=0.3,  # 降低检测置信度阈值
+            min_tracking_confidence=0.3
         )
         
         # 检测参数
