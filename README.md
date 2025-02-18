@@ -39,7 +39,7 @@
 
 打开conda的命令行环境，在项目根目录运行：
   
-    conda create -f envs/meet.yaml
+    conda envs create -f envs/meet.yaml
 运行代码时解释器选择meet环境
 
     cd meet
@@ -201,66 +201,6 @@ JavaScript                     2             84            30           482
   - [ ] 内存泄漏检测
   - [ ] 渲染性能分析
 
-## 依赖说明
-
-### Python依赖 (requirements.txt)
-```
-# Web框架
-flask==2.0.1
-flask-socketio==5.1.1
-werkzeug==2.0.1
-gunicorn==20.1.0
-
-# 视频处理
-opencv-python==4.7.0
-mediapipe==0.9.0
-ffmpeg-python==0.2.0
-av==9.3.0
-
-# 机器学习
-torch==1.9.0
-torchvision==0.10.0
-numpy==1.23.5
-scipy==1.7.1
-scikit-learn==0.24.2
-
-# 数据处理
-pandas==1.3.3
-pillow==8.3.2
-h5py==3.4.0
-
-# 实时通信
-python-socketio==5.4.0
-eventlet==0.33.0
-websockets==10.0
-
-# 开发工具
-pytest==6.2.5
-black==21.9b0
-flake8==3.9.2
-mypy==0.910
-```
-
-### JavaScript依赖 (package.json)
-```json
-{
-  "dependencies": {
-    "three": "^0.137.0",
-    "socket.io-client": "^4.0.1",
-    "@tensorflow/tfjs": "^3.9.0",
-    "gl-matrix": "^3.4.3",
-    "stats.js": "^0.17.0"
-  },
-  "devDependencies": {
-    "vite": "^2.7.2",
-    "eslint": "^8.6.0",
-    "prettier": "^2.5.1",
-    "typescript": "^4.5.4",
-    "@types/three": "^0.137.0",
-    "jest": "^27.4.7"
-  }
-}
-```
 
 ## 开发规范
 
