@@ -21,10 +21,31 @@ class BindingPoint:
 @dataclass
 class DeformRegion:
     """变形区域数据类"""
-    name: str = ''
-    center: Optional[Tuple[float, float]] = None
-    binding_points: List[BindingPoint] = None
-    mask: Optional[np.ndarray] = None
+    name: str
+    center: np.ndarray
+    binding_points: List[BindingPoint]
+    mask: Optional[np.ndarray]
+    type: str = 'body'  # 添加类型字段：'body', 'face', 'limb'
+    
+    def __post_init__(self):
+        """验证并处理初始数据"""
+        # 确保center是numpy数组
+        if not isinstance(self.center, np.ndarray):
+            self.center = np.array(self.center, dtype=np.float32)
+            
+        # 确保binding_points是列表
+        if self.binding_points is None:
+            self.binding_points = []
+            
+        # 确保mask是正确的类型
+        if self.mask is not None and not isinstance(self.mask, np.ndarray):
+            raise TypeError("mask must be numpy.ndarray")
+
+    def __getitem__(self, key):
+        """支持字典式访问"""
+        if hasattr(self, key):
+            return getattr(self, key)
+        raise KeyError(f"'{self.__class__.__name__}' has no attribute '{key}'")
 
 @dataclass
 class PoseData:

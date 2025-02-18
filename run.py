@@ -285,14 +285,12 @@ def capture_reference():
         
         # 姿态检测
         pose_results = pose.process(frame_rgb)
-        
-        # 面部网格检测
         face_results = face_mesh.process(frame_rgb)
         
         if not pose_results.pose_landmarks:
             return jsonify({'success': False, 'error': 'No pose detected'}), 400
             
-        # 转换关键点格式
+        # 处理姿态关键点
         landmarks = []
         for landmark in pose_results.pose_landmarks.landmark:
             landmarks.append({
@@ -317,7 +315,7 @@ def capture_reference():
                     })
             logger.info(f"检测到 {len(face_landmarks)} 个面部关键点")
             
-        # 创建 PoseData 对象
+        # 创建并保存 PoseData 对象
         pose_data = PoseData(
             landmarks=landmarks,
             face_landmarks=face_landmarks,
@@ -329,35 +327,41 @@ def capture_reference():
         frame_processor.reference_frame = frame.copy()
         frame_processor.reference_pose = pose_data
         
-        # 创建绑定区域
+        # 创建绑定区域并立即开始变形
         try:
-            frame_processor.regions = pose_binding.create_binding(
-                frame_processor.reference_frame, 
-                frame_processor.reference_pose
-            )
-            if frame_processor.regions:
+            regions = pose_binding.create_binding(frame, pose_data)
+            if regions:
+                frame_processor.regions = regions
                 regions_info = {
-                    'body': len([r for r in frame_processor.regions if r['type'] == 'body']),
-                    'face': len([r for r in frame_processor.regions if r['type'] == 'face'])
+                    'body': len([r for r in regions if r.type == 'body']),
+                    'face': len([r for r in regions if r.type == 'face'])
                 }
-                logger.info(f"创建了 {len(frame_processor.regions)} 个绑定区域 "
-                          f"(身体: {regions_info['body']}, 面部: {regions_info['face']})")
+                logger.info(f"创建了 {len(regions)} 个绑定区域 "
+                        f"(身体: {regions_info['body']}, 面部: {regions_info['face']})")
+                
+                # 立即进行第一次变形
+                deformed = pose_deformer.deform(
+                    frame_processor.reference_frame,
+                    frame_processor.reference_pose,
+                    frame,
+                    pose_data,
+                    regions
+                )
+                if deformed is not None:
+                    frame_processor.deformed_frame = deformed
+                
+                return jsonify({
+                    'success': True,
+                    'regions_count': len(regions),
+                    'details': regions_info
+                })
             else:
                 raise ValueError("未能创建有效的绑定区域")
-            
+                
         except Exception as e:
             logger.error(f"创建绑定区域失败: {str(e)}")
             return jsonify({'success': False, 'error': str(e)}), 500
             
-        return jsonify({
-            'success': True,
-            'regions_count': len(frame_processor.regions),
-            'details': {
-                'body_regions': regions_info['body'],
-                'face_regions': regions_info['face']
-            }
-        })
-        
     except Exception as e:
         logger.error(f"捕获参考帧失败: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500

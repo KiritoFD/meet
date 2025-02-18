@@ -123,21 +123,36 @@ class PoseBinding:
             'inner_lip': 2    # 内唇区域
         }
         
-        # 更新区域配置
+        # 初始化基础区域配置
         self.region_configs = {
-            # ...existing region configs...
+            'torso': {
+                'indices': [11, 12, 23, 24],  # 肩部和臀部关键点
+                'min_points': 3,
+                'required': True,
+                'type': 'body'
+            },
+            'left_arm': {
+                'indices': [11, 13, 15],  # 左肩、左肘、左腕
+                'min_points': 2,
+                'required': False,
+                'type': 'body'
+            },
+            'right_arm': {
+                'indices': [12, 14, 16],  # 右肩、右肘、右腕
+                'min_points': 2,
+                'required': False,
+                'type': 'body'
+            }
         }
         
         # 添加面部区域配置
-        self.region_configs.update({
-            f'face_{name}': {
+        for name, indices in self.face_indices.items():
+            self.region_configs[f'face_{name}'] = {
                 'indices': indices,
-                'min_points': self._get_min_points(name, min_points_config),
+                'min_points': max(3, len(indices) // 3),  # 降低最小点数要求到三分之一
                 'required': False,
-                'weight_type': self._get_weight_type(name)
+                'type': 'face'
             }
-            for name, indices in self.face_indices.items()
-        })
 
     def _get_min_points(self, region_name: str, config: Dict[str, int]) -> int:
         """根据区域名称获取最小点数要求"""
@@ -169,7 +184,7 @@ class PoseBinding:
         """创建图像区域与姿态的绑定关系"""
         if frame is None or pose_data is None:
             raise ValueError("Frame and pose_data cannot be None")
-        
+            
         # 存储参考帧和尺寸
         self.reference_frame = frame.copy()
         self._frame_size = frame.shape[:2]
@@ -178,34 +193,58 @@ class PoseBinding:
         regions_dict = {}
         
         try:
-            # 处理每个预定义区域
-            for region_name, config in self.region_configs.items():
+            # 先处理身体关键点
+            body_regions = ['torso', 'left_arm', 'right_arm']
+            for region_name in body_regions:
+                config = self.region_configs[region_name]
                 points = self._get_keypoints(pose_data, config['indices'])
-                
-                # 检查点数是否足够
                 if len(points) >= config['min_points']:
-                    region = self._create_region(frame, points, region_name)
-                    if region:  # 添加这个检查
+                    region = self._create_region(
+                        frame, 
+                        points, 
+                        region_name,
+                        config['type']
+                    )
+                    if region:
                         regions_dict[region_name] = region
                 elif config['required']:
-                    raise ValueError(f"Required region {region_name} has insufficient points")
+                    logger.warning(f"Required region {region_name} has insufficient points")
+            
+            # 处理面部关键点
+            if pose_data.face_landmarks:
+                for name, config in self.region_configs.items():
+                    if not name.startswith('face_'):
+                        continue
+                        
+                    points = self._get_face_keypoints(
+                        pose_data.face_landmarks,
+                        config['indices']
+                    )
                     
-            # 保存有效的绑定结果
-            if regions_dict:
-                self._last_valid_binding = regions_dict
-                self.valid = True
-            else:
-                logger.warning("No valid regions created")
-                self.valid = False
+                    if len(points) >= config['min_points']:
+                        region = self._create_region(
+                            frame,
+                            points,
+                            name,
+                            'face'
+                        )
+                        if region:
+                            regions_dict[name] = region
+            
+            # 检查是否创建了任何区域
+            if not regions_dict:
+                raise ValueError("No valid regions created")
                 
+            # 保存有效的绑定结果
+            self._last_valid_binding = regions_dict
+            self.valid = True
             return regions_dict
             
         except Exception as e:
-            self.valid = False
             logger.error(f"Failed to create binding: {str(e)}")
-            # 如果有上一个有效的绑定，返回它
-            return self._last_valid_binding or {}
-    
+            self.valid = False
+            return {}
+
     def _process_landmarks(self, landmarks):
         """处理关键点数据"""
         processed = []
@@ -332,29 +371,30 @@ class PoseBinding:
             
         return regions
 
-    def _create_face_region(self, frame: np.ndarray, pose_data: PoseData, 
-                          indices: List[int], region_name: str) -> Optional[DeformRegion]:
+    def _create_face_region(self, frame: np.ndarray, points: List[np.ndarray], 
+                          region_name: str) -> Optional[DeformRegion]:
         """创建面部区域"""
-        points = self._get_keypoints(pose_data, indices)
         if len(points) < 3:
             return None
             
-        # 根据区域类型设置权重类型
-        if region_name == 'face_contour':
-            weight_type = 'contour'
-        elif region_name.endswith('_eye') or region_name.endswith('_eyebrow'):
-            weight_type = 'feature'
-        else:
-            weight_type = 'feature'
-            
-        return self._create_region(frame, points, weight_type)
+        return self._create_region(
+            frame=frame,
+            points=points,
+            name=region_name,
+            region_type='face'  # 显式指定区域类型
+        )
 
     def _create_torso_region(self, frame: np.ndarray, points: List[np.ndarray]) -> Optional[DeformRegion]:
         """创建躯干区域"""
         if len(points) < 3:
             return None
             
-        return self._create_region(frame, points, 'torso')
+        return self._create_region(
+            frame=frame,
+            points=points,
+            name='torso',
+            region_type='body'  # 显式指定区域类型
+        )
 
     def _create_limb_region(self, frame: np.ndarray, points: List[np.ndarray], 
                           region_name: str) -> Optional[DeformRegion]:
@@ -376,15 +416,21 @@ class PoseBinding:
             
         points.append(control_point)
         
-        return self._create_region(frame, points, 'limb')
+        return self._create_region(
+            frame=frame,
+            points=points,
+            name=region_name,
+            region_type='body'  # 显式指定区域类型
+        )
 
     def _create_region(self, frame: np.ndarray, points: List[np.ndarray], 
-                      region_name: str) -> Optional[DeformRegion]:
+                      name: str, region_type: str) -> Optional[DeformRegion]:
         """创建变形区域"""
         try:
             if len(points) < 2:
+                logger.warning(f"区域 {name} 点数不足")
                 return None
-            
+                
             # 计算区域中心
             center = np.mean(points, axis=0)
             
@@ -415,20 +461,45 @@ class PoseBinding:
                 binding_points.append(BindingPoint(
                     landmark_index=i,
                     local_coords=point - center,
-                    weight=1.0 / len(points)
+                    weight=self._calculate_weight(i, len(points), region_type)
                 ))
             
-            region = DeformRegion(
+            # 直接创建并返回 DeformRegion 实例
+            return DeformRegion(
+                name=name,
                 center=center,
                 binding_points=binding_points,
-                mask=mask
+                mask=mask,
+                type=region_type
             )
-            region.name = region_name
-            return region
             
         except Exception as e:
-            logger.error(f"Failed to create region {region_name}: {str(e)}")
+            logger.error(f"创建区域 {name} 失败: {str(e)}")
             return None
+
+    def _calculate_weight(self, index: int, total_points: int, region_type: str) -> float:
+        """计算控制点权重
+        
+        Args:
+            index: 点的索引
+            total_points: 总点数
+            region_type: 区域类型
+            
+        Returns:
+            float: 权重值 (0-1)
+        """
+        if region_type == 'body':
+            # 躯干：中心点权重大，边缘点权重小
+            if index == 0 or index == total_points - 1:
+                return 0.4  # 端点
+            else:
+                return 0.6  # 中间点
+        elif region_type == 'face':
+            # 面部：均匀权重
+            return 1.0 / total_points
+        else:
+            # 其他：均匀权重
+            return 1.0 / total_points
 
     def _get_keypoints(self, pose_data: PoseData, indices: List[int]) -> List[np.ndarray]:
         """获取关键点坐标"""

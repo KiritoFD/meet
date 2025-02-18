@@ -24,6 +24,8 @@ class PoseDeformer:
         self._max_scale = config['max_scale']
         self._control_point_radius = config['control_point_radius']
         self._last_deformed = None
+        self._last_regions = None
+        self._last_frame = None
 
     def _ensure_type_compatibility(self, frame: np.ndarray) -> np.ndarray:
         """确保图像类型兼容性"""
@@ -92,7 +94,7 @@ class PoseDeformer:
                              target_pose: PoseData) -> np.ndarray:
         """计算区域变形矩阵
 
-        计算从原始区域到目标位置的仿射变换矩阵
+        计算从原始区域到目标位置的仿Affine变换矩阵
         """
         # 收集原始点和目标点
         src_points = []
@@ -109,7 +111,7 @@ class PoseDeformer:
             dst_point = np.array([landmark.x, landmark.y])
             dst_points.append(dst_point)
 
-        # 确保至少有3个点用于计算仿射变换
+        # 确保至少有3个点用于计算仿Affine变换
         if len(src_points) < 3:
             # 如果点不够，添加额外的控制点
             for i in range(3 - len(src_points)):
@@ -130,7 +132,7 @@ class PoseDeformer:
         src_points = np.float32(src_points)
         dst_points = np.float32(dst_points)
 
-        # 计算仿射变换矩阵
+        # 计算仿Affine变换矩阵
         transform = cv2.getAffineTransform(
             src_points[:3],  # 使用前3个点
             dst_points[:3]
@@ -209,7 +211,7 @@ class PoseDeformer:
         roi_transform = transform_scaled.copy()
         roi_transform[:, 2] -= [min_x, min_y]
         
-        # 使用优化的仿射变换
+        # 使用优化的仿Affine变换
         warped_roi = cv2.warpAffine(
             roi,
             roi_transform,
@@ -344,7 +346,7 @@ class PoseDeformer:
                 for _, pose in valid_poses
             ]
             
-            # 批量应用变换
+            # 批量应用变形
             for idx, (i, _) in enumerate(valid_poses):
                 transformed = self._apply_transform(
                     frame_float, 
@@ -555,3 +557,129 @@ class PoseDeformer:
         memory_usage = self._get_memory_usage()
         if memory_usage > 1024:  # 超过1GB
             raise RuntimeError(f"Memory usage too high: {memory_usage:.1f}MB")
+
+    def deform(self, reference_frame: np.ndarray,
+              reference_pose: PoseData,
+              current_frame: np.ndarray,
+              current_pose: PoseData,
+              regions: List[DeformRegion]) -> Optional[np.ndarray]:
+        """执行变形"""
+        try:
+            # 修改条件判断，使用明确的检查
+            if (reference_frame is None or reference_pose is None or 
+                current_frame is None or current_pose is None or 
+                not isinstance(regions, (list, tuple)) or len(regions) == 0):
+                logger.warning("Invalid inputs for deformation")
+                return current_frame.copy() if current_frame is not None else None
+            
+            result = current_frame.copy()
+            height, width = result.shape[:2]
+            
+            # 处理每个变形区域
+            for region in regions:
+                try:
+                    # 创建区域遮罩
+                    region_mask = np.zeros((height, width), dtype=np.uint8)
+                    
+                    # 检查绑定点
+                    if not region.binding_points:
+                        logger.warning(f"No binding points for region {region.name}")
+                        continue
+                        
+                    # 提取坐标点
+                    region_points = []
+                    for bp in region.binding_points:
+                        if isinstance(bp.local_coords, np.ndarray):
+                            coords = bp.local_coords
+                        else:
+                            coords = np.array(bp.local_coords)
+                        if coords.size >= 2:
+                            region_points.append([int(coords[0]), int(coords[1])])
+                    
+                    if len(region_points) < 3:
+                        logger.warning(f"Insufficient points for region {region.name}")
+                        continue
+                    
+                    region_points = np.array(region_points, dtype=np.int32)
+                    cv2.fillPoly(region_mask, [region_points], 255)
+                    
+                    # 计算变形
+                    transform = self._calculate_transform(region, current_pose)
+                    if transform is None:
+                        logger.warning(f"Could not calculate transform for region {region.name}")
+                        continue
+                        
+                    # 应用变形
+                    warped = cv2.warpAffine(
+                        reference_frame, 
+                        transform,
+                        (width, height),
+                        flags=cv2.INTER_LINEAR,
+                        borderMode=cv2.BORDER_REFLECT
+                    )
+                    
+                    # 创建平滑边缘
+                    edge_mask = cv2.GaussianBlur(region_mask, (21, 21), 11)
+                    edge_mask = edge_mask.astype(float) / 255.0
+                    edge_mask = np.stack([edge_mask] * 3, axis=2)
+                    
+                    # 混合结果 - 使用 np.where 替代布尔索引
+                    result = np.where(edge_mask > 0, 
+                                    result * (1 - edge_mask) + warped * edge_mask,
+                                    result)
+                    
+                except Exception as e:
+                    logger.error(f"Error processing region {region.name}: {str(e)}")
+                    continue
+            
+            self._last_regions = regions
+            self._last_frame = result.copy()
+            
+            return result.astype(np.uint8)
+            
+        except Exception as e:
+            logger.error(f"变形处理失败: {str(e)}")
+            return current_frame.copy() if current_frame is not None else None
+
+    def _calculate_transform(self, region: DeformRegion, current_pose: PoseData) -> Optional[np.ndarray]:
+        """计算变形矩阵"""
+        try:
+            # 获取对应的当前关键点
+            curr_points = []
+            ref_points = []
+            
+            for bp in region.binding_points:
+                try:
+                    if not (0 <= bp.landmark_index < len(current_pose.landmarks)):
+                        continue
+                        
+                    curr_lm = current_pose.landmarks[bp.landmark_index]
+                    if hasattr(curr_lm, 'x') and hasattr(curr_lm, 'y'):
+                        curr_points.append([float(curr_lm.x), float(curr_lm.y)])
+                        ref_points.append([float(coord) for coord in bp.local_coords[:2]])
+                except Exception as e:
+                    logger.debug(f"Skipping point {bp.landmark_index}: {str(e)}")
+                    continue
+            
+            # 确保至少有3个点用于计算仿射变换
+            if len(curr_points) < 3 or len(ref_points) < 3:
+                # 如果点不够，添加额外的控制点
+                center = np.mean(ref_points, axis=0) if ref_points else np.array([0, 0])
+                for i in range(3 - len(ref_points)):
+                    angle = i * 2 * np.pi / 3
+                    radius = 20  # 固定半径
+                    dx = radius * np.cos(angle)
+                    dy = radius * np.sin(angle)
+                    
+                    ref_points.append([center[0] + dx, center[1] + dy])
+                    curr_points.append([center[0] + dx, center[1] + dy])
+            
+            # 转换为numpy数组并确保类型
+            curr_points = np.float32(curr_points[:3])  # 只使用前3个点
+            ref_points = np.float32(ref_points[:3])
+            
+            return cv2.getAffineTransform(ref_points, curr_points)
+            
+        except Exception as e:
+            logger.error(f"计算变形矩阵失败: {str(e)}")
+            return None
