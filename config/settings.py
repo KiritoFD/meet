@@ -6,10 +6,7 @@ CAMERA_CONFIG = {
     'device_id': 0,
     'params': {
         cv2.CAP_PROP_SETTINGS: 0,     # 禁用设置弹窗
-        cv2.CAP_PROP_EXPOSURE: -3,    # 曝光值(尝试负值)
-        cv2.CAP_PROP_BRIGHTNESS: 100,    # 增加亮度
-        cv2.CAP_PROP_CONTRAST: 50,       # 对比度
-        cv2.CAP_PROP_GAIN: 100,          # 增加增益
+        cv2.CAP_PROP_EXPOSURE: -6,    # 自动曝光
         cv2.CAP_PROP_AUTOFOCUS: 0,    # 禁用自动对焦
         cv2.CAP_PROP_BUFFERSIZE: 1,   # 最小缓冲
         cv2.CAP_PROP_FPS: 30,         # 帧率
