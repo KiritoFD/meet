@@ -1,14 +1,12 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="meet",
+    name="pose",
     version="0.1",
     packages=find_packages(),
     install_requires=[
+        'numpy',
         'opencv-python',
-        'mediapipe',
-        'flask',
-        'flask-socketio',
-        'numpy'
-    ]
+        'mediapipe'
+    ],
 ) 

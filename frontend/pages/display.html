@@ -6,6 +6,7 @@
     <title>Meeting Scene Saver</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src='https://meet.jit.si/external_api.js'></script>
     <style>
         body {
             margin: 0;
@@ -40,12 +41,9 @@
 
         .left-panel {
             flex: 1;
-            background: black;
-            border-radius: 12px;
-            overflow: hidden;
-            height: 800px;
-            position: relative;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
 
         .right-panel {
@@ -55,10 +53,36 @@
             gap: 24px;
         }
 
+        .video-container {
+            flex: 1;
+            min-height: 400px;
+            background: black;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pose-container {
+            height: 300px;  /* 固定高度 */
+            background: black;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #333;  /* 添加边框以便于调试 */
+        }
+
         #preview {
             width: 100%;
             height: 100%;
             object-fit: contain;
+        }
+
+        #poseCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         .controls-group {
@@ -330,21 +354,24 @@
         }
 
         .video-container {
-            display: flex;
-            gap: 20px;
-            margin: 20px 0;
+            flex: 1;
+            background: black;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
         }
 
         .local-video,
         .remote-video {
-            position: relative;
-            width: 400px;
+            position: absolute;
+            width: 100%;
+            height: 100%;
         }
 
         video {
             width: 100%;
-            border-radius: 8px;
-            background: #000;
+            height: 100%;
+            object-fit: cover;
         }
 
         .video-label {
@@ -531,6 +558,118 @@
         .status-indicator.active {
             background-color: #4CAF50;  /* 绿色 */
         }
+
+        .debug-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 4px;
+            color: white;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 100;
+        }
+
+        .debug-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .debug-info span {
+            color: #00ff00;
+        }
+
+        .verification-result {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .verification-result.success {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid #4CAF50;
+        }
+
+        .verification-result.failure {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid #F44336;
+        }
+
+        .result-header {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .result-details {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .meet-container {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 24px;
+        }
+
+        #meetContainer {
+            border-radius: 8px;
+            overflow: hidden;
+            background: #1a1a1a;
+            margin-top: 12px;
+        }
+
+        #startMeetingBtn, #leaveMeetingBtn {
+            min-width: 120px;
+        }
+
+        #leaveMeetingBtn {
+            background-color: #dc3545;
+        }
+
+        #leaveMeetingBtn:hover {
+            background-color: #c82333;
+        }
+
+        .remote-poses {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .remote-pose-container {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .remote-pose-container canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .performance-stats {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -540,7 +679,17 @@
 
     <main>
         <div class="left-panel">
-            <img id="preview" src="" alt="摄像头预览" style="width: 100%; height: 100%; object-fit: contain;">
+            <div class="video-container">
+                <img id="preview" src="" alt="摄像头预览">
+                <div id="performanceStats" class="performance-stats"></div>
+            </div>
+            <div class="pose-container">
+                <canvas id="poseCanvas"></canvas>
+                <div class="debug-overlay">
+                    <div>Canvas: <span id="canvasSize">-</span></div>
+                    <div>Points: <span id="pointCount">-</span></div>
+                </div>
+            </div>
         </div>
 
         <div class="right-panel">
@@ -552,6 +701,10 @@
                 <div class="status-dot">
                     <span class="status-indicator" id="cameraIndicator"></span>
                     <span id="cameraStatus">未启动</span>
+                </div>
+                <div id="verificationResult" class="verification-result" style="display: none;">
+                    <div class="result-header"></div>
+                    <div class="result-details"></div>
                 </div>
             </div>
 
@@ -569,6 +722,29 @@
                     <span id="roomStatus">未连接</span>
                 </div>
             </div>
+
+            <div class="controls-group">
+                <h3>身份验证</h3>
+                <div class="button-group">
+                    <button id="captureReferenceBtn" class="outline">捕获参考帧</button>
+                    <button id="verifyIdentityBtn">验证身份</button>
+                </div>
+                <div id="verificationResult" class="verification-result" style="display: none;">
+                    <div class="result-header"></div>
+                    <div class="result-details"></div>
+                </div>
+            </div>
+            
+            <div class="meeting-container">
+                <div class="controls-group">
+                        <h3>姿态会议</h3>
+                        <div class="button-group">
+                            <button id="startMeetingBtn" onclick="startPoseMeeting()">开始会议</button>
+                            <button id="leaveMeetingBtn" onclick="leavePoseMeeting()" disabled>离开会议</button>
+                        </div>
+                    </div>
+                    <div id="meetContainer" style="height: 500px; display: none;"></div>
+                </div>
 
             <div class="controls-group">
                 <h3>相机参数设置</h3>
@@ -613,11 +789,6 @@
                 <button id="resetCameraBtn" class="outline" style="margin-top: 12px;">重置设置</button>
             </div>
 
-            <div class="controls-group">
-                <h3>背景设置</h3>
-                <button class="outline" style="margin-bottom: 12px;">上传背景</button>
-                <button>移除背景</button>
-            </div>
 
             <div class="control-panel">
                 <!-- 音频控制按钮 -->
@@ -672,8 +843,6 @@
         </div>
     </main>
 
-   
-
     <!-- 加载提示 -->
     <div id="loading" class="loading" style="display: none;">
         <span id="loadingText">加载中...</span>
@@ -706,6 +875,7 @@
                     preview.src = '/video_feed';
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
+                    document.getElementById('cameraIndicator').classList.add('active');
                     updateDebugInfo('摄像头已开启');
                 }
             } catch (error) {
@@ -721,6 +891,7 @@
                     preview.src = '';
                     startBtn.disabled = false;
                     stopBtn.disabled = true;
+                    document.getElementById('cameraIndicator').classList.remove('active');
                     updateDebugInfo('摄像头已关闭');
                 }
             } catch (error) {
@@ -845,7 +1016,342 @@
 
         // 每秒更新一次状态
         setInterval(updateStreamStatus, 1000);
+
+        document.getElementById('captureReferenceBtn').addEventListener('click', async function() {
+            try {
+                // 检查摄像头指示器状态
+                const cameraIndicator = document.getElementById('cameraIndicator');
+                if (!cameraIndicator.classList.contains('active')) {
+                    alert('请先启动摄像头');
+                    return;
+                }
+                
+                // 发送捕获请求
+                const response = await fetch('/capture_reference', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('verificationResult');
+                const headerDiv = resultDiv.querySelector('.result-header');
+                const detailsDiv = resultDiv.querySelector('.result-details');
+                
+                resultDiv.style.display = 'block';
+                
+                if (data.success) {
+                    if (data.verification.passed) {
+                        resultDiv.className = 'verification-result success';
+                        headerDiv.textContent = '验证通过！';
+                        detailsDiv.textContent = `相似度: ${(data.verification.confidence * 100).toFixed(1)}%`;
+                    } else {
+                        resultDiv.className = 'verification-result failure';
+                        headerDiv.textContent = '验证失败';
+                        detailsDiv.textContent = data.verification.message || 
+                            `相似度过低: ${(data.verification.confidence * 100).toFixed(1)}%`;
+                    }
+                } else {
+                    resultDiv.className = 'verification-result failure';
+                    headerDiv.textContent = '捕获失败';
+                    detailsDiv.textContent = data.message;
+                }
+            } catch (error) {
+                console.error('捕获参考帧失败:', error);
+                const resultDiv = document.getElementById('verificationResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'verification-result failure';
+                resultDiv.querySelector('.result-header').textContent = '错误';
+                resultDiv.querySelector('.result-details').textContent = '捕获参考帧失败，请重试';
+            }
+        });
+
+        document.getElementById('verifyIdentityBtn').addEventListener('click', async function() {
+            try {
+                // 检查摄像头指示器状态
+                const cameraIndicator = document.getElementById('cameraIndicator');
+                if (!cameraIndicator.classList.contains('active')) {
+                    alert('请先启动摄像头');
+                    return;
+                }
+                
+                // 发送验证请求
+                const response = await fetch('/verify_identity', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('verificationResult');
+                const headerDiv = resultDiv.querySelector('.result-header');
+                const detailsDiv = resultDiv.querySelector('.result-details');
+                
+                resultDiv.style.display = 'block';
+                
+                if (data.success) {
+                    if (data.verification.passed) {
+                        resultDiv.className = 'verification-result success';
+                        headerDiv.textContent = '身份验证通过！';
+                        detailsDiv.textContent = `相似度: ${(data.verification.confidence * 100).toFixed(1)}%`;
+                    } else {
+                        resultDiv.className = 'verification-result failure';
+                        headerDiv.textContent = '身份验证失败';
+                        detailsDiv.textContent = data.verification.message || 
+                            `相似度过低: ${(data.verification.confidence * 100).toFixed(1)}%`;
+                    }
+                } else {
+                    resultDiv.className = 'verification-result failure';
+                    headerDiv.textContent = '验证失败';
+                    detailsDiv.textContent = data.message;
+                }
+            } catch (error) {
+                console.error('身份验证失败:', error);
+                const resultDiv = document.getElementById('verificationResult');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'verification-result failure';
+                resultDiv.querySelector('.result-header').textContent = '错误';
+                resultDiv.querySelector('.result-details').textContent = '身份验证失败，请重试';
+            }
+        });
     });
+
+    let xiaoDieActive = false;
+
+    async function startXiaoDie() {
+        xiaoDieActive = true;
+        while (xiaoDieActive) {
+            try {
+                const response = await fetch('/process_frame', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateDisplay(data.result);
+                }
+            } catch (error) {
+                console.error('处理失败:', error);
+            }
+            await new Promise(r => setTimeout(r, 100)); // 控制处理频率
+        }
+    }
+
+    function stopXiaoDie() {
+        xiaoDieActive = false;
+    }
+
+    function updateDisplay(result) {
+        // 更新界面显示
+        const display = document.querySelector('.result-display');
+        // 根据结果更新显示内容
+    }
+
+    let jitsiApi = null;
+    let poseSocket = null;
+
+    // 添加重连逻辑
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 3;
+
+    function handleConnectionError() {
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            console.log(`尝试重连... (${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
+            reconnectAttempts++;
+            setTimeout(() => {
+                startPoseMeeting();
+            }, 2000 * reconnectAttempts);
+        } else {
+            alert('连接失败，请检查网络后重试');
+            leavePoseMeeting();
+        }
+    }
+
+    // 添加网络质量监控
+    function monitorNetworkQuality() {
+        if (jitsiApi) {
+            jitsiApi.addEventListener('connectionQualityChanged', (quality) => {
+                if (quality === 'poor') {
+                    // 网络质量差时降低姿态数据发送频率
+                    adjustPoseDataRate(0.5); // 降低50%发送率
+                } else {
+                    adjustPoseDataRate(1.0); // 恢复正常发送率
+                }
+            });
+        }
+    }
+
+    function adjustPoseDataRate(factor) {
+        const newInterval = Math.round(
+            JITSI_CONFIG.options.configOverwrite.poseDataInterval / factor
+        );
+        if (poseTransmissionInterval) {
+            clearInterval(poseTransmissionInterval);
+            startPoseDataTransmission(newInterval);
+        }
+    }
+
+    // 使用现有的姿态检测系统
+    let poseDetector = null;
+    let poseBinder = null;
+    let poseDeformer = null;
+    let poseTransmissionInterval = null;
+
+    async function initPoseSystem() {
+        try {
+            // 初始化姿态检测器
+            poseDetector = new PoseDetector({
+                ...MEDIAPIPE_CONFIG.pose
+            });
+            
+            // 初始化姿态绑定器
+            poseBinder = new PoseBinder();
+            
+            // 初始化变形器
+            poseDeformer = new PoseDeformer();
+            
+            return true;
+        } catch (error) {
+            console.error('初始化姿态系统失败:', error);
+            return false;
+        }
+    }
+
+    async function startPoseMeeting() {
+        // 1. 初始化姿态系统
+        if (!await initPoseSystem()) {
+            alert('姿态系统初始化失败');
+            return;
+        }
+
+        // 2. 启动 Jitsi Meet
+        const options = {
+            ...JITSI_CONFIG.options,
+            roomName: 'PoseMeeting_' + Math.random().toString(36).substring(7),
+            parentNode: document.querySelector('#meetContainer'),
+            configOverwrite: {
+                startWithAudioMuted: false,
+                startWithVideoMuted: true  // 关闭视频，只传输姿态
+            }
+        };
+
+        document.getElementById('meetContainer').style.display = 'block';
+        jitsiApi = new JitsiMeetExternalAPI(domain, options);
+
+        // 3. 启动姿态捕捉和传输
+        startPoseCapture();
+    }
+
+    function startPoseCapture() {
+        if (!poseDetector || !poseBinder || !poseDeformer) {
+            console.error('姿态系统未初始化');
+            return;
+        }
+
+        poseTransmissionInterval = setInterval(async () => {
+            try {
+                // 1. 获取当前帧
+                const frame = await captureFrame();
+                
+                // 2. 检测姿态
+                const poseData = await poseDetector.detectPose(frame);
+                
+                // 3. 处理姿态数据
+                if (poseData) {
+                    // 创建或更新绑定
+                    const binding = poseBinder.createBinding(frame, poseData);
+                    
+                    // 应用变形
+                    const deformedFrame = poseDeformer.deformFrame(frame, poseData, binding);
+                    
+                    // 压缩数据
+                    const compressedData = compressPoseData({
+                        pose: poseData,
+                        binding: binding,
+                        timestamp: Date.now()
+                    });
+                    
+                    // 发送数据
+                    sendPoseData(compressedData);
+                    
+                    // 更新性能监控
+                    performanceMonitor.update(JSON.stringify(compressedData).length);
+                }
+            } catch (error) {
+                console.error('姿态捕捉错误:', error);
+            }
+        }, 1000 / 30); // 30fps
+    }
+
+    function renderRemotePose(data) {
+        const { pose, binding, sender } = data;
+        
+        // 获取或创建渲染容器
+        let canvas = remoteContainers.get(sender);
+        if (!canvas) {
+            createRemotePoseContainer(sender);
+            canvas = remoteContainers.get(sender);
+        }
+        
+        const ctx = canvas.getContext('2d');
+        
+        // 清空画布
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 使用变形器渲染姿态
+        poseDeformer.renderPose(ctx, pose, binding);
+    }
+
+    // 优化数据压缩
+    function compressPoseData(data) {
+        return {
+            pose: {
+                keypoints: data.pose.keypoints.map(kp => ({
+                    x: Math.round(kp.x * 100) / 100,
+                    y: Math.round(kp.y * 100) / 100,
+                    z: Math.round(kp.z * 100) / 100,
+                    score: Math.round(kp.score * 100) / 100
+                })),
+                bbox: data.pose.bbox
+            },
+            binding: {
+                points: data.binding.points,
+                reference: data.binding.reference
+            },
+            timestamp: data.timestamp
+        };
+    }
+
+    class PerformanceMonitor {
+        constructor() {
+            this.stats = {
+                fps: 0,
+                latency: 0,
+                dataSize: 0
+            };
+            this.lastUpdate = Date.now();
+            this.frameCount = 0;
+        }
+        
+        update(dataSize) {
+            this.frameCount++;
+            const now = Date.now();
+            const elapsed = now - this.lastUpdate;
+            
+            if (elapsed >= 1000) {
+                this.stats.fps = Math.round(this.frameCount * 1000 / elapsed);
+                this.stats.dataSize = Math.round(dataSize / 1024); // KB
+                this.frameCount = 0;
+                this.lastUpdate = now;
+                this.updateDisplay();
+            }
+        }
+        
+        updateDisplay() {
+            document.getElementById('performanceStats').innerHTML = `
+                FPS: ${this.stats.fps} | 
+                数据大小: ${this.stats.dataSize}KB/s
+            `;
+        }
+    }
+
+    const performanceMonitor = new PerformanceMonitor();
     </script>
 </body>
 </html>

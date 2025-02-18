@@ -14,4 +14,15 @@
 ## 开发指南
 - [开发环境配置](setup/development.md)
 - [代码规范](setup/code_style.md)
-- [测试指南](setup/testing.md) 
+- [测试指南](setup/testing.md)
+
+# Meet 文档目录
+
+## 技术文档
+- [技术文档](technical_docs.md) - 核心功能和系统架构说明
+
+## 使用指南
+- 待添加
+
+## API 文档
+- 待添加 

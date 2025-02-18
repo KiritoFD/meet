@@ -12,6 +12,7 @@ class PoseDrawer:
     def __init__(self):
         """初始化绘制器"""
         self.mp_drawing = mp.solutions.drawing_utils
+        self.mp_pose = mp.solutions.pose
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_hands = mp.solutions.hands
         
@@ -34,6 +35,8 @@ class PoseDrawer:
             (11, 13), (13, 15), (15, 17),    # 左腿
             (12, 14), (14, 16), (16, 18)     # 右腿
         ]
+        
+        logger.info("PoseDrawer 初始化完成")
         
     def draw_frame(self, frame, pose_results, hands_results=None, face_results=None):
         """绘制完整帧
@@ -139,4 +142,22 @@ class PoseDrawer:
             end_y = int(end_point.y * height)
             
             cv2.line(frame, (start_x, start_y), (end_x, end_y),
-                    self.FACE_COLORS['contour'], 1) 
+                    self.FACE_COLORS['contour'], 1)
+            
+    def draw(self, frame, results):
+        """绘制姿态关键点和连接线"""
+        try:
+            if results.pose_landmarks:
+                logger.info("开始绘制姿态")
+                self.mp_drawing.draw_landmarks(
+                    frame,
+                    results.pose_landmarks,
+                    self.mp_pose.POSE_CONNECTIONS,
+                    landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style()
+                )
+                logger.info("姿态绘制完成")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"绘制姿态时出错: {str(e)}")
+            return False 

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+message ModelChunk {
+  uint32 total_chunks = 1;
+  uint32 chunk_index = 2;
+  bytes chunk_data = 3;
+  bytes checksum = 4;
+}
+
+message PoseData {
+  message Landmark {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+    float visibility = 4;
+  }
+  
+  repeated Landmark landmarks = 1;
+  uint64 frame_id = 2;
+  double timestamp = 3;
+} 

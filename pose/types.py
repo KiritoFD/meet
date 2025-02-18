@@ -7,8 +7,8 @@ import numpy as np
 class Landmark:
     x: float
     y: float
-    z: float = 0.0
-    visibility: float = 1.0
+    z: float
+    visibility: float
     
     def to_dict(self) -> Dict[str, float]:
         """转换为字典格式"""
@@ -50,7 +50,7 @@ class DeformRegion:
 
 @dataclass
 class PoseData:
-    landmarks: List[Landmark]
+    landmarks: List[Dict[str, float]]
     timestamp: float = field(default_factory=time.time)
     confidence: float = 1.0
     
@@ -63,14 +63,14 @@ class PoseData:
         """获取关键点坐标数组"""
         if self._values is None:
             self._values = np.array([
-                [lm.x, lm.y, lm.z] for lm in self.landmarks
+                [lm['x'], lm['y'], lm['z']] for lm in self.landmarks
             ])
         return self._values
     
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典格式"""
         return {
-            'landmarks': [lm.to_dict() for lm in self.landmarks],
+            'landmarks': self.landmarks,
             'timestamp': self.timestamp,
             'confidence': self.confidence
         } 

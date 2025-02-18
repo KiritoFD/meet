@@ -32,6 +32,7 @@ FLASK_CONFIG = {
 # MediaPipe 配置
 MEDIAPIPE_CONFIG = {
     'pose': {
+        'static_mode': False,
         'static_image_mode': False,
         'model_complexity': 1,
         'enable_segmentation': False,
@@ -56,6 +57,15 @@ MEDIAPIPE_CONFIG = {
 # 添加姿态检测和变形相关配置
 POSE_CONFIG = {
     'detector': {
+        'static_mode': False,
+        'model_complexity': 1,
+        'enable_segmentation': False,
+        'smooth_landmarks': True,
+        'min_detection_confidence': 0.5,
+        'min_tracking_confidence': 0.5,
+        'min_confidence': 0.5,
+        'smooth_factor': 0.5,
+        
         'keypoints': {
             # 躯干
             'nose': {'id': 0, 'name': 'nose', 'parent_id': -1},
@@ -128,5 +138,28 @@ POSE_CONFIG = {
             'spatial': 0.3,
             'edge': 0.3
         }
+    },
+    'visibility_threshold': 0.5,  # 添加可见度阈值配置
+}
+
+# 姿态居中配置
+CENTER_CONFIG = {
+    'visibility_threshold': 0.7,     # 可见度阈值
+    'min_valid_points': 2,          # 最小有效点数
+    'smoothing_factor': 0.3,        # 平滑因子
+    'max_offset': 0.1,              # 最大偏移距离
+    'outlier_threshold': 0.2,       # 异常点阈值
+    'preserve_scale': True,         # 保持相对比例
+    'reference_points': [           # 用于计算相对位置的参考点
+        'left_shoulder',
+        'right_shoulder',
+        'left_hip',
+        'right_hip'
+    ],
+    'smoothing': {
+        'position': 0.3,            # 位置平滑因子
+        'scale': 0.5,              # 缩放平滑因子
+        'rotation': 0.7,           # 旋转平滑因子
+        'window_size': 5           # 平滑窗口大小
     }
-} 
+}

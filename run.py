@@ -18,6 +18,20 @@ from audio.processor import AudioProcessor
 from pose.pose_binding import PoseBinding
 from pose.detector import PoseDetector
 from pose.types import PoseData
+from face.face_verification import FaceVerifier
+# from connect.jitsi.transport import JitsiTransport
+# from connect.jitsi.meeting_manager import JitsiMeetingManager
+# from config.jitsi_config import JITSI_CONFIG
+import asyncio
+import absl.logging
+
+# 抑制 TensorFlow 警告
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=INFO, 2=WARNING, 3=ERROR
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
+absl.logging.set_verbosity(absl.logging.ERROR)
+
+# 禁用 mediapipe 的调试日志
+logging.getLogger('mediapipe').setLevel(logging.ERROR)
 
 # 配置日志格式
 logging.basicConfig(
@@ -88,6 +102,16 @@ initial_regions = None
 # 初始化处理器
 audio_processor = AudioProcessor()
 audio_processor.set_socketio(socketio)
+
+# 初始化检测器
+pose_detector = PoseDetector()
+
+# 在全局变量部分添加
+REFERENCE_DIR = os.path.join(project_root, 'output', 'reference')
+os.makedirs(REFERENCE_DIR, exist_ok=True)
+
+from pose.initial_manager import InitialFrameManager
+initial_manager = InitialFrameManager(os.path.join(project_root, 'output'))
 
 def check_camera_settings(cap):
     """检查摄像头实际参数"""
@@ -168,64 +192,177 @@ def check_stream_status():
 @app.route('/capture_initial', methods=['POST'])
 def capture_initial():
     """捕获初始参考帧"""
-    global initial_frame, initial_regions
-    
     try:
-        success, frame = camera_manager.read()
-        if not success:
-            return jsonify({'success': False, 'error': 'Failed to capture frame'}), 500
+        # 1. 检查相机状态
+        if not camera_manager.is_running:
+            return jsonify({
+                'success': False, 
+                'error': 'Camera is not running'
+            }), 400
             
-        # 处理姿态
+        # 2. 捕获图像
+        success, frame = camera_manager.read()
+        if not success or frame is None:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to capture frame'
+            }), 500
+            
+        # 3. 检测姿态
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pose_results = pose.process(frame_rgb)
         
-        if not pose_results.pose_landmarks:
-            return jsonify({'success': False, 'error': 'No pose detected'}), 400
+        if not pose_results or not pose_results.pose_landmarks:
+            return jsonify({
+                'success': False,
+                'error': 'No pose detected'
+            }), 400
             
-        # 转换关键点格式
-        keypoints = PoseDetector.mediapipe_to_keypoints(pose_results.pose_landmarks)
-        pose_data = PoseData(keypoints=keypoints, timestamp=time.time(), confidence=1.0)
-        
-        # 创建区域绑定
-        initial_frame = frame.copy()
-        initial_regions = pose_binding.create_binding(frame, pose_data)
-        
+        # 4. 准备姿态数据
+        try:
+            keypoints = PoseDetector.mediapipe_to_keypoints(pose_results.pose_landmarks)
+            pose_data = PoseData(
+                keypoints=keypoints,
+                timestamp=time.time(),
+                confidence=1.0
+            )
+        except Exception as e:
+            logger.error(f"处理关键点失败: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to process keypoints: {str(e)}'
+            }), 500
+            
+        # 5. 保存参考帧
+        success, result = initial_manager.save_initial_frame(frame, pose_data)
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to save reference frame: {result}'
+            }), 500
+            
+        # 6. 创建区域绑定
+        try:
+            initial_regions = pose_binding.create_binding(frame, pose_data)
+        except Exception as e:
+            logger.error(f"创建区域绑定失败: {e}")
+            # 继续执行，不影响参考帧的保存
+            
         return jsonify({
             'success': True,
-            'timestamp': time.time()
+            'timestamp': pose_data.timestamp,
+            'path': result,
+            'frame_size': {
+                'width': frame.shape[1],
+                'height': frame.shape[0]
+            }
         })
         
     except Exception as e:
-        logger.error(f"捕获初始帧失败: {str(e)}")
+        logger.error(f"捕获初始帧失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/reference_status', methods=['GET'])
+def get_reference_status():
+    """获取参考帧状态"""
+    try:
+        status = initial_manager.get_status()
+        return jsonify({
+            'success': True,
+            **status
+        })
+    except Exception as e:
+        logger.error(f"获取参考帧状态失败: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 def generate_frames():
-    """生成视频流"""
+    """生成视频帧"""
     while True:
+        if not camera_manager.is_running:
+            time.sleep(0.1)
+            continue
+            
+        frame = camera_manager.read_frame()
+        if frame is None:
+            continue
+            
+        # 转换颜色空间
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
         try:
-            # 读取帧
-            frame = camera_manager.read_frame()
-            if frame is None:
-                continue
-                
-            # 处理帧
-            result = pose_sender.process_and_send(frame)
-            if result is None:
-                result = frame
-                
-            # 编码帧
-            ret, buffer = cv2.imencode('.jpg', result)
+            # 处理姿态
+            pose_results = pose.process(frame_rgb)
+            # 处理手部
+            hands_results = hands.process(frame_rgb)
+            # 处理面部
+            face_results = face_mesh.process(frame_rgb)
+            
+            # 合并所有关键点数据
+            landmarks_data = {
+                'pose': [],
+                'face': [],
+                'left_hand': [],
+                'right_hand': []
+            }
+            
+            # 添加姿态关键点
+            if pose_results.pose_landmarks:
+                for landmark in pose_results.pose_landmarks.landmark:
+                    landmarks_data['pose'].append({
+                        'x': landmark.x,
+                        'y': landmark.y,
+                        'z': landmark.z,
+                        'visibility': landmark.visibility
+                    })
+            
+            # 添加面部关键点
+            if face_results.multi_face_landmarks:
+                for landmark in face_results.multi_face_landmarks[0].landmark:
+                    landmarks_data['face'].append({
+                        'x': landmark.x,
+                        'y': landmark.y,
+                        'z': landmark.z
+                    })
+            
+            # 添加手部关键点
+            if hands_results.multi_hand_landmarks:
+                for hand_idx, hand_landmarks in enumerate(hands_results.multi_hand_landmarks):
+                    # 确定是左手还是右手
+                    handedness = hands_results.multi_handedness[hand_idx].classification[0].label
+                    hand_type = 'left_hand' if handedness == 'Left' else 'right_hand'
+                    
+                    for landmark in hand_landmarks.landmark:
+                        landmarks_data[hand_type].append({
+                            'x': landmark.x,
+                            'y': landmark.y,
+                            'z': landmark.z
+                        })
+            
+            # 发送所有关键点数据
+            if any(landmarks_data.values()):
+                socketio.emit('pose_data', landmarks_data)
+                logger.info(f"发送关键点数据: 姿态={len(landmarks_data['pose'])}, "
+                          f"面部={len(landmarks_data['face'])}, "
+                          f"左手={len(landmarks_data['left_hand'])}, "
+                          f"右手={len(landmarks_data['right_hand'])} 个关键点")
+            
+        except Exception as e:
+            logger.error(f"处理关键点时出错: {str(e)}")
+            continue
+            
+        # 转换帧格式用于传输
+        try:
+            ret, buffer = cv2.imencode('.jpg', frame)  # 直接使用原始帧
             if not ret:
                 continue
-                
-            # 生成字节流
             frame_bytes = buffer.tobytes()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-                   
         except Exception as e:
-            logger.error(f"生成帧失败: {e}")
-            time.sleep(0.1)
+            logger.error(f"编码帧时出错: {str(e)}")
 
 @app.route('/camera_status')
 def camera_status():
@@ -348,32 +485,139 @@ def get_status():
         logger.error(f"获取状态失败: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-def main():
-    """主函数"""
+@app.route('/verify_identity', methods=['POST'])
+def verify_identity():
+    """验证当前人脸与参考帧是否匹配"""
     try:
-        # 启动服务器
-        logger.info(f"服务器启动在 http://localhost:5000")
-        logger.info(f"模板目录: {app.template_folder}")
-        logger.info(f"静态文件目录: {app.static_folder}")
+        # 检查是否有参考帧
+        reference_path = os.path.join(project_root, 'output', 'reference.jpg')
+        if not os.path.exists(reference_path):
+            return jsonify({
+                'success': False,
+                'message': '请先捕获参考帧'
+            })
+            
+        # 获取当前帧
+        success, current_frame = camera_manager.read()
+        if not success:
+            return jsonify({
+                'success': False,
+                'message': '无法获取当前画面'
+            })
+            
+        # 读取参考帧
+        reference_frame = cv2.imread(reference_path)
         
-        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+        # 进行人脸验证
+        verifier = FaceVerifier()
+        if verifier.set_reference(reference_frame):
+            result = verifier.verify_face(current_frame)
+            
+            return jsonify({
+                'success': True,
+                'verification': {
+                    'passed': result.is_same_person,
+                    'confidence': float(result.confidence),
+                    'message': result.error_message
+                }
+            })
+            
+        return jsonify({
+            'success': False,
+            'message': '人脸验证初始化失败'
+        })
         
     except Exception as e:
-        logger.error(f"服务器错误: {e}")
-        
-    finally:
-        # 清理资源
-        camera_manager.release()
-        pose_sender.release()
+        logger.error(f"身份验证错误: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'错误: {str(e)}'
+        })
 
-if __name__ == '__main__':
+def init_pose_system():
+    """初始化姿态处理系统"""
     try:
-        # 确保必要的目录存在
-        os.makedirs('static', exist_ok=True)
-        os.makedirs('templates', exist_ok=True)
+        # 初始化姿态检测器
+        logger.info("正在初始化姿态检测器...")
+        pose_detector = PoseDetector()
+        
+        # 初始化姿态绑定器
+        logger.info("正在初始化姿态绑定器...")
+        pose_binding = PoseBinding()
+        
+        # 初始化绘制器
+        logger.info("正在初始化姿态绘制器...")
+        pose_drawer = PoseDrawer()
+        
+        return pose_detector, pose_binding, pose_drawer
+        
+    except Exception as e:
+        logger.error(f"姿态系统初始化失败: {str(e)}")
+        raise
+
+async def setup_jitsi():
+    # transport = JitsiTransport(JITSI_CONFIG)
+    # meeting_manager = JitsiMeetingManager(JITSI_CONFIG)
+    
+    return None, None
+
+async def main():
+    # ... 其他代码 ...
+    
+    # 注释掉 Jitsi 相关的初始化和设置
+    '''
+    # 初始化 Jitsi 会议管理器
+    meeting_manager = JitsiMeetingManager(JITSI_CONFIG)
+    await meeting_manager.start()
+    
+    try:
+        default_room_id = "default_room"
+        host_id = "host_1"
+        room_id = await meeting_manager.create_meeting(
+            room_id=default_room_id,
+            host_id=host_id
+        )
+        logger.info(f"Created default meeting room: {room_id}")
+    except Exception as e:
+        logger.error(f"Failed to create default meeting room: {e}")
+        raise
+    '''
+    
+    try:
+        # 直接使用 Flask 的 run 方法
+        app.run(
+            host='0.0.0.0',
+            port=5000,
+            debug=True  # 开发模式
+        )
+    except Exception as e:
+        logger.error(f"Failed to start web server: {e}")
+        raise
+    finally:
+        pass
+        # await meeting_manager.stop()  # 注释掉
+
+if __name__ == "__main__":
+    # 配置日志
+    logging.basicConfig(level=logging.INFO)
+    
+    # 抑制 TensorFlow 和 Mediapipe 警告
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    logging.getLogger('tensorflow').setLevel(logging.ERROR)
+    absl.logging.set_verbosity(absl.logging.ERROR)
+    logging.getLogger('mediapipe').setLevel(logging.ERROR)
+    
+    try:
+        # 创建必要的目录
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         
-        main()
+        # 运行主程序
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n程序被用户中断")
     except Exception as e:
-        logger.error(f"服务器启动失败: {str(e)}")
-        sys.exit(1)
+        print(f"程序出错: {e}")
+        logger.exception("程序异常退出")
+    finally:
+        # 清理资源
+        cv2.destroyAllWindows()

@@ -10,6 +10,42 @@ class PoseApp {
         this.stopBtn = document.getElementById('stopBtn');
         this.captureBtn = document.getElementById('captureBtn');
         
+        // 初始化姿态渲染器
+        this.poseCanvas = document.getElementById('poseCanvas');
+        if (!this.poseCanvas) {
+            console.error('找不到 poseCanvas 元素');
+            return;
+        }
+        
+        // 设置画布尺寸
+        const container = this.poseCanvas.parentElement;
+        this.poseCanvas.width = container.clientWidth || 800;  // 设置默认宽度
+        this.poseCanvas.height = container.clientHeight || 600;  // 设置默认高度
+        
+        console.log('画布初始化尺寸:', {
+            container: {
+                clientWidth: container.clientWidth,
+                clientHeight: container.clientHeight,
+                offsetWidth: container.offsetWidth,
+                offsetHeight: container.offsetHeight
+            },
+            canvas: {
+                width: this.poseCanvas.width,
+                height: this.poseCanvas.height
+            }
+        });
+        
+        // 初始化渲染器
+        this.poseRenderer = new PoseRenderer(this.poseCanvas);
+        
+        // 添加调试信息
+        const canvasSize = document.getElementById('canvasSize');
+        if (canvasSize) {
+            canvasSize.textContent = `${this.poseCanvas.width}x${this.poseCanvas.height}`;
+        }
+        
+        window.addEventListener('resize', () => this.resizeCanvas());
+        
         this.bindEvents();
         this.setupSocketListeners();
     }
@@ -27,7 +63,34 @@ class PoseApp {
         });
         
         this.socket.on('pose_data', (data) => {
-            this.updatePoseInfo(data);
+            // 更新调试信息
+            const pointCount = document.getElementById('pointCount');
+            if (pointCount) {
+                const total = (data.pose?.length || 0) + 
+                             (data.face?.length || 0) + 
+                             (data.left_hand?.length || 0) + 
+                             (data.right_hand?.length || 0);
+                pointCount.textContent = `${total} (P:${data.pose?.length || 0}, ` +
+                                       `F:${data.face?.length || 0}, ` +
+                                       `LH:${data.left_hand?.length || 0}, ` +
+                                       `RH:${data.right_hand?.length || 0})`;
+            }
+            
+            if (!this.poseCanvas || !this.poseRenderer) {
+                console.error('Canvas 或 Renderer 未初始化');
+                return;
+            }
+            
+            // 确保画布尺寸正确
+            const container = this.poseCanvas.parentElement;
+            if (this.poseCanvas.width !== container.clientWidth || 
+                this.poseCanvas.height !== container.clientHeight) {
+                console.log('重新设置画布尺寸');
+                this.resizeCanvas();
+            }
+            
+            // 绘制关键点
+            this.poseRenderer.drawPose(data);
         });
         
         this.socket.on('disconnect', () => {
@@ -47,6 +110,13 @@ class PoseApp {
                 this.startBtn.disabled = true;
                 this.stopBtn.disabled = false;
                 this.updateStatus('运行中');
+                updateCameraStatus(true);
+                
+                // 更新视频预览
+                const preview = document.getElementById('preview');
+                if (preview) {
+                    preview.src = '/video_feed';
+                }
             }
         } catch (error) {
             console.error('启动失败:', error);
@@ -64,6 +134,13 @@ class PoseApp {
                 this.startBtn.disabled = false;
                 this.stopBtn.disabled = true;
                 this.updateStatus('已停止');
+                updateCameraStatus(false);
+                
+                // 清空视频预览
+                const preview = document.getElementById('preview');
+                if (preview) {
+                    preview.src = '';
+                }
             }
         } catch (error) {
             console.error('停止失败:', error);
@@ -103,6 +180,32 @@ class PoseApp {
                 console.error('获取状态失败:', error);
             }
         }, 1000);
+    }
+    
+    resizeCanvas() {
+        const container = this.poseCanvas.parentElement;
+        const oldWidth = this.poseCanvas.width;
+        const oldHeight = this.poseCanvas.height;
+        
+        this.poseCanvas.width = container.clientWidth;
+        this.poseCanvas.height = container.clientHeight;
+        
+        console.log('画布尺寸已更新', {
+            container: {
+                width: container.clientWidth,
+                height: container.clientHeight
+            },
+            canvas: {
+                old: { width: oldWidth, height: oldHeight },
+                new: { width: this.poseCanvas.width, height: this.poseCanvas.height }
+            }
+        });
+        
+        // 更新调试信息
+        const canvasSize = document.getElementById('canvasSize');
+        if (canvasSize) {
+            canvasSize.textContent = `${this.poseCanvas.width}x${this.poseCanvas.height}`;
+        }
     }
 }
 

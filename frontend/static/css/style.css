@@ -242,3 +242,41 @@ body {
 .status-info {
     display: none;
 }
+
+.left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.video-container {
+    flex: 1;
+    min-height: 400px;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.pose-container {
+    height: 300px;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+#preview {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#poseCanvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
