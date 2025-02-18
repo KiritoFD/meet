@@ -106,6 +106,13 @@ audio_processor.set_socketio(socketio)
 # 初始化检测器
 pose_detector = PoseDetector()
 
+# 在全局变量部分添加
+REFERENCE_DIR = os.path.join(project_root, 'output', 'reference')
+os.makedirs(REFERENCE_DIR, exist_ok=True)
+
+from pose.initial_manager import InitialFrameManager
+initial_manager = InitialFrameManager(os.path.join(project_root, 'output'))
+
 def check_camera_settings(cap):
     """检查摄像头实际参数"""
     logger.info("摄像头当前参数:")
@@ -185,35 +192,90 @@ def check_stream_status():
 @app.route('/capture_initial', methods=['POST'])
 def capture_initial():
     """捕获初始参考帧"""
-    global initial_frame, initial_regions
-    
     try:
-        success, frame = camera_manager.read()
-        if not success:
-            return jsonify({'success': False, 'error': 'Failed to capture frame'}), 500
+        # 1. 检查相机状态
+        if not camera_manager.is_running:
+            return jsonify({
+                'success': False, 
+                'error': 'Camera is not running'
+            }), 400
             
-        # 处理姿态
+        # 2. 捕获图像
+        success, frame = camera_manager.read()
+        if not success or frame is None:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to capture frame'
+            }), 500
+            
+        # 3. 检测姿态
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pose_results = pose.process(frame_rgb)
         
-        if not pose_results.pose_landmarks:
-            return jsonify({'success': False, 'error': 'No pose detected'}), 400
+        if not pose_results or not pose_results.pose_landmarks:
+            return jsonify({
+                'success': False,
+                'error': 'No pose detected'
+            }), 400
             
-        # 转换关键点格式
-        keypoints = PoseDetector.mediapipe_to_keypoints(pose_results.pose_landmarks)
-        pose_data = PoseData(keypoints=keypoints, timestamp=time.time(), confidence=1.0)
-        
-        # 创建区域绑定
-        initial_frame = frame.copy()
-        initial_regions = pose_binding.create_binding(frame, pose_data)
-        
+        # 4. 准备姿态数据
+        try:
+            keypoints = PoseDetector.mediapipe_to_keypoints(pose_results.pose_landmarks)
+            pose_data = PoseData(
+                keypoints=keypoints,
+                timestamp=time.time(),
+                confidence=1.0
+            )
+        except Exception as e:
+            logger.error(f"处理关键点失败: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to process keypoints: {str(e)}'
+            }), 500
+            
+        # 5. 保存参考帧
+        success, result = initial_manager.save_initial_frame(frame, pose_data)
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to save reference frame: {result}'
+            }), 500
+            
+        # 6. 创建区域绑定
+        try:
+            initial_regions = pose_binding.create_binding(frame, pose_data)
+        except Exception as e:
+            logger.error(f"创建区域绑定失败: {e}")
+            # 继续执行，不影响参考帧的保存
+            
         return jsonify({
             'success': True,
-            'timestamp': time.time()
+            'timestamp': pose_data.timestamp,
+            'path': result,
+            'frame_size': {
+                'width': frame.shape[1],
+                'height': frame.shape[0]
+            }
         })
         
     except Exception as e:
-        logger.error(f"捕获初始帧失败: {str(e)}")
+        logger.error(f"捕获初始帧失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/reference_status', methods=['GET'])
+def get_reference_status():
+    """获取参考帧状态"""
+    try:
+        status = initial_manager.get_status()
+        return jsonify({
+            'success': True,
+            **status
+        })
+    except Exception as e:
+        logger.error(f"获取参考帧状态失败: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 def generate_frames():
