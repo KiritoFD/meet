@@ -17,51 +17,18 @@ class PoseKeypoint(NamedTuple):
 class PoseDetector:
     """姿态检测器"""
     
-    # 从配置加载关键点定义
+    # 从配置加载关键点定义，修改处理方式
     KEYPOINTS = {
         name: PoseKeypoint(
-            id=data['id'],
-            name=data['name'],
-            parent_id=data['parent_id']
+            id=idx,  # 使用配置中的值作为ID
+            name=name,
+            parent_id=-1
         )
-        for name, data in POSE_CONFIG['detector']['keypoints'].items()
+        for name, idx in POSE_CONFIG['detector']['body_landmarks'].items()
     }
     
     # 从配置加载连接定义
-    CONNECTIONS = POSE_CONFIG['detector']['connections']
-    
-    @classmethod
-    def get_keypoint_id(cls, name: str) -> int:
-        """获取关键点ID"""
-        return cls.KEYPOINTS[name].id
-    
-    @classmethod
-    def get_region_keypoints(cls, region: str) -> List[int]:
-        """获取区域对应的关键点ID列表"""
-        return [cls.get_keypoint_id(name) for name in cls.CONNECTIONS[region]]
-    
-    @staticmethod
-    def mediapipe_to_keypoints(landmarks) -> List[Landmark]:
-        """将 MediaPipe 关键点转换为内部格式
-        
-        Args:
-            landmarks: MediaPipe 姿态关键点
-            
-        Returns:
-            List[Landmark]: 转换后的关键点列表
-        """
-        if landmarks is None:
-            return []
-            
-        return [
-            Landmark(
-                x=float(lm.x),
-                y=float(lm.y),
-                z=float(lm.z),
-                visibility=float(lm.visibility)
-            )
-            for lm in landmarks.landmark
-        ]
+    CONNECTIONS = POSE_CONFIG['detector']['connections']['body']
     
     def __init__(self):
         """初始化姿态检测器"""
@@ -70,11 +37,56 @@ class PoseDetector:
         # MediaPipe配置
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(
-            static_image_mode=True,  # 改为True以获得更准确的单帧检测
-            model_complexity=2,      # 使用更复杂的模型
-            smooth_landmarks=False,  # 单帧不需要平滑
+            static_image_mode=False,
+            model_complexity=2,
+            smooth_landmarks=True,
             enable_segmentation=False,
-            min_detection_confidence=0.3,  # 降低检测置信度阈值
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5
+        )
+        
+        # 检测参数
+        self._min_confidence = config['min_confidence']
+        self._smooth_factor = config['smooth_factor']
+        self._last_pose = None
+        
+    @classmethod
+    def get_keypoint_id(cls, name: str) -> int:
+        """获取关键点ID"""
+        return cls.KEYPOINTS[name].id if name in cls.KEYPOINTS else -1
+    
+    @classmethod
+    def get_region_keypoints(cls, region: str) -> List[int]:
+        """获取区域对应的关键点ID列表"""
+        if region not in cls.CONNECTIONS:
+            return []
+        return [cls.get_keypoint_id(name) for name in cls.CONNECTIONS[region]]
+    
+    @staticmethod
+    def mediapipe_to_keypoints(pose_landmarks):
+        """将 MediaPipe 姿态关键点转换为内部格式"""
+        landmarks = []
+        for landmark in pose_landmarks.landmark:
+            landmarks.append({
+                'x': landmark.x,
+                'y': landmark.y,
+                'z': landmark.z,
+                'visibility': landmark.visibility
+            })
+        return landmarks
+        
+    def __init__(self):
+        """初始化姿态检测器"""
+        config = POSE_CONFIG['detector']
+        
+        # MediaPipe配置
+        self.mp_pose = mp.solutions.pose
+        self.pose = self.mp_pose.Pose(
+            static_image_mode=True,
+            model_complexity=2,
+            smooth_landmarks=False,
+            enable_segmentation=False,
+            min_detection_confidence=0.3,
             min_tracking_confidence=0.3
         )
         
@@ -161,4 +173,4 @@ class PoseDetector:
     def release(self):
         """释放资源"""
         if self.pose:
-            self.pose.close() 
+            self.pose.close()

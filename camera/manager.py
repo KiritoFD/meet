@@ -26,6 +26,9 @@ class CameraManager:
         self.is_running = False
         self.frame_count = 0
         self.start_time = time.time()
+        self._current_fps = 0  # 改为私有属性
+        self._last_fps_check = time.time()
+        self._frames_since_check = 0
         
         # 从配置加载参数
         self.config = config or {}
@@ -126,7 +129,7 @@ class CameraManager:
             return False
             
     def read_frame(self) -> Optional[cv2.Mat]:
-        """读取一帧图像
+        """读取一帧并更新统计信息
         
         Returns:
             Optional[cv2.Mat]: 图像帧，失败返回None
@@ -140,6 +143,15 @@ class CameraManager:
                 return None
                 
             self.frame_count += 1
+            self._frames_since_check += 1
+            
+            # 每秒更新一次 FPS
+            now = time.time()
+            if now - self._last_fps_check >= 1.0:
+                self._current_fps = self._frames_since_check  # 使用私有属性
+                self._frames_since_check = 0
+                self._last_fps_check = now
+                
             return frame
             
         except Exception as e:
@@ -151,9 +163,7 @@ class CameraManager:
         """获取当前帧率"""
         if not self.is_running:
             return 0.0
-            
-        elapsed = time.time() - self.start_time
-        return self.frame_count / max(elapsed, 0.001)
+        return self._current_fps  # 返回私有属性
         
     def release(self):
         """释放资源"""
@@ -228,4 +238,3 @@ class CameraManager:
         except Exception as e:
             logger.error(f"重置相机设置失败: {e}")
             return False
-        

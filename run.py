@@ -1,74 +1,40 @@
-import os
-import sys
-from flask import Flask, Response, render_template, jsonify, send_from_directory, request
-from werkzeug.utils import secure_filename
 import cv2
 import mediapipe as mp
 import numpy as np
 import logging
+import os
 import time
-from flask_socketio import SocketIO, emit
-from camera.manager import CameraManager
-from pose.drawer import PoseDrawer  # 确保从正确的路径导入
-from connect.pose_sender import PoseSender
-from connect.socket_manager import SocketManager
-from config import settings
-from config.settings import CAMERA_CONFIG, POSE_CONFIG
-from audio.processor import AudioProcessor
+from pose.multi_detector import MultiDetector
 from pose.pose_binding import PoseBinding
-from pose.detector import PoseDetector
-from pose.types import PoseData
-from face.face_verification import FaceVerifier
-# from connect.jitsi.transport import JitsiTransport
-# from connect.jitsi.meeting_manager import JitsiMeetingManager
-# from config.jitsi_config import JITSI_CONFIG
-import asyncio
-import absl.logging
+from pose.pose_deformer import PoseDeformer
+from camera.manager import CameraManager
+from config.settings import CAMERA_CONFIG
+from flask import Flask, render_template, Response, jsonify, request
+from flask_socketio import SocketIO
+from pose.types import PoseData, Landmark  # 添加这行导入
 
-# 抑制 TensorFlow 警告
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # 0=all, 1=INFO, 2=WARNING, 3=ERROR
-logging.getLogger('tensorflow').setLevel(logging.ERROR)
-absl.logging.set_verbosity(absl.logging.ERROR)
-
-# 禁用 mediapipe 的调试日志
-logging.getLogger('mediapipe').setLevel(logging.ERROR)
-
-# 配置日志格式
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# 配置日志
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# 获取项目根目录的绝对路径
+# 获取项目根目录
 project_root = os.path.dirname(os.path.abspath(__file__))
-template_dir = os.path.join(project_root, 'frontend', 'pages')
+template_dir = os.path.join(project_root, 'frontend', 'pages')  # 修改这一行
 static_dir = os.path.join(project_root, 'frontend', 'static')
 
-app = Flask(__name__, 
-           template_folder=template_dir,
-           static_folder=static_dir,
-           static_url_path='/static')
-
-# 初始化音频处理器
-audio_processor = AudioProcessor()
-
-# 定义上传文件夹路径
-UPLOAD_FOLDER = os.path.join(project_root, 'uploads')
-
-# 初始化 Socket.IO
-socketio = SocketIO(app, cors_allowed_origins="*")
-socket_manager = SocketManager(socketio, audio_processor)
-pose_sender = PoseSender(config=POSE_CONFIG)
+# 初始化组件
+camera_manager = CameraManager(config=CAMERA_CONFIG)
+detector = MultiDetector()
+pose_binding = PoseBinding()
+pose_deformer = PoseDeformer()
 
 # MediaPipe 初始化
 mp_pose = mp.solutions.pose
-mp_hands = mp.solutions.hands
+mp_face_mesh = mp.solutions.face_mesh  # 添加 face_mesh
 mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_face_mesh = mp.solutions.face_mesh
+mp_drawing_styles = mp.solutions.drawing_styles  # 添加绘制样式
 
-# 初始化 MediaPipe 模型
+# 初始化检测器
 pose = mp_pose.Pose(
     static_image_mode=False,
     model_complexity=2,
@@ -78,52 +44,184 @@ pose = mp_pose.Pose(
     min_tracking_confidence=0.5
 )
 
-hands = mp_hands.Hands(
-    static_image_mode=False,
-    max_num_hands=2,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-)
-
-face_mesh = mp_face_mesh.FaceMesh(
+face_mesh = mp_face_mesh.FaceMesh(  # 添加 face_mesh 初始化
     static_image_mode=False,
     max_num_faces=1,
+    refine_landmarks=True,
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5
 )
 
+# 初始化 Flask
+app = Flask(__name__, 
+           template_folder=template_dir,  # 使用修改后的路径
+           static_folder=static_dir,
+           static_url_path='/static')
+socketio = SocketIO(app, cors_allowed_origins="*")
+
 # 全局变量
-camera_manager = CameraManager(config=CAMERA_CONFIG)
-pose_drawer = PoseDrawer()
-pose_binding = PoseBinding()
-initial_frame = None
-initial_regions = None
+deformed_frame = None  # 添加这行来存储最新的变形结果
+reference_frame = None
+reference_pose = None
+regions = None
 
-# 初始化处理器
-audio_processor = AudioProcessor()
-audio_processor.set_socketio(socketio)
+class FrameProcessor:
+    """帧处理器类，用于集中管理帧处理状态"""
+    def __init__(self):
+        self.reference_frame = None
+        self.reference_pose = None
+        self.regions = None
+        self.deformed_frame = None
+        self.height = None
+        self.width = None
 
-# 初始化检测器
-pose_detector = PoseDetector()
+# 创建全局帧处理器实例
+frame_processor = FrameProcessor()
 
-def check_camera_settings(cap):
-    """检查摄像头实际参数"""
-    logger.info("摄像头当前参数:")
-    params = {
-        cv2.CAP_PROP_EXPOSURE: "曝光值",
-        cv2.CAP_PROP_BRIGHTNESS: "亮度",
-        cv2.CAP_PROP_CONTRAST: "对比度",
-        cv2.CAP_PROP_GAIN: "增益"
-    }
+def create_display_window():
+    """创建垂直堆叠的显示窗口和控制按钮"""
+    cv2.namedWindow('Control Panel', cv2.WINDOW_NORMAL)
+    cv2.namedWindow('Original', cv2.WINDOW_NORMAL)
+    cv2.namedWindow('Deformed', cv2.WINDOW_NORMAL)
     
-    for param, name in params.items():
-        value = cap.get(param)
-        logger.info(f"{name}: {value}")
+    # 调整窗口位置和大小
+    cv2.resizeWindow('Control Panel', 400, 100)
+    cv2.moveWindow('Control Panel', 50, 0)
+    cv2.moveWindow('Original', 50, 150)
+    cv2.moveWindow('Deformed', 50, 500)
+    
+    # 创建控制面板图像
+    control_panel = np.zeros((100, 400, 3), dtype=np.uint8)
+    cv2.putText(control_panel, "C: Capture  R: Reset  Q: Quit", (10, 30), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    cv2.imshow('Control Panel', control_panel)
+
+def handle_mouse_events(event, x, y, flags, param):
+    """处理鼠标事件的回调函数"""
+    if event == cv2.EVENT_LBUTTONDOWN:
+        if y < 50:  # 假设按钮区域在上半部分
+            capture_reference_frame(param)
+
+def resize_frame(frame, max_height=300):
+    """保持宽高比调整图像大小"""
+    height, width = frame.shape[:2]
+    if height > max_height:
+        ratio = max_height / height
+        new_width = int(width * ratio)
+        frame = cv2.resize(frame, (new_width, max_height))
+    return frame
+
+def process_landmarks(pose_results):
+    """处理姿态关键点"""
+    if not pose_results.pose_landmarks:
+        return None
+        
+    try:
+        # 处理身体关键点
+        landmarks = []
+        for landmark in pose_results.pose_landmarks.landmark:
+            landmarks.append({
+                'x': float(landmark.x),
+                'y': float(landmark.y),
+                'z': float(landmark.z),
+                'visibility': float(landmark.visibility)
+            })
+        
+        face_landmarks = None  # 默认为 None
+        return PoseData(
+            landmarks=landmarks,
+            face_landmarks=face_landmarks,
+            timestamp=time.time(),
+            confidence=sum(lm['visibility'] for lm in landmarks) / len(landmarks)
+        )
+        
+    except Exception as e:
+        logger.error(f"处理关键点失败: {str(e)}")
+        return None
+
+def generate_original_frames():
+    """生成原始视频帧"""
+    while True:
+        if not camera_manager.is_running:
+            time.sleep(0.1)
+            continue
+            
+        frame = camera_manager.read_frame()
+        if frame is None:
+            continue
+            
+        # 处理姿态检测和绘制
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pose_results = pose.process(frame_rgb)
+        display_frame = frame.copy()
+        
+        if pose_results.pose_landmarks:
+            # 使用 MediaPipe 的连接定义绘制更完整的姿态
+            mp_drawing.draw_landmarks(
+                display_frame,
+                pose_results.pose_landmarks,
+                mp_pose.POSE_CONNECTIONS,
+                landmark_drawing_spec=mp_drawing.DrawingSpec(
+                    color=(0, 255, 0),
+                    thickness=2,
+                    circle_radius=2
+                ),
+                connection_drawing_spec=mp_drawing.DrawingSpec(
+                    color=(255, 0, 0),
+                    thickness=2
+                )
+            )
+        
+        # 转换帧格式
+        ret, buffer = cv2.imencode('.jpg', display_frame)
+        if not ret:
+            continue
+            
+        frame_bytes = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
+def generate_deformed_frames():
+    """生成变形后的视频帧"""
+    while True:
+        if not camera_manager.is_running:
+            time.sleep(0.1)
+            continue
+            
+        if frame_processor.deformed_frame is None:
+            # 如果没有变形结果，生成空白帧
+            blank = np.zeros((480, 640, 3), dtype=np.uint8)
+            ret, buffer = cv2.imencode('.jpg', blank)
+        else:
+            ret, buffer = cv2.imencode('.jpg', frame_processor.deformed_frame)
+            
+        if not ret:
+            continue
+            
+        frame_bytes = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
 @app.route('/')
 def index():
-    """渲染显示页面"""
+    """渲染主页"""
     return render_template('display.html')
+
+@app.route('/video_feed')
+def video_feed():
+    """原始视频流"""
+    return Response(
+        generate_original_frames(),
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
+
+@app.route('/deformed_feed')
+def deformed_feed():
+    """变形视频流"""
+    return Response(
+        generate_deformed_frames(),
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
 
 @app.route('/start_capture', methods=['POST'])
 def start_capture():
@@ -145,417 +243,308 @@ def stop_capture():
         logger.error(f"停止摄像头失败: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/video_feed')
-def video_feed():
-    """视频流路由"""
-    return Response(
-        generate_frames(),
-        mimetype='multipart/x-mixed-replace; boundary=frame'
-    )
-
-@app.route('/start_audio', methods=['POST'])
-def start_audio():
-    success = audio_processor.start_recording()
-    return jsonify({'success': success})
-
-@app.route('/stop_audio', methods=['POST'])
-def stop_audio():
-    success = audio_processor.stop_recording()
-    return jsonify({'success': success})
-
 @app.route('/check_stream_status')
 def check_stream_status():
+    """获取流状态"""
     try:
         status = {
             'video': {
                 'is_streaming': camera_manager.is_running,
-                'fps': camera_manager.current_fps
+                'fps': camera_manager.current_fps,
+                'frame_count': camera_manager.frame_count
             },
             'audio': {
-                'is_recording': audio_processor.is_recording,
-                'sample_rate': audio_processor.sample_rate,
-                'buffer_size': len(audio_processor.frames) if hasattr(audio_processor, 'frames') else 0
+                'is_recording': False,  # 暂时不处理音频
+                'sample_rate': 0,
+                'buffer_size': 0
             }
         }
-        return jsonify(status), 200
+        return jsonify(status)
     except Exception as e:
         logger.error(f"获取流状态失败: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/capture_initial', methods=['POST'])
-def capture_initial():
-    """捕获初始参考帧"""
-    global initial_frame, initial_regions
+@app.route('/capture_reference', methods=['POST'])
+def capture_reference():
+    """捕获参考帧"""
+    global frame_processor
     
     try:
-        success, frame = camera_manager.read()
-        if not success:
+        if not camera_manager.is_running:
+            return jsonify({'success': False, 'error': 'Camera not running'}), 400
+            
+        frame = camera_manager.read_frame()
+        if frame is None:
             return jsonify({'success': False, 'error': 'Failed to capture frame'}), 500
             
-        # 处理姿态
+        # 保存图像尺寸
+        frame_processor.height, frame_processor.width = frame.shape[:2]
+        
+        # 转换为 RGB
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        # 姿态检测
         pose_results = pose.process(frame_rgb)
+        
+        # 面部网格检测
+        face_results = face_mesh.process(frame_rgb)
         
         if not pose_results.pose_landmarks:
             return jsonify({'success': False, 'error': 'No pose detected'}), 400
             
         # 转换关键点格式
-        keypoints = PoseDetector.mediapipe_to_keypoints(pose_results.pose_landmarks)
-        pose_data = PoseData(keypoints=keypoints, timestamp=time.time(), confidence=1.0)
+        landmarks = []
+        for landmark in pose_results.pose_landmarks.landmark:
+            landmarks.append({
+                'x': float(landmark.x),
+                'y': float(landmark.y),
+                'z': float(landmark.z),
+                'visibility': float(landmark.visibility)
+            })
+            
+        # 处理面部关键点
+        face_landmarks = None
+        if face_results.multi_face_landmarks:
+            face_landmarks = []
+            for face_landmarks_proto in face_results.multi_face_landmarks:
+                for idx, landmark in enumerate(face_landmarks_proto.landmark):
+                    face_landmarks.append({
+                        'x': float(landmark.x),
+                        'y': float(landmark.y),
+                        'z': float(landmark.z),
+                        'visibility': 1.0,
+                        'id': idx
+                    })
+            logger.info(f"检测到 {len(face_landmarks)} 个面部关键点")
+            
+        # 创建 PoseData 对象
+        pose_data = PoseData(
+            landmarks=landmarks,
+            face_landmarks=face_landmarks,
+            timestamp=time.time(),
+            confidence=sum(lm['visibility'] for lm in landmarks) / len(landmarks)
+        )
         
-        # 创建区域绑定
-        initial_frame = frame.copy()
-        initial_regions = pose_binding.create_binding(frame, pose_data)
+        # 保存参考帧和姿态数据
+        frame_processor.reference_frame = frame.copy()
+        frame_processor.reference_pose = pose_data
         
+        # 创建绑定区域
+        try:
+            frame_processor.regions = pose_binding.create_binding(
+                frame_processor.reference_frame, 
+                frame_processor.reference_pose
+            )
+            if frame_processor.regions:
+                regions_info = {
+                    'body': len([r for r in frame_processor.regions if r['type'] == 'body']),
+                    'face': len([r for r in frame_processor.regions if r['type'] == 'face'])
+                }
+                logger.info(f"创建了 {len(frame_processor.regions)} 个绑定区域 "
+                          f"(身体: {regions_info['body']}, 面部: {regions_info['face']})")
+            else:
+                raise ValueError("未能创建有效的绑定区域")
+            
+        except Exception as e:
+            logger.error(f"创建绑定区域失败: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
+            
         return jsonify({
             'success': True,
-            'timestamp': time.time()
+            'regions_count': len(frame_processor.regions),
+            'details': {
+                'body_regions': regions_info['body'],
+                'face_regions': regions_info['face']
+            }
         })
         
     except Exception as e:
-        logger.error(f"捕获初始帧失败: {str(e)}")
+        logger.error(f"捕获参考帧失败: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-def generate_frames():
-    """生成视频帧"""
-    while True:
-        if not camera_manager.is_running:
-            time.sleep(0.1)
-            continue
-            
-        frame = camera_manager.read_frame()
-        if frame is None:
-            continue
-            
-        # 转换颜色空间
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+def process_frame(frame):
+    """处理单帧图像"""
+    global frame_processor
+    
+    if frame is None:
+        return None
         
+    # 使用多模型检测器处理帧
+    detection_result = detector.process_frame(frame)
+    if detection_result is None:
+        return None
+    
+    # 绘制检测结果
+    display_frame = detector.draw_detections(frame, detection_result)
+    
+    # 如果有参考帧，执行变形
+    if frame_processor.reference_frame is not None:
         try:
-            # 处理姿态
-            pose_results = pose.process(frame_rgb)
-            # 处理手部
-            hands_results = hands.process(frame_rgb)
-            # 处理面部
-            face_results = face_mesh.process(frame_rgb)
+            # 更新绑定并变形
+            updated_regions = pose_binding.update_binding(
+                frame_processor.regions, 
+                detection_result
+            )
             
-            # 合并所有关键点数据
-            landmarks_data = {
-                'pose': [],
-                'face': [],
-                'left_hand': [],
-                'right_hand': []
-            }
-            
-            # 添加姿态关键点
-            if pose_results.pose_landmarks:
-                for landmark in pose_results.pose_landmarks.landmark:
-                    landmarks_data['pose'].append({
-                        'x': landmark.x,
-                        'y': landmark.y,
-                        'z': landmark.z,
-                        'visibility': landmark.visibility
-                    })
-            
-            # 添加面部关键点
-            if face_results.multi_face_landmarks:
-                for landmark in face_results.multi_face_landmarks[0].landmark:
-                    landmarks_data['face'].append({
-                        'x': landmark.x,
-                        'y': landmark.y,
-                        'z': landmark.z
-                    })
-            
-            # 添加手部关键点
-            if hands_results.multi_hand_landmarks:
-                for hand_idx, hand_landmarks in enumerate(hands_results.multi_hand_landmarks):
-                    # 确定是左手还是右手
-                    handedness = hands_results.multi_handedness[hand_idx].classification[0].label
-                    hand_type = 'left_hand' if handedness == 'Left' else 'right_hand'
-                    
-                    for landmark in hand_landmarks.landmark:
-                        landmarks_data[hand_type].append({
-                            'x': landmark.x,
-                            'y': landmark.y,
-                            'z': landmark.z
-                        })
-            
-            # 发送所有关键点数据
-            if any(landmarks_data.values()):
-                socketio.emit('pose_data', landmarks_data)
-                logger.info(f"发送关键点数据: 姿态={len(landmarks_data['pose'])}, "
-                          f"面部={len(landmarks_data['face'])}, "
-                          f"左手={len(landmarks_data['left_hand'])}, "
-                          f"右手={len(landmarks_data['right_hand'])} 个关键点")
-            
-        except Exception as e:
-            logger.error(f"处理关键点时出错: {str(e)}")
-            continue
-            
-        # 转换帧格式用于传输
-        try:
-            ret, buffer = cv2.imencode('.jpg', frame)  # 直接使用原始帧
-            if not ret:
-                continue
-            frame_bytes = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        except Exception as e:
-            logger.error(f"编码帧时出错: {str(e)}")
-
-@app.route('/camera_status')
-def camera_status():
-    """获取摄像头状态"""
-    try:
-        status = {
-            "isRunning": camera_manager.is_running,
-            "fps": camera_manager.current_fps,
-            "status": "running" if camera_manager.is_running else "stopped"
-        }
-        return jsonify(status)
-    except Exception as e:
-        logger.error(f"获取摄像头状态失败: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-@socketio.on('connect')
-def handle_connect():
-    """处理客户端连接"""
-    logger.info("客户端已连接")
-    pose_sender.connect(socketio)
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    """处理客户端断开连接"""
-    logger.info("客户端已断开")
-    pose_sender.disconnect()
-
-@app.route('/api/upload_audio', methods=['POST'])
-def upload_audio():
-    """上传音频文件"""
-    try:
-        if 'audio' not in request.files:
-            return jsonify({
-                'status': 'error',
-                'message': '没有上传文件'
-            }), 400
-            
-        file = request.files['audio']
-        if file.filename == '':
-            return jsonify({
-                'status': 'error', 
-                'message': '未选择文件'
-            }), 400
-            
-        # 确保上传目录存在
-        audio_dir = os.path.join(UPLOAD_FOLDER, 'audio')
-        os.makedirs(audio_dir, exist_ok=True)
-        
-        # 保存文件
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(audio_dir, filename)
-        file.save(file_path)
-        
-        return jsonify({
-            'status': 'success',
-            'message': '音频上传成功',
-            'audio_url': os.path.join('/uploads/audio', filename)
-        })
-        
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-
-@app.route('/audio/<filename>')
-def stream_audio(filename):
-    """流式传输音频文件"""
-    def generate():
-        audio_path = os.path.join(UPLOAD_FOLDER, 'audio', filename)
-        with open(audio_path, 'rb') as audio_file:
-            data = audio_file.read(1024)
-            while data:
-                yield data
-                data = audio_file.read(1024)
+            if updated_regions:
+                deformed = pose_deformer.deform(
+                    frame_processor.reference_frame,
+                    frame_processor.reference_pose,
+                    frame,
+                    detection_result,
+                    updated_regions
+                )
                 
-    return Response(generate(), mimetype='audio/mpeg')
-
-@app.errorhandler(Exception)
-def handle_error(error):
-    """全局错误处理"""
-    logger.error(f"发生错误: {str(error)}")
-    return jsonify({
-        'success': False,
-        'error': str(error)
-    }), 500
-
-@app.route('/camera/settings', methods=['GET', 'POST'])
-def camera_settings():
-    """获取或更新相机设置"""
-    if request.method == 'GET':
-        return jsonify(camera_manager.get_settings())
-        
-    settings = request.json
-    success = camera_manager.update_settings(settings)
-    return jsonify({'success': success})
-
-@app.route('/camera/reset', methods=['POST'])
-def reset_camera():
-    """重置相机设置"""
-    success = camera_manager.reset_settings()
-    return jsonify({'success': success})
-
-@app.route('/status')
-def get_status():
-    """获取当前状态"""
-    try:
-        status = {
-            'camera': {
-                'isActive': camera_manager.is_running,
-                'fps': camera_manager.current_fps
-            },
-            'room': {
-                'isConnected': socket_manager.is_connected,
-                'roomId': socket_manager.current_room
-            }
-        }
-        return jsonify(status)
-    except Exception as e:
-        logger.error(f"获取状态失败: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/verify_identity', methods=['POST'])
-def verify_identity():
-    """验证当前人脸与参考帧是否匹配"""
-    try:
-        # 检查是否有参考帧
-        reference_path = os.path.join(project_root, 'output', 'reference.jpg')
-        if not os.path.exists(reference_path):
-            return jsonify({
-                'success': False,
-                'message': '请先捕获参考帧'
-            })
-            
-        # 获取当前帧
-        success, current_frame = camera_manager.read()
-        if not success:
-            return jsonify({
-                'success': False,
-                'message': '无法获取当前画面'
-            })
-            
-        # 读取参考帧
-        reference_frame = cv2.imread(reference_path)
-        
-        # 进行人脸验证
-        verifier = FaceVerifier()
-        if verifier.set_reference(reference_frame):
-            result = verifier.verify_face(current_frame)
-            
-            return jsonify({
-                'success': True,
-                'verification': {
-                    'passed': result.is_same_person,
-                    'confidence': float(result.confidence),
-                    'message': result.error_message
-                }
-            })
-            
-        return jsonify({
-            'success': False,
-            'message': '人脸验证初始化失败'
-        })
-        
-    except Exception as e:
-        logger.error(f"身份验证错误: {str(e)}")
-        return jsonify({
-            'success': False,
-            'message': f'错误: {str(e)}'
-        })
-
-def init_pose_system():
-    """初始化姿态处理系统"""
-    try:
-        # 初始化姿态检测器
-        logger.info("正在初始化姿态检测器...")
-        pose_detector = PoseDetector()
-        
-        # 初始化姿态绑定器
-        logger.info("正在初始化姿态绑定器...")
-        pose_binding = PoseBinding()
-        
-        # 初始化绘制器
-        logger.info("正在初始化姿态绘制器...")
-        pose_drawer = PoseDrawer()
-        
-        return pose_detector, pose_binding, pose_drawer
-        
-    except Exception as e:
-        logger.error(f"姿态系统初始化失败: {str(e)}")
-        raise
-
-async def setup_jitsi():
-    # transport = JitsiTransport(JITSI_CONFIG)
-    # meeting_manager = JitsiMeetingManager(JITSI_CONFIG)
+                if deformed is not None:
+                    # 在变形结果上显示检测结果
+                    frame_processor.deformed_frame = detector.draw_detections(
+                        deformed, 
+                        detection_result
+                    )
+                    
+        except Exception as e:
+            logger.error(f"变形处理失败: {str(e)}")
     
-    return None, None
+    return display_frame
 
-async def main():
-    # ... 其他代码 ...
+def main():
+    # 全局变量
+    reference_frame = None
+    reference_pose = None
+    regions = None
     
-    # 注释掉 Jitsi 相关的初始化和设置
-    '''
-    # 初始化 Jitsi 会议管理器
-    meeting_manager = JitsiMeetingManager(JITSI_CONFIG)
-    await meeting_manager.start()
+    # 创建显示窗口和按钮
+    create_display_window()
+    
+    # 设置鼠标回调
+    param_dict = {
+        'reference_frame': None,
+        'reference_pose': None,
+        'regions': None,
+        'pose_binding': pose_binding,
+        'current_frame': None,
+        'current_pose': None
+    }
+    cv2.setMouseCallback('Control Panel', handle_mouse_events, param_dict)
+    
+    # 启动摄像头
+    if not camera_manager.start():
+        logger.error("无法启动摄像头")
+        return
+    
+    logger.info("系统已启动")
+    logger.info("点击按钮或按键:")
+    logger.info("- C: 捕获参考帧")
+    logger.info("- R: 重置参考帧")
+    logger.info("- Q: 退出程序")
     
     try:
-        default_room_id = "default_room"
-        host_id = "host_1"
-        room_id = await meeting_manager.create_meeting(
-            room_id=default_room_id,
-            host_id=host_id
-        )
-        logger.info(f"Created default meeting room: {room_id}")
+        while True:
+            frame = camera_manager.read_frame()
+            if frame is None:
+                continue
+                
+            # 调整显示大小
+            frame = resize_frame(frame)
+            display_frame = frame.copy()
+            
+            # 处理姿态
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            pose_results = pose.process(frame_rgb)
+            
+            if pose_results.pose_landmarks:
+                # 显示姿态关键点
+                mp_drawing.draw_landmarks(
+                    display_frame,
+                    pose_results.pose_landmarks,
+                    mp_pose.POSE_CONNECTIONS
+                )
+                
+                # 转换关键点格式
+                pose_data = process_landmarks(pose_results)
+                
+                # 如果有参考帧，执行变形
+                if reference_frame is not None and pose_data is not None:
+                    try:
+                        # 更新绑定并变形
+                        updated_regions = pose_binding.update_binding(regions, pose_data)
+                        if updated_regions:
+                            deformed_frame = pose_deformer.deform(
+                                reference_frame,
+                                reference_pose,
+                                frame,
+                                pose_data,
+                                updated_regions
+                            )
+                            if deformed_frame is not None:
+                                deformed_frame = resize_frame(deformed_frame)
+                                # 在变形结果上显示姿态
+                                mp_drawing.draw_landmarks(
+                                    deformed_frame,
+                                    pose_results.pose_landmarks,
+                                    mp_pose.POSE_CONNECTIONS
+                                )
+                                cv2.imshow('Deformed', deformed_frame)
+                    except Exception as e:
+                        logger.error(f"变形处理失败: {str(e)}")
+            
+            # 更新当前帧信息到参数字典
+            if pose_results.pose_landmarks:
+                param_dict['current_frame'] = frame.copy()
+                param_dict['current_pose'] = pose_data
+            
+            # 显示原始画面
+            cv2.imshow('Original', display_frame)
+            
+            # 键盘控制
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q'):
+                logger.info("用户退出程序")
+                break
+            elif key == ord('c'):
+                if param_dict['current_pose'] is not None:
+                    capture_reference_frame(param_dict)
+            elif key == ord('r'):
+                reset_reference_frame(param_dict)
+                logger.info("已重置参考帧")
+                
     except Exception as e:
-        logger.error(f"Failed to create default meeting room: {e}")
-        raise
-    '''
-    
-    try:
-        # 直接使用 Flask 的 run 方法
-        app.run(
-            host='0.0.0.0',
-            port=5000,
-            debug=True  # 开发模式
-        )
-    except Exception as e:
-        logger.error(f"Failed to start web server: {e}")
-        raise
+        logger.error(f"程序运行错误: {str(e)}")
     finally:
-        pass
-        # await meeting_manager.stop()  # 注释掉
+        camera_manager.stop()
+        cv2.destroyAllWindows()
+        pose.close()
+        logger.info("程序已结束")
+
+def capture_reference_frame(param_dict):
+    """捕获参考帧的通用函数"""
+    if param_dict['current_pose'] is not None:
+        param_dict['reference_frame'] = param_dict['current_frame'].copy()
+        param_dict['reference_pose'] = param_dict['current_pose']
+        param_dict['regions'] = param_dict['pose_binding'].create_binding(
+            param_dict['reference_frame'], 
+            param_dict['reference_pose']
+        )
+        logger.info(f"已捕获参考帧，创建了 {len(param_dict['regions'])} 个绑定区域")
+    else:
+        logger.warning("未检测到姿态，无法捕获参考帧")
+
+def reset_reference_frame(param_dict):
+    """重置参考帧的通用函数"""
+    param_dict['reference_frame'] = None
+    param_dict['reference_pose'] = None
+    param_dict['regions'] = None
 
 if __name__ == "__main__":
-    # 配置日志
-    logging.basicConfig(level=logging.INFO)
-    
-    # 抑制 TensorFlow 和 Mediapipe 警告
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-    logging.getLogger('tensorflow').setLevel(logging.ERROR)
-    absl.logging.set_verbosity(absl.logging.ERROR)
-    logging.getLogger('mediapipe').setLevel(logging.ERROR)
-    
     try:
-        # 创建必要的目录
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        # 添加全局变量初始化
+        reference_frame = None
+        reference_pose = None
+        regions = None
         
-        # 运行主程序
-        asyncio.run(main())
+        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
     except KeyboardInterrupt:
         print("\n程序被用户中断")
     except Exception as e:
         print(f"程序出错: {e}")
         logger.exception("程序异常退出")
-    finally:
-        # 清理资源
-        cv2.destroyAllWindows()

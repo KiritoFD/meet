@@ -8,7 +8,7 @@ class Landmark:
     x: float
     y: float
     z: float
-    visibility: float
+    visibility: float = 1.0
     
     def to_dict(self) -> Dict[str, float]:
         """转换为字典格式"""
@@ -50,27 +50,26 @@ class DeformRegion:
 
 @dataclass
 class PoseData:
-    landmarks: List[Dict[str, float]]
-    timestamp: float = field(default_factory=time.time)
-    confidence: float = 1.0
+    """姿态数据类"""
+    landmarks: List[Dict[str, float]]  # 身体关键点列表
+    timestamp: float = None  # 时间戳
+    confidence: float = 1.0  # 整体置信度
+    face_landmarks: Optional[List[Dict[str, float]]] = None  # 面部关键点列表
+    hand_landmarks: Optional[List[Dict[str, float]]] = None  # 手部关键点列表
     
     def __post_init__(self):
-        """初始化后处理"""
-        self._values = None
+        if self.timestamp is None:
+            self.timestamp = time.time()
     
-    @property
-    def values(self) -> np.ndarray:
-        """获取关键点坐标数组"""
-        if self._values is None:
-            self._values = np.array([
-                [lm['x'], lm['y'], lm['z']] for lm in self.landmarks
-            ])
-        return self._values
+    def get_landmark(self, idx: int) -> Optional[Dict[str, float]]:
+        """获取指定索引的关键点"""
+        try:
+            return self.landmarks[idx]
+        except IndexError:
+            return None
     
-    def to_dict(self) -> Dict[str, Any]:
-        """转换为字典格式"""
-        return {
-            'landmarks': self.landmarks,
-            'timestamp': self.timestamp,
-            'confidence': self.confidence
-        } 
+    def is_valid(self, min_confidence: float = 0.5) -> bool:
+        """检查姿态数据是否有效"""
+        return (self.confidence >= min_confidence and 
+                len(self.landmarks) > 0 and 
+                all(lm['visibility'] >= min_confidence for lm in self.landmarks))

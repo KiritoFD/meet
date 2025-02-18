@@ -2,10 +2,9 @@ from typing import List, Dict, Optional, Tuple
 import numpy as np
 import cv2  # 用于创建并模糊蒙版
 from dataclasses import dataclass
-from .pose_data import PoseData, DeformRegion, BindingPoint
+from .pose_types import PoseData, DeformRegion, BindingPoint
 from config.settings import POSE_CONFIG
 import logging
-from .binding import BindingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -50,81 +49,121 @@ class PoseBinding:
         self.landmarks = None
         self.weights = None
         self.valid = False
-        self.keypoints = POSE_CONFIG['detector']['keypoints']
+        # 修改关键点配置访问方式
+        self.keypoints = POSE_CONFIG['detector']['body_landmarks']  # 使用 body_landmarks 而不是 keypoints
         self.connections = POSE_CONFIG['detector']['connections']
         self._last_valid_binding = None
         self._frame_size = None  # 存储当前处理图片的尺寸
         
-        # 简化区域配置，只保留基本区域
-        self.region_configs = {
-            'torso': {
-                'indices': [11, 12, 23, 24],  # 肩部和臀部关键点
-                'min_points': 3,
-                'required': True,
-                'weight_type': 'torso'
-            },
-            'left_arm': {
-                'indices': [11, 13, 15],  # 左肩、左肘、左腕
-                'min_points': 2,
-                'required': False,
-                'weight_type': 'limb'
-            },
-            'right_arm': {
-                'indices': [12, 14, 16],  # 右肩、右肘、右腕
-                'min_points': 2,
-                'required': False,
-                'weight_type': 'limb'
-            },
-            'left_leg': {
-                'indices': [23, 25, 27],  # 左髋、左膝、左踝
-                'min_points': 2,
-                'required': False
-            },
-            'right_leg': {
-                'indices': [24, 26, 28],  # 右髋、右膝、右踝
-                'min_points': 2,
-                'required': False
-            },
+        # 更新面部区域细分配置
+        self.face_indices = {
+            # 脸部轮廓区域
+            'contour_upper_right': list(range(0, 4)),      # 上部右侧
+            'contour_upper': list(range(4, 5)),           # 上部中间
+            'contour_upper_left': list(range(5, 9)),      # 上部左侧
+            'contour_left': list(range(9, 13)),           # 左侧
+            'contour_lower_left': list(range(13, 17)),    # 下部左侧
+            'contour_lower': list(range(152, 155)),       # 下巴中间
+            'contour_lower_right': list(range(155, 159)), # 下部右侧
+            'contour_right': list(range(159, 162)),       # 右侧
             
-            # 面部区域 (可选)
-            'face_contour': {
-                'indices': [10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,
-                           378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,
-                           21,54,103,67,109],
-                'min_points': 10,
-                'required': False
-            },
-            'left_eyebrow': {
-                'indices': [70,63,105,66,107,55,65],
-                'min_points': 5,
-                'required': False
-            },
-            'right_eyebrow': {
-                'indices': [336,296,334,293,300,285,295],
-                'min_points': 5,
-                'required': False
-            },
-            'left_eye': {
-                'indices': [33,246,161,160,159,158,157,173,133],
-                'min_points': 5,
-                'required': False
-            },
-            'right_eye': {
-                'indices': [362,398,384,385,386,387,388,466,263],
-                'min_points': 5,
-                'required': False
-            },
-            'nose': {
-                'indices': [168,6,197,195,5,4,1,19,94,2],
-                'min_points': 5,
-                'required': False
-            },
-            'mouth': {
-                'indices': [0,267,269,270,409,291,375,321,405,314,17,84,181,91,146,61,185,40,39,37],
-                'min_points': 10,
-                'required': False
-            }
+            # 眉毛区域
+            'right_eyebrow_outer': list(range(17, 20)),   # 右眉毛外侧
+            'right_eyebrow_center': list(range(20, 22)),  # 右眉毛中部
+            'right_eyebrow_inner': list(range(22, 24)),   # 右眉毛内侧
+            'left_eyebrow_inner': list(range(337, 339)),  # 左眉毛内侧
+            'left_eyebrow_center': list(range(339, 341)), # 左眉毛中部
+            'left_eyebrow_outer': list(range(341, 344)),  # 左眉毛外侧
+            
+            # 眼睛区域
+            'right_eye_outer': list(range(246, 248)),     # 右眼外角
+            'right_eye_upper': list(range(248, 250)),     # 右眼上部
+            'right_eye_inner': list(range(250, 252)),     # 右眼内角
+            'right_eye_lower': list(range(252, 254)),     # 右眼下部
+            'left_eye_inner': list(range(386, 388)),      # 左眼内角
+            'left_eye_upper': list(range(388, 390)),      # 左眼上部
+            'left_eye_outer': list(range(390, 392)),      # 左眼外角
+            'left_eye_lower': list(range(392, 394)),      # 左眼下部
+            
+            # 鼻子区域
+            'nose_bridge_upper': list(range(168, 170)),   # 鼻梁上部
+            'nose_bridge_center': list(range(170, 172)),  # 鼻梁中部
+            'nose_bridge_lower': list(range(172, 174)),   # 鼻梁下部
+            'nose_tip': list(range(174, 177)),           # 鼻尖
+            'nose_bottom': list(range(177, 180)),        # 鼻底
+            'nose_left': list(range(459, 463)),          # 左鼻翼
+            'nose_right': list(range(463, 467)),         # 右鼻翼
+            
+            # 嘴唇区域
+            'upper_lip_right': list(range(0, 3)),        # 上唇右侧
+            'upper_lip_center': list(range(3, 4)),       # 上唇中心
+            'upper_lip_left': list(range(4, 7)),         # 上唇左侧
+            'lower_lip_left': list(range(7, 9)),         # 下唇左侧
+            'lower_lip_center': list(range(9, 10)),      # 下唇中心
+            'lower_lip_right': list(range(10, 12)),      # 下唇右侧
+            'lip_corner_right': [61],                    # 右嘴角
+            'lip_corner_left': [291],                    # 左嘴角
+            
+            # 内唇区域
+            'inner_upper_lip_right': list(range(12, 14)), # 内上唇右侧
+            'inner_upper_lip_center': list(range(14, 15)), # 内上唇中心
+            'inner_upper_lip_left': list(range(15, 17)),  # 内上唇左侧
+            'inner_lower_lip_left': list(range(17, 19)),  # 内下唇左侧
+            'inner_lower_lip_center': list(range(19, 20)), # 内下唇中心
+            'inner_lower_lip_right': list(range(20, 22))  # 内下唇右侧
         }
+        
+        # 设置每个区域的最小点数要求
+        min_points_config = {
+            'contour': 3,     # 轮廓区域
+            'eyebrow': 2,     # 眉毛区域
+            'eye': 2,         # 眼睛区域
+            'nose': 2,        # 鼻子区域
+            'lip': 2,         # 嘴唇区域
+            'inner_lip': 2    # 内唇区域
+        }
+        
+        # 更新区域配置
+        self.region_configs = {
+            # ...existing region configs...
+        }
+        
+        # 添加面部区域配置
+        self.region_configs.update({
+            f'face_{name}': {
+                'indices': indices,
+                'min_points': self._get_min_points(name, min_points_config),
+                'required': False,
+                'weight_type': self._get_weight_type(name)
+            }
+            for name, indices in self.face_indices.items()
+        })
+
+    def _get_min_points(self, region_name: str, config: Dict[str, int]) -> int:
+        """根据区域名称获取最小点数要求"""
+        if 'contour' in region_name:
+            return config['contour']
+        elif 'eyebrow' in region_name:
+            return config['eyebrow']
+        elif 'eye' in region_name:
+            return config['eye']
+        elif 'nose' in region_name:
+            return config['nose']
+        elif 'inner_lip' in region_name:
+            return config['inner_lip']
+        elif 'lip' in region_name:
+            return config['lip']
+        return 2  # 默认值
+
+    def _get_weight_type(self, region_name: str) -> str:
+        """根据区域名称获取权重类型"""
+        if 'contour' in region_name:
+            return 'contour'
+        elif any(part in region_name for part in ['eye', 'eyebrow', 'nose']):
+            return 'feature'
+        elif 'lip' in region_name:
+            return 'deform'
+        return 'default'
 
     def create_binding(self, frame: np.ndarray, pose_data: PoseData) -> Dict[str, DeformRegion]:
         """创建图像区域与姿态的绑定关系"""

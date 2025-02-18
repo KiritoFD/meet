@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>姿态变形测试</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <button id="startBtn" onclick="startCapture()">开始捕获</button>
+            <button id="stopBtn" onclick="stopCapture()" disabled>停止捕获</button>
+            <button id="captureRefBtn" onclick="captureReference()">捕获参考帧</button>
+        </div>
+        <div class="video-container">
+            <img id="videoFeed" src="/video_feed" alt="视频流">
+        </div>
+        <div id="status"></div>
+    </div>
+    
+    <script>
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+        
+        async function startCapture() {
+            try {
+                const response = await fetch('/start_capture', {method: 'POST'});
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    updateStatus('摄像头已启动');
+                }
+            } catch (error) {
+                updateStatus('启动失败: ' + error);
+            }
+        }
+        
+        async function stopCapture() {
+            try {
+                const response = await fetch('/stop_capture', {method: 'POST'});
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                    updateStatus('摄像头已停止');
+                }
+            } catch (error) {
+                updateStatus('停止失败: ' + error);
+            }
+        }
+        
+        async function captureReference() {
+            try {
+                const response = await fetch('/capture_reference', {method: 'POST'});
+                const data = await response.json();
+                if (data.success) {
+                    updateStatus(`参考帧已捕获，创建了 ${data.regions_count} 个区域`);
+                } else {
+                    updateStatus('捕获参考帧失败: ' + data.error);
+                }
+            } catch (error) {
+                updateStatus('捕获参考帧失败: ' + error);
+            }
+        }
+    </script>
+</body>
+</html>
