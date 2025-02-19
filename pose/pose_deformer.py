@@ -565,12 +565,22 @@ class PoseDeformer:
               regions: List[DeformRegion]) -> Optional[np.ndarray]:
         """执行变形"""
         try:
-            # 修改条件判断，使用明确的检查
-            if (reference_frame is None or reference_pose is None or 
-                current_frame is None or current_pose is None or 
-                not isinstance(regions, (list, tuple)) or len(regions) == 0):
-                logger.warning("Invalid inputs for deformation")
-                return current_frame.copy() if current_frame is not None else None
+            # 验证输入
+            if not all([
+                isinstance(reference_frame, np.ndarray),
+                isinstance(current_frame, np.ndarray),
+                reference_pose is not None,
+                current_pose is not None,
+                isinstance(regions, list),
+                len(regions) > 0
+            ]):
+                logger.warning("无效的输入参数")
+                return current_frame.copy()
+            
+            # 验证图像尺寸
+            if reference_frame.shape != current_frame.shape:
+                logger.error("图像尺寸不匹配")
+                return current_frame.copy()
             
             result = current_frame.copy()
             height, width = result.shape[:2]
@@ -578,107 +588,80 @@ class PoseDeformer:
             # 处理每个变形区域
             for region in regions:
                 try:
-                    # 创建区域遮罩
-                    region_mask = np.zeros((height, width), dtype=np.uint8)
-                    
-                    # 检查绑定点
-                    if not region.binding_points:
-                        logger.warning(f"No binding points for region {region.name}")
-                        continue
-                        
-                    # 提取坐标点
-                    region_points = []
-                    for bp in region.binding_points:
-                        if isinstance(bp.local_coords, np.ndarray):
-                            coords = bp.local_coords
-                        else:
-                            coords = np.array(bp.local_coords)
-                        if coords.size >= 2:
-                            region_points.append([int(coords[0]), int(coords[1])])
-                    
-                    if len(region_points) < 3:
-                        logger.warning(f"Insufficient points for region {region.name}")
+                    # 检查区域有效性
+                    if not hasattr(region, 'binding_points') or not region.binding_points:
                         continue
                     
-                    region_points = np.array(region_points, dtype=np.int32)
-                    cv2.fillPoly(region_mask, [region_points], 255)
+                    # 计算变形矩阵
+                    transform = self._calculate_transform(
+                        region,
+                        current_pose
+                    )
                     
-                    # 计算变形
-                    transform = self._calculate_transform(region, current_pose)
                     if transform is None:
-                        logger.warning(f"Could not calculate transform for region {region.name}")
                         continue
                         
                     # 应用变形
                     warped = cv2.warpAffine(
-                        reference_frame, 
+                        reference_frame,
                         transform,
                         (width, height),
                         flags=cv2.INTER_LINEAR,
                         borderMode=cv2.BORDER_REFLECT
                     )
                     
-                    # 创建平滑边缘
-                    edge_mask = cv2.GaussianBlur(region_mask, (21, 21), 11)
-                    edge_mask = edge_mask.astype(float) / 255.0
-                    edge_mask = np.stack([edge_mask] * 3, axis=2)
-                    
-                    # 混合结果 - 使用 np.where 替代布尔索引
-                    result = np.where(edge_mask > 0, 
-                                    result * (1 - edge_mask) + warped * edge_mask,
-                                    result)
+                    # 应用蒙版
+                    if region.mask is not None:
+                        mask = region.mask.astype(float) / 255.0
+                        mask = np.stack([mask] * 3, axis=2)
+                        result = result * (1 - mask) + warped * mask
                     
                 except Exception as e:
-                    logger.error(f"Error processing region {region.name}: {str(e)}")
+                    logger.error(f"处理区域 {region.name} 失败: {str(e)}")
                     continue
-            
-            self._last_regions = regions
-            self._last_frame = result.copy()
             
             return result.astype(np.uint8)
             
         except Exception as e:
             logger.error(f"变形处理失败: {str(e)}")
-            return current_frame.copy() if current_frame is not None else None
+            return current_frame.copy()
 
-    def _calculate_transform(self, region: DeformRegion, current_pose: PoseData) -> Optional[np.ndarray]:
+    def _calculate_transform(self, region: DeformRegion, target_pose: PoseData) -> Optional[np.ndarray]:
         """计算变形矩阵"""
         try:
-            # 获取对应的当前关键点
-            curr_points = []
-            ref_points = []
+            src_points = []
+            dst_points = []
             
+            # 收集源点和目标点
             for bp in region.binding_points:
-                try:
-                    if not (0 <= bp.landmark_index < len(current_pose.landmarks)):
-                        continue
-                        
-                    curr_lm = current_pose.landmarks[bp.landmark_index]
-                    if hasattr(curr_lm, 'x') and hasattr(curr_lm, 'y'):
-                        curr_points.append([float(curr_lm.x), float(curr_lm.y)])
-                        ref_points.append([float(coord) for coord in bp.local_coords[:2]])
-                except Exception as e:
-                    logger.debug(f"Skipping point {bp.landmark_index}: {str(e)}")
-                    continue
+                # 源点: 区域中心 + 局部坐标
+                src_point = region.center + bp.local_coords
+                src_points.append(src_point)
+                
+                # 目标点: 从目标姿态获取新位置
+                if bp.landmark_index < len(target_pose.landmarks):
+                    lm = target_pose.landmarks[bp.landmark_index]
+                    if hasattr(lm, 'x'):
+                        dst_point = np.array([lm.x, lm.y], dtype=np.float32)
+                        dst_points.append(dst_point)
             
-            # 确保至少有3个点用于计算仿射变换
-            if len(curr_points) < 3 or len(ref_points) < 3:
-                # 如果点不够，添加额外的控制点
-                center = np.mean(ref_points, axis=0) if ref_points else np.array([0, 0])
-                for i in range(3 - len(ref_points)):
+            # 确保有足够的点
+            if len(src_points) < 3 or len(dst_points) < 3:
+                # 添加辅助点
+                center = np.mean(src_points, axis=0)
+                for i in range(3 - len(src_points)):
                     angle = i * 2 * np.pi / 3
-                    radius = 20  # 固定半径
+                    radius = 20
                     dx = radius * np.cos(angle)
                     dy = radius * np.sin(angle)
-                    
-                    ref_points.append([center[0] + dx, center[1] + dy])
-                    curr_points.append([center[0] + dx, center[1] + dy])
+                    aux_point = center + np.array([dx, dy])
+                    src_points.append(aux_point)
+                    dst_points.append(aux_point)  # 辅助点保持不变
             
-            # 转换为numpy数组并确保类型
-            curr_points = np.float32(curr_points[:3])  # 只使用前3个点
-            ref_points = np.float32(ref_points[:3])
-            
-            return cv2.getAffineTransform(ref_points, curr_points)
+            # 计算变换矩阵
+            src_points = np.float32(src_points[:3])
+            dst_points = np.float32(dst_points[:3])
+            return cv2.getAffineTransform(src_points, dst_points)
             
         except Exception as e:
             logger.error(f"计算变形矩阵失败: {str(e)}")

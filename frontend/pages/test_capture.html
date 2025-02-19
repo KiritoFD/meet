@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>姿态捕获与变形测试</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        .video-container {
+            display: flex;
+            gap: 20px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            min-height: 50px;
+        }
+        .video-feed {
+            border: 2px solid #333;
+            width: 640px;
+            height: 480px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <button id="startBtn" onclick="startCapture()">启动摄像头</button>
+            <button id="captureBtn" onclick="captureReference()" disabled>捕获参考帧</button>
+            <button id="resetBtn" onclick="resetCapture()" disabled>重置</button>
+        </div>
+        
+        <div class="video-container">
+            <div>
+                <h3>原始视频</h3>
+                <img id="originalFeed" class="video-feed" src="/video_feed">
+            </div>
+            <div>
+                <h3>变形结果</h3>
+                <img id="deformedFeed" class="video-feed" src="/deformed_feed">
+            </div>
+        </div>
+        
+        <div class="status" id="statusBox">状态：等待启动...</div>
+    </div>
+
+    <script>
+        const statusBox = document.getElementById('statusBox');
+        const startBtn = document.getElementById('startBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        function updateStatus(message, isError = false) {
+            statusBox.style.color = isError ? 'red' : 'black';
+            statusBox.textContent = `状态：${message}`;
+        }
+
+        async function startCapture() {
+            try {
+                startBtn.disabled = true;
+                const response = await fetch('/start_capture', {method: 'POST'});
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStatus('摄像头已启动');
+                    captureBtn.disabled = false;
+                } else {
+                    throw new Error(data.message || '启动失败');
+                }
+            } catch (error) {
+                updateStatus(error.message, true);
+                startBtn.disabled = false;
+            }
+        }
+
+        async function captureReference() {
+            try {
+                captureBtn.disabled = true;
+                updateStatus('正在捕获参考帧...');
+                
+                const response = await fetch('/capture_reference', {method: 'POST'});
+                const data = await response.json();
+                
+                if (data.success) {
+                    const details = data.details;
+                    updateStatus(`捕获成功！创建了 ${details.regions_count} 个区域\n` +
+                               `身体区域: ${details.regions_info.body}\n` +
+                               `面部区域: ${details.regions_info.face}\n` +
+                               `置信度: ${(details.confidence * 100).toFixed(1)}%`);
+                    resetBtn.disabled = false;
+                } else {
+                    throw new Error(data.message || '捕获失败');
+                }
+            } catch (error) {
+                updateStatus(error.message, true);
+                captureBtn.disabled = false;
+            }
+        }
+
+        async function resetCapture() {
+            try {
+                const response = await fetch('/reset_capture', {method: 'POST'});
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateStatus('已重置');
+                    captureBtn.disabled = false;
+                    resetBtn.disabled = true;
+                } else {
+                    throw new Error(data.message || '重置失败');
+                }
+            } catch (error) {
+                updateStatus(error.message, true);
+            }
+        }
+
+        // 定期检查摄像头状态
+        setInterval(async () => {
+            try {
+                const response = await fetch('/check_stream_status');
+                const status = await response.json();
+                
+                if (!status.video.is_streaming) {
+                    startBtn.disabled = false;
+                    captureBtn.disabled = true;
+                    updateStatus('摄像头未运行');
+                }
+            } catch (error) {
+                console.error('状态检查失败:', error);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

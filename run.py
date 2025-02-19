@@ -270,101 +270,128 @@ def capture_reference():
     global frame_processor
     
     try:
+        # 1. 基础验证
         if not camera_manager.is_running:
-            return jsonify({'success': False, 'error': 'Camera not running'}), 400
+            return jsonify({
+                'success': False, 
+                'message': '摄像头未运行'
+            }), 400
             
         frame = camera_manager.read_frame()
         if frame is None:
-            return jsonify({'success': False, 'error': 'Failed to capture frame'}), 500
+            return jsonify({
+                'success': False, 
+                'message': '无法获取摄像头画面'
+            }), 500
             
-        # 保存图像尺寸
-        frame_processor.height, frame_processor.width = frame.shape[:2]
-        
-        # 转换为 RGB
+        # 2. 检测姿态
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        
-        # 姿态检测
         pose_results = pose.process(frame_rgb)
         face_results = face_mesh.process(frame_rgb)
         
         if not pose_results.pose_landmarks:
-            return jsonify({'success': False, 'error': 'No pose detected'}), 400
+            return jsonify({
+                'success': False,
+                'message': '未检测到人物姿态'
+            }), 400
             
-        # 处理姿态关键点
+        # 3. 处理关键点
         landmarks = []
-        for landmark in pose_results.pose_landmarks.landmark:
-            landmarks.append({
-                'x': float(landmark.x),
-                'y': float(landmark.y),
-                'z': float(landmark.z),
-                'visibility': float(landmark.visibility)
-            })
+        for lm in pose_results.pose_landmarks.landmark:
+            landmarks.append(Landmark(
+                x=lm.x, 
+                y=lm.y,
+                z=lm.z,
+                visibility=lm.visibility
+            ))
             
-        # 处理面部关键点
-        face_landmarks = None
+        face_landmarks = []
         if face_results.multi_face_landmarks:
-            face_landmarks = []
             for face_landmarks_proto in face_results.multi_face_landmarks:
-                for idx, landmark in enumerate(face_landmarks_proto.landmark):
-                    face_landmarks.append({
-                        'x': float(landmark.x),
-                        'y': float(landmark.y),
-                        'z': float(landmark.z),
-                        'visibility': 1.0,
-                        'id': idx
-                    })
-            logger.info(f"检测到 {len(face_landmarks)} 个面部关键点")
+                for lm in face_landmarks_proto.landmark:
+                    face_landmarks.append(Landmark(
+                        x=lm.x,
+                        y=lm.y,
+                        z=lm.z
+                    ))
             
-        # 创建并保存 PoseData 对象
+        # 4. 创建姿态数据
         pose_data = PoseData(
             landmarks=landmarks,
             face_landmarks=face_landmarks,
-            timestamp=time.time(),
-            confidence=sum(lm['visibility'] for lm in landmarks) / len(landmarks)
+            timestamp=time.time()
         )
         
-        # 保存参考帧和姿态数据
+        # 5. 保存参考数据
         frame_processor.reference_frame = frame.copy()
         frame_processor.reference_pose = pose_data
         
-        # 创建绑定区域并立即开始变形
-        try:
-            regions = pose_binding.create_binding(frame, pose_data)
-            if regions:
-                frame_processor.regions = regions
-                regions_info = {
-                    'body': len([r for r in regions if r.type == 'body']),
-                    'face': len([r for r in regions if r.type == 'face'])
-                }
-                logger.info(f"创建了 {len(regions)} 个绑定区域 "
-                        f"(身体: {regions_info['body']}, 面部: {regions_info['face']})")
-                
-                # 立即进行第一次变形
-                deformed = pose_deformer.deform(
-                    frame_processor.reference_frame,
-                    frame_processor.reference_pose,
-                    frame,
-                    pose_data,
-                    regions
-                )
-                if deformed is not None:
-                    frame_processor.deformed_frame = deformed
-                
-                return jsonify({
-                    'success': True,
-                    'regions_count': len(regions),
-                    'details': regions_info
-                })
-            else:
-                raise ValueError("未能创建有效的绑定区域")
-                
-        except Exception as e:
-            logger.error(f"创建绑定区域失败: {str(e)}")
-            return jsonify({'success': False, 'error': str(e)}), 500
+        # 6. 创建绑定区域
+        regions = pose_binding.create_binding(frame, pose_data)
+        if not regions:
+            raise ValueError("未能创建有效的绑定区域")
             
+        frame_processor.regions = regions
+        
+        # 7. 分析区域信息
+        regions_info = {
+            'body': len([r for r in regions if r.type == 'body']),
+            'face': len([r for r in regions if r.type == 'face'])
+        }
+        
+        # 8. 执行初始变形
+        deformed = pose_deformer.deform(
+            frame_processor.reference_frame,
+            frame_processor.reference_pose,
+            frame,
+            pose_data,
+            regions
+        )
+        
+        if deformed is not None:
+            frame_processor.deformed_frame = deformed
+            
+        return jsonify({
+            'success': True,
+            'message': '参考帧捕获成功',
+            'details': {
+                'regions_count': len(regions),
+                'regions_info': regions_info,
+                'confidence': float(pose_data.confidence)
+            }
+        })
+        
     except Exception as e:
-        logger.error(f"捕获参考帧失败: {str(e)}")
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logger.error(f"捕获失败: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@app.route('/test')
+def test_page():
+    """渲染测试页面"""
+    return render_template('test_capture.html')
+
+@app.route('/reset_capture', methods=['POST'])
+def reset_capture():
+    """重置捕获状态"""
+    try:
+        frame_processor.reference_frame = None
+        frame_processor.reference_pose = None
+        frame_processor.regions = None
+        frame_processor.deformed_frame = None
+        
+        return jsonify({
+            'success': True,
+            'message': '重置成功'
+        })
+    except Exception as e:
+        logger.error(f"重置失败: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
 
 def process_frame(frame):
     """处理单帧图像"""

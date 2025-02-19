@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Union
 import time
 import numpy as np
 
 @dataclass
 class Landmark:
+    """姿态关键点"""
     x: float
     y: float
     z: float
@@ -21,41 +22,28 @@ class Landmark:
 
 @dataclass
 class BindingPoint:
-    """变形控制点"""
-    x: float
-    y: float
-    weight: float = 1.0
-    
-    def to_array(self) -> np.ndarray:
-        """转换为数组格式"""
-        return np.array([self.x, self.y])
+    """变形绑定点"""
+    landmark_index: int  # 对应的关键点索引
+    local_coords: np.ndarray  # 相对于区域中心的局部坐标
+    weight: float  # 权重值
 
 @dataclass
 class DeformRegion:
     """变形区域"""
-    name: str
-    points: List[BindingPoint]
-    center: Optional[Tuple[float, float]] = None
-    radius: float = 0.0
-    
-    def __post_init__(self):
-        """初始化后处理"""
-        if self.center is None:
-            # 计算区域中心
-            points = np.array([p.to_array() for p in self.points])
-            self.center = tuple(points.mean(axis=0))
-            # 计算区域半径
-            distances = np.linalg.norm(points - self.center, axis=1)
-            self.radius = distances.max()
+    name: str  # 区域名称
+    center: np.ndarray  # 区域中心点
+    binding_points: List[BindingPoint]  # 绑定点列表
+    mask: np.ndarray  # 区域蒙版
+    type: str  # 区域类型（'body' 或 'face'）
 
 @dataclass
 class PoseData:
-    """姿态数据类"""
-    landmarks: List[Dict[str, float]]  # 身体关键点列表
-    timestamp: float = None  # 时间戳
-    confidence: float = 1.0  # 整体置信度
-    face_landmarks: Optional[List[Dict[str, float]]] = None  # 面部关键点列表
-    hand_landmarks: Optional[List[Dict[str, float]]] = None  # 手部关键点列表
+    """姿态数据"""
+    landmarks: List[Landmark]  # 关键点列表
+    timestamp: float = time.time()  # 时间戳
+    confidence: float = 1.0  # 置信度
+    face_landmarks: Optional[List[Landmark]] = None  # 面部关键点
+    hand_landmarks: Optional[List[Landmark]] = None  # 手部关键点
     
     def __post_init__(self):
         if self.timestamp is None:

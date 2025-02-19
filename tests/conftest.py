@@ -176,3 +176,26 @@ def setup_test_env():
     """设置测试环境"""
     # 这里可以添加其他测试环境设置
     pass
+
+import pytest
+import os
+import cv2
+import logging
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@pytest.fixture(scope="session")
+def test_data_dir():
+    """设置测试数据目录"""
+    data_dir = os.path.join(os.path.dirname(__file__), 'test_data')
+    os.makedirs(data_dir, exist_ok=True)
+    return data_dir
+
+@pytest.fixture(scope="session")
+def camera():
+    """提供摄像头对象"""
+    cap = cv2.VideoCapture(0)
+    yield cap
+    cap.release()
