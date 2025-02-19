@@ -111,33 +111,38 @@ def resize_frame(frame, max_height=300):
         frame = cv2.resize(frame, (new_width, max_height))
     return frame
 
-def process_landmarks(pose_results):
-    """处理姿态关键点"""
-    if not pose_results.pose_landmarks:
+def process_landmarks(pose_results, face_results=None):
+    """处理姿态和面部检测结果，创建 PoseData 对象"""
+    if not pose_results or not pose_results.pose_landmarks:
         return None
         
-    try:
-        # 处理身体关键点
-        landmarks = []
-        for landmark in pose_results.pose_landmarks.landmark:
-            landmarks.append({
-                'x': float(landmark.x),
-                'y': float(landmark.y),
-                'z': float(landmark.z),
-                'visibility': float(landmark.visibility)
-            })
+    # 处理姿态关键点
+    landmarks = []
+    for lm in pose_results.pose_landmarks.landmark:
+        landmarks.append(Landmark(
+            x=lm.x,
+            y=lm.y,
+            z=lm.z,
+            visibility=getattr(lm, 'visibility', 1.0)
+        ))
         
-        face_landmarks = None  # 默认为 None
-        return PoseData(
-            landmarks=landmarks,
-            face_landmarks=face_landmarks,
-            timestamp=time.time(),
-            confidence=sum(lm['visibility'] for lm in landmarks) / len(landmarks)
-        )
-        
-    except Exception as e:
-        logger.error(f"处理关键点失败: {str(e)}")
-        return None
+    # 处理面部关键点
+    face_landmarks = []
+    if face_results and face_results.multi_face_landmarks:
+        for face_landmark in face_results.multi_face_landmarks[0].landmark:
+            face_landmarks.append(Landmark(
+                x=face_landmark.x,
+                y=face_landmark.y,
+                z=face_landmark.z,
+                visibility=1.0  # 面部关键点默认可见度为1.0
+            ))
+            
+    return PoseData(
+        landmarks=landmarks,
+        face_landmarks=face_landmarks,
+        timestamp=time.time(),
+        confidence=sum(lm.visibility for lm in landmarks) / len(landmarks)
+    )
 
 def generate_original_frames():
     """生成原始视频帧"""
@@ -267,106 +272,101 @@ def check_stream_status():
 @app.route('/capture_reference', methods=['POST'])
 def capture_reference():
     """捕获参考帧"""
-    global frame_processor
-    
     try:
-        # 1. 基础验证
+        # 首先检查摄像头状态
         if not camera_manager.is_running:
             return jsonify({
-                'success': False, 
+                'success': False,
                 'message': '摄像头未运行'
             }), 400
             
+        # 获取摄像头画面
         frame = camera_manager.read_frame()
-        if frame is None:
+        
+        # 检查是否获取到帧
+        if frame is None:  # 完全无法获取画面
             return jsonify({
-                'success': False, 
+                'success': False,
                 'message': '无法获取摄像头画面'
             }), 500
             
-        # 2. 检测姿态
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        pose_results = pose.process(frame_rgb)
-        face_results = face_mesh.process(frame_rgb)
-        
-        if not pose_results.pose_landmarks:
+        # 检查帧是否有效
+        if frame.size == 0 or frame.shape[0] == 0 or frame.shape[1] == 0:  # 空帧
+            return jsonify({
+                'success': False,
+                'message': '无效的摄像头画面'
+            }), 500
+            
+        # 检测姿态
+        pose_results = pose.process(frame)
+        if not pose_results or not pose_results.pose_landmarks:
             return jsonify({
                 'success': False,
                 'message': '未检测到人物姿态'
             }), 400
             
-        # 3. 处理关键点
-        landmarks = []
-        for lm in pose_results.pose_landmarks.landmark:
-            landmarks.append(Landmark(
-                x=lm.x, 
-                y=lm.y,
-                z=lm.z,
-                visibility=lm.visibility
-            ))
+        # 检测面部
+        face_results = face_mesh.process(frame)
+        if not face_results or not face_results.multi_face_landmarks:
+            return jsonify({
+                'success': False,
+                'message': '未检测到面部'
+            }), 400  # 确保返回元组
             
-        face_landmarks = []
-        if face_results.multi_face_landmarks:
-            for face_landmarks_proto in face_results.multi_face_landmarks:
-                for lm in face_landmarks_proto.landmark:
-                    face_landmarks.append(Landmark(
-                        x=lm.x,
-                        y=lm.y,
-                        z=lm.z
-                    ))
+        # 创建姿态数据
+        pose_data = process_landmarks(pose_results, face_results)
+        if not pose_data:
+            return jsonify({
+                'success': False,
+                'message': '处理姿态数据失败'
+            }), 500  # 确保返回元组
             
-        # 4. 创建姿态数据
-        pose_data = PoseData(
-            landmarks=landmarks,
-            face_landmarks=face_landmarks,
-            timestamp=time.time()
-        )
-        
-        # 5. 保存参考数据
-        frame_processor.reference_frame = frame.copy()
-        frame_processor.reference_pose = pose_data
-        
-        # 6. 创建绑定区域
+        # 检查姿态数据的完整性
+        if len(pose_data.landmarks) < 33:
+            return jsonify({
+                'success': False,
+                'message': '检测到的关键点不完整'
+            }), 400  # 确保返回元组
+            
+        # 检查关键点可见度
+        visible_points = [lm for lm in pose_data.landmarks if lm.visibility > 0.5]
+        if len(visible_points) < 15:
+            return jsonify({
+                'success': False,
+                'message': '姿态检测置信度过低'
+            }), 400  # 确保返回元组
+            
+        # 创建绑定区域
         regions = pose_binding.create_binding(frame, pose_data)
         if not regions:
-            raise ValueError("未能创建有效的绑定区域")
+            return jsonify({
+                'success': False,
+                'message': '创建绑定区域失败'
+            }), 500  # 确保返回元组
             
+        # 保存参考帧和姿态数据
+        frame_processor.reference_frame = frame.copy()
+        frame_processor.reference_pose = pose_data
         frame_processor.regions = regions
-        
-        # 7. 分析区域信息
-        regions_info = {
-            'body': len([r for r in regions if r.type == 'body']),
-            'face': len([r for r in regions if r.type == 'face'])
-        }
-        
-        # 8. 执行初始变形
-        deformed = pose_deformer.deform(
-            frame_processor.reference_frame,
-            frame_processor.reference_pose,
-            frame,
-            pose_data,
-            regions
-        )
-        
-        if deformed is not None:
-            frame_processor.deformed_frame = deformed
             
+        # 返回成功结果
         return jsonify({
             'success': True,
-            'message': '参考帧捕获成功',
             'details': {
-                'regions_count': len(regions),
-                'regions_info': regions_info,
-                'confidence': float(pose_data.confidence)
+                'regions_info': {
+                    'body': len([r for r in regions if r.type == 'body']),
+                    'face': len([r for r in regions if r.type == 'face'])
+                },
+                'reference_frame': frame.tolist()
             }
-        })
-        
+        }), 200  # 确保返回元组
+            
     except Exception as e:
-        logger.error(f"捕获失败: {str(e)}")
+        logger.error(f"捕获失败: {e}")
         return jsonify({
             'success': False,
-            'message': str(e)
-        }), 500
+            'message': f'捕获失败: {str(e)}'
+        }), 500  # 确保返回元组
 
 @app.route('/test')
 def test_page():

@@ -199,3 +199,17 @@ def camera():
     cap = cv2.VideoCapture(0)
     yield cap
     cap.release()
+
+# 添加项目根目录到 Python 路径
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+
+# 添加共享的 fixtures
+@pytest.fixture(scope="session")
+def project_path():
+    return project_root
+
+@pytest.fixture(autouse=True)
+def setup_test_env():
+    # 在这里可以添加任何测试环境的设置
+    pass
