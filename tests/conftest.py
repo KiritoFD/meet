@@ -1,53 +1,23 @@
 import os
 import sys
 from pathlib import Path
+import pytest
+import logging
+import numpy as np
+from unittest.mock import Mock, AsyncMock
+from typing import Dict, Optional
 
-# 获取项目根目录并添加到 Python 路径
+# Get project root and add to Python path
 project_root = str(Path(__file__).parent.parent.absolute())
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-import pytest
-import logging
-import numpy as np
-import random
-from unittest.mock import Mock, AsyncMock
-from typing import Dict, Optional
-
-# 延迟导入
-def get_jwt():
-    try:
-        import jwt
-        return jwt
-    except ImportError:
-        return None
-
-def get_cv2():
-    try:
-        import cv2
-        return cv2
-    except ImportError:
-        return None
-
-@pytest.fixture
-def jwt():
-    """提供jwt模块"""
-    jwt = get_jwt()
-    if jwt is None:
-        pytest.skip("PyJWT not available")
-    return jwt
-
-# 打印调试信息
-print(f"Current working directory: {os.getcwd()}")
-print(f"Project root: {project_root}")
-print(f"Python path: {sys.path}")
-
-# 创建输出目录
+# Configure output directory
 output_dir = os.path.join(project_root, 'output')
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-# 配置日志输出到文件
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -57,37 +27,94 @@ logging.basicConfig(
     ]
 )
 
-@pytest.fixture(scope="session")
+# Global cv2 instance to prevent recursion
+_cv2 = None
+
+def _cleanup_cv2():
+    """Clean up cv2 related imports and paths"""
+    # Remove cv2 from sys.modules to prevent recursion
+    cv2_related = [name for name in sys.modules if 'cv2' in name]
+    for name in cv2_related:
+        del sys.modules[name]
+    # Clean up Python path
+    sys.path = [p for p in sys.path if 'cv2' not in p]
+
+@pytest.fixture(scope='session')
+def cv2():
+    """Provide cv2 module with lazy loading and recursion prevention"""
+    global _cv2
+    if _cv2 is None:
+        try:
+            _cleanup_cv2()
+            import cv2 as cv2_import
+            _cv2 = cv2_import
+        except ImportError:
+            pytest.skip("OpenCV (cv2) not available")
+    return _cv2
+
+@pytest.fixture(autouse=True)
+def _prevent_cv2_recursion():
+    """Automatically clean up cv2 imports before each test"""
+    _cleanup_cv2()
+    yield
+    _cleanup_cv2()
+
+@pytest.fixture(scope='session')
+def jwt():
+    """Provide JWT module with lazy loading"""
+    try:
+        import jwt
+        return jwt
+    except ImportError:
+        pytest.skip("PyJWT not available")
+
+@pytest.fixture(scope='session')
 def test_frame(cv2):
-    """创建测试用的图像帧"""
-    if cv2 is None:
-        pytest.skip("OpenCV (cv2) not available")
+    """Create test image frame"""
     frame = np.zeros((480, 640, 3), dtype=np.uint8)
-    # 添加一些特征以便测试
     cv2.circle(frame, (320, 240), 50, (255, 255, 255), -1)
     cv2.rectangle(frame, (100, 100), (200, 200), (128, 128, 128), -1)
     return frame
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def test_pose_data():
-    """创建测试用的姿态数据"""
+    """Create test pose data"""
     return {
         'landmarks': [
             {'x': 0.5, 'y': 0.5, 'z': 0.0, 'visibility': 1.0}
-            for _ in range(33)  # MediaPipe标准关键点数量
+            for _ in range(33)
         ]
     }
 
-@pytest.fixture
-def cv2():
-    """提供cv2模块，如果不可用则跳过测试"""
-    cv2 = get_cv2()
-    if cv2 is None:
-        pytest.skip("OpenCV (cv2) not available")
-    return cv2
+@pytest.fixture(scope='session')
+def mock_camera_manager():
+    """Create mock camera manager"""
+    manager = Mock()
+    manager.is_running = True
+    manager.read_frame.return_value = np.zeros((480, 640, 3), dtype=np.uint8)
+    return manager
 
-@pytest.fixture
+@pytest.fixture(scope='session')
+def mock_pose():
+    """Create mock pose detector"""
+    pose = Mock()
+    pose.process.return_value = Mock(
+        pose_landmarks=Mock(
+            landmark=[Mock(x=0.5, y=0.5, z=0.0, visibility=0.9) for _ in range(33)]
+        )
+    )
+    return pose
+
+@pytest.fixture(scope='session')
+def mock_face_mesh():
+    """Create mock face mesh detector"""
+    face_mesh = Mock()
+    face_mesh.process.return_value = Mock(multi_face_landmarks=[Mock()])
+    return face_mesh
+
+@pytest.fixture(scope='session')
 def config():
+    """Provide test configuration"""
     return {
         'sender': {
             'queue_size': 1000,
@@ -99,117 +126,19 @@ def config():
             'max_pose_size': 1024 * 1024,
             'batch_size': 10
         },
-        'jwt': {
-            'secret_key': 'test_secret_key',
-            'token_expiry': 3600
+        'camera': {
+            'width': 640,
+            'height': 480,
+            'fps': 30
+        },
+        'pose': {
+            'min_detection_confidence': 0.5,
+            'min_tracking_confidence': 0.5
         }
     }
 
-@pytest.fixture
-def jwt_handler(config):
-    """创建JWT处理器"""
-    from lib.jwt_utils import JWTHandler
-    return JWTHandler(config['jwt']['secret_key'])
-
-@pytest.fixture
-def auth_token(jwt_handler):
-    """创建测试用的认证令牌"""
-    return jwt_handler.generate_token('test_user')
-
-@pytest.fixture
-def mock_socket():
-    socket = Mock()
-    socket.connected = True
-    socket.emit = Mock(return_value=True)
-    return socket
-
-@pytest.fixture(scope="session")
-def event_loop_policy():
-    """提供事件循环策略"""
-    import asyncio
-    return asyncio.WindowsSelectorEventLoopPolicy()
-
-def generate_test_pose(landmark_count: int = 33) -> dict:
-    """生成测试姿态数据"""
-    return {
-        'landmarks': [
-            {
-                'x': random.random(),
-                'y': random.random(),
-                'z': random.random(),
-                'visibility': random.random()
-            }
-            for _ in range(landmark_count)
-        ]
-    }
-
-def generate_test_audio(duration: float = 1.0) -> bytes:
-    """生成测试音频数据"""
-    sample_rate = 44100
-    samples = np.random.random(int(duration * sample_rate))
-    return samples.tobytes()
-
-def pytest_configure(config):
-    """配置pytest"""
-    # 添加输出目录到pytest配置
-    config.option.output_dir = output_dir
-    
-    # 初始化metadata字典
-    if not hasattr(config, '_metadata'):
-        config._metadata = {}
-    
-    # 添加项目信息到metadata
-    config._metadata.update({
-        'Project': 'Avatar System',
-        'output_dir': str(output_dir)
-    })
-
-def pytest_sessionstart(session):
-    """测试会话开始时的处理"""
-    # 清理旧的测试报告
-    for file in os.listdir(output_dir):
-        if file.endswith('.xml') or file.endswith('.html'):
-            os.remove(os.path.join(output_dir, file))
-
 @pytest.fixture(autouse=True)
-def setup_test_env():
-    """设置测试环境"""
-    # 这里可以添加其他测试环境设置
-    pass
-
-import pytest
-import os
-import cv2
-import logging
-
-# 配置日志
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-@pytest.fixture(scope="session")
-def test_data_dir():
-    """设置测试数据目录"""
-    data_dir = os.path.join(os.path.dirname(__file__), 'test_data')
-    os.makedirs(data_dir, exist_ok=True)
-    return data_dir
-
-@pytest.fixture(scope="session")
-def camera():
-    """提供摄像头对象"""
-    cap = cv2.VideoCapture(0)
-    yield cap
-    cap.release()
-
-# 添加项目根目录到 Python 路径
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
-
-# 添加共享的 fixtures
-@pytest.fixture(scope="session")
-def project_path():
-    return project_root
-
-@pytest.fixture(autouse=True)
-def setup_test_env():
-    # 在这里可以添加任何测试环境的设置
-    pass
+def cleanup():
+    """Cleanup after each test"""
+    yield
+    # Add cleanup code here if needed

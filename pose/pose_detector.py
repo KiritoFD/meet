@@ -37,12 +37,12 @@ class PoseDetector:
         # MediaPipe配置
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(
-            static_image_mode=True,
+            static_image_mode=False,  # 改为动态模式以提高性能
             model_complexity=2,
-            smooth_landmarks=False,
+            smooth_landmarks=True,  # 启用平滑以提高稳定性
             enable_segmentation=False,
-            min_detection_confidence=0.3,
-            min_tracking_confidence=0.3
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5
         )
         
         # 检测参数
@@ -50,9 +50,30 @@ class PoseDetector:
         self._smooth_factor = config['smooth_factor']
         self._last_pose = None
         
+    def release(self):
+        """释放资源"""
+        if self.pose:
+            self.pose.close()
+            
+    def __del__(self):
+        """析构函数"""
+        self.release()
     def detect(self, frame: np.ndarray) -> Optional[PoseData]:
-        """检测单帧图像中的姿态"""
-        if frame is None:
+        """检测单帧图像中的姿态
+        
+        Args:
+            frame: 输入图像帧
+            
+        Returns:
+            Optional[PoseData]: 姿态数据，检测失败返回None
+        """
+        # 输入验证
+        if frame is None or frame.size == 0:
+            logger.warning("输入帧为空或无效")
+            return None
+            
+        if len(frame.shape) != 3 or frame.shape[2] != 3:
+            logger.warning(f"输入帧格式错误: shape={frame.shape}")
             return None
             
         try:
@@ -61,18 +82,30 @@ class PoseDetector:
             
             # MediaPipe处理
             results = self.pose.process(rgb_frame)
-            if not results.pose_landmarks:
+            if not results or not results.pose_landmarks:
+                logger.debug("未检测到姿态")
                 return None
                 
             # 提取关键点
             landmarks = []
+            visible_points = 0
+            
             for landmark in results.pose_landmarks.landmark:
+                visibility = float(landmark.visibility)
+                if visibility > 0.5:
+                    visible_points += 1
+                    
                 landmarks.append(Landmark(
                     x=float(landmark.x),
                     y=float(landmark.y),
                     z=float(landmark.z),
-                    visibility=float(landmark.visibility)
+                    visibility=visibility
                 ))
+                
+            # 验证关键点数量
+            if len(landmarks) < 33 or visible_points < 15:
+                logger.warning(f"检测到的关键点不足: 总数={len(landmarks)}, 可见点={visible_points}")
+                return None
                 
             # 创建姿态数据
             pose_data = PoseData(
@@ -88,6 +121,9 @@ class PoseDetector:
             
             return pose_data
             
+        except cv2.error as e:
+            logger.error(f"OpenCV错误: {str(e)}")
+            return None
         except Exception as e:
             logger.error(f"姿态检测失败: {str(e)}")
             return None
@@ -118,8 +154,3 @@ class PoseDetector:
             timestamp=curr_pose.timestamp,
             confidence=curr_pose.confidence
         )
-
-    def release(self):
-        """释放资源"""
-        if self.pose:
-            self.pose.close()

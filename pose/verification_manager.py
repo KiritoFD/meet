@@ -37,30 +37,52 @@ class VerificationManager:
             VerificationResult: 验证结果
         """
         try:
+            # 0. 验证输入
+            if frame is None or frame.size == 0 or len(frame.shape) != 3:
+                return VerificationResult(
+                    success=False,
+                    message="无效的输入图像"
+                )
+
             # 1. 检测姿态
             pose_data = self.detector.detect(frame)
             if not pose_data:
                 return VerificationResult(
                     success=False,
-                    message="未检测到人物姿态"
+                    message="未检测到人物姿态，请确保人物完整出现在画面中"
                 )
             
-            # 2. 检查面部关键点
+            # 2. 检查姿态关键点
+            if len(pose_data.landmarks) < 33:
+                return VerificationResult(
+                    success=False,
+                    message=f"检测到的关键点不完整: {len(pose_data.landmarks)}/33，请调整姿势"
+                )
+
+            # 检查关键点可见度
+            visible_points = [lm for lm in pose_data.landmarks if lm.visibility > 0.5]
+            if len(visible_points) < 15:
+                return VerificationResult(
+                    success=False,
+                    message=f"姿态检测置信度过低: {len(visible_points)}/33 个关键点可见，请调整位置和光线"
+                )
+            
+            # 3. 检查面部关键点
             if not pose_data.face_landmarks or len(pose_data.face_landmarks) < 50:
                 return VerificationResult(
                     success=False,
-                    message="未检测到足够的面部特征点"
+                    message="未检测到足够的面部特征点，请确保面部清晰可见"
                 )
             
-            # 3. 创建绑定区域
+            # 4. 创建绑定区域
             regions = self.binder.create_binding(frame, pose_data)
             if not regions:
                 return VerificationResult(
                     success=False,
-                    message="无法创建有效的绑定区域"
+                    message="无法创建有效的绑定区域，请调整姿势"
                 )
             
-            # 4. 保存参考数据
+            # 5. 保存参考数据
             self.reference_data = {
                 'pose': pose_data,
                 'regions': regions,

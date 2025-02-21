@@ -273,8 +273,11 @@ def check_stream_status():
 def capture_reference():
     """捕获参考帧"""
     try:
+        logger.info("开始捕获参考帧")
+        
         # 首先检查摄像头状态
         if not camera_manager.is_running:
+            logger.warning("摄像头未运行")
             return jsonify({
                 'success': False,
                 'message': '摄像头未运行'
@@ -285,70 +288,100 @@ def capture_reference():
         
         # 检查是否获取到帧
         if frame is None:  # 完全无法获取画面
+            logger.error("无法获取摄像头画面")
             return jsonify({
                 'success': False,
                 'message': '无法获取摄像头画面'
             }), 500
             
         # 检查帧是否有效
-        if frame.size == 0 or frame.shape[0] == 0 or frame.shape[1] == 0:  # 空帧
+        if frame is None or frame.size == 0 or len(frame.shape) != 3 or frame.shape[0] == 0 or frame.shape[1] == 0:  # 空帧或无效帧
+            logger.error(f"无效的摄像头画面: shape={frame.shape if frame is not None else 'None'}, size={frame.size if frame is not None else 0}")
             return jsonify({
                 'success': False,
-                'message': '无效的摄像头画面'
+                'message': '无效的摄像头画面，请检查摄像头连接'
             }), 500
             
+        # 保存原始帧用于调试
+        debug_dir = os.path.join('debug_output')
+        os.makedirs(debug_dir, exist_ok=True)
+        cv2.imwrite(os.path.join(debug_dir, 'original_frame.png'), frame)
+        
         # 检测姿态
-        pose_results = pose.process(frame)
-        if not pose_results or not pose_results.pose_landmarks:
+        logger.info("开始姿态检测")
+        try:
+            pose_results = pose.process(frame)
+        except Exception as e:
+            logger.error(f"姿态检测失败: {str(e)}")
             return jsonify({
                 'success': False,
-                'message': '未检测到人物姿态'
+                'message': '姿态检测失败，请重试'
+            }), 500
+        if not pose_results or not pose_results.pose_landmarks:
+            logger.warning("未检测到人物姿态")
+            return jsonify({
+                'success': False,
+                'message': '未检测到人物姿态，请确保人物完整出现在画面中'
             }), 400
             
         # 检测面部
+        logger.info("开始面部检测")
         face_results = face_mesh.process(frame)
         if not face_results or not face_results.multi_face_landmarks:
+            logger.warning("未检测到面部")
             return jsonify({
                 'success': False,
-                'message': '未检测到面部'
-            }), 400  # 确保返回元组
+                'message': '未检测到面部，请确保面部清晰可见'
+            }), 400
             
         # 创建姿态数据
+        logger.info("处理姿态数据")
         pose_data = process_landmarks(pose_results, face_results)
         if not pose_data:
+            logger.error("处理姿态数据失败")
             return jsonify({
                 'success': False,
                 'message': '处理姿态数据失败'
-            }), 500  # 确保返回元组
+            }), 500
             
         # 检查姿态数据的完整性
         if len(pose_data.landmarks) < 33:
+            logger.warning(f"检测到的关键点不完整: {len(pose_data.landmarks)}/33")
             return jsonify({
                 'success': False,
-                'message': '检测到的关键点不完整'
-            }), 400  # 确保返回元组
+                'message': f'检测到的关键点不完整: {len(pose_data.landmarks)}/33，请调整姿势'
+            }), 400
             
         # 检查关键点可见度
         visible_points = [lm for lm in pose_data.landmarks if lm.visibility > 0.5]
         if len(visible_points) < 15:
+            logger.warning(f"姿态检测置信度过低: {len(visible_points)}/33 个关键点可见")
             return jsonify({
                 'success': False,
-                'message': '姿态检测置信度过低'
-            }), 400  # 确保返回元组
+                'message': f'姿态检测置信度过低: {len(visible_points)}/33 个关键点可见，请调整位置和光线'
+            }), 400
             
         # 创建绑定区域
+        logger.info("创建绑定区域")
         regions = pose_binding.create_binding(frame, pose_data)
         if not regions:
+            logger.error("创建绑定区域失败")
             return jsonify({
                 'success': False,
                 'message': '创建绑定区域失败'
-            }), 500  # 确保返回元组
+            }), 500
             
         # 保存参考帧和姿态数据
         frame_processor.reference_frame = frame.copy()
         frame_processor.reference_pose = pose_data
         frame_processor.regions = regions
+        
+        # 保存调试信息
+        debug_frame = frame.copy()
+        draw_pose_landmarks(debug_frame, pose_data)
+        cv2.imwrite(os.path.join(debug_dir, 'pose_detection.png'), debug_frame)
             
+        logger.info("参考帧捕获成功")
         # 返回成功结果
         return jsonify({
             'success': True,
@@ -357,16 +390,20 @@ def capture_reference():
                     'body': len([r for r in regions if r.type == 'body']),
                     'face': len([r for r in regions if r.type == 'face'])
                 },
+                'landmarks_info': {
+                    'total': len(pose_data.landmarks),
+                    'visible': len(visible_points)
+                },
                 'reference_frame': frame.tolist()
             }
-        }), 200  # 确保返回元组
+        }), 200
             
     except Exception as e:
-        logger.error(f"捕获失败: {e}")
+        logger.error(f"捕获失败: {str(e)}")
         return jsonify({
             'success': False,
             'message': f'捕获失败: {str(e)}'
-        }), 500  # 确保返回元组
+        }), 500
 
 @app.route('/test')
 def test_page():
@@ -565,6 +602,41 @@ def reset_reference_frame(param_dict):
     param_dict['reference_frame'] = None
     param_dict['reference_pose'] = None
     param_dict['regions'] = None
+
+def draw_pose_landmarks(frame, pose_data):
+    """在图像上绘制姿态关键点和连接"""
+    if not pose_data or not pose_data.landmarks:
+        return frame
+        
+    # 绘制关键点
+    h, w = frame.shape[:2]
+    for landmark in pose_data.landmarks:
+        if landmark.visibility > 0.5:
+            x = int(landmark.x * w)
+            y = int(landmark.y * h)
+            cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
+            
+    # 绘制连接线
+    for connection in mp_pose.POSE_CONNECTIONS:
+        start_idx = connection[0]
+        end_idx = connection[1]
+        
+        if (start_idx < len(pose_data.landmarks) and 
+            end_idx < len(pose_data.landmarks) and
+            pose_data.landmarks[start_idx].visibility > 0.5 and
+            pose_data.landmarks[end_idx].visibility > 0.5):
+            
+            start_point = (
+                int(pose_data.landmarks[start_idx].x * w),
+                int(pose_data.landmarks[start_idx].y * h)
+            )
+            end_point = (
+                int(pose_data.landmarks[end_idx].x * w),
+                int(pose_data.landmarks[end_idx].y * h)
+            )
+            cv2.line(frame, start_point, end_point, (255, 0, 0), 2)
+            
+    return frame
 
 if __name__ == "__main__":
     try:
