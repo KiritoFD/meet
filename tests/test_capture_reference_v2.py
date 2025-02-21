@@ -204,10 +204,23 @@ class TestCaptureReference:
     
     def test_low_visibility_landmarks(self, mock_camera_manager, mock_pose, mock_face_mesh):
         """测试关键点可见度过低的情况"""
+        # 设置姿态检测结果
+        pose_results = Mock()
+        pose_results.pose_landmarks = Mock()
         landmarks = [Mock() for _ in range(33)]
         for lm in landmarks:
+            lm.x = 0.5
+            lm.y = 0.5
+            lm.z = 0.0
             lm.visibility = 0.1  # 设置低可见度
-        mock_pose.process.return_value.pose_landmarks.landmark = landmarks
+        pose_results.pose_landmarks.landmark = landmarks
+        mock_pose.process.return_value = pose_results
+        
+        # 设置面部检测结果
+        face_results = Mock()
+        face_results.multi_face_landmarks = [Mock()]
+        face_results.multi_face_landmarks[0].landmark = [Mock() for _ in range(468)]
+        mock_face_mesh.process.return_value = face_results
         
         with app.app_context():
             with patch('run.camera_manager', mock_camera_manager), \
