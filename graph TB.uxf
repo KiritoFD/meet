@@ -1,0 +1,82 @@
+@startuml PoseSystem
+
+skinparam {
+  componentStyle uml2
+  linetype ortho
+  padding 2
+  nodesep 10
+  ranksep 20
+  backgroundColor white
+  groupInheritance 2
+}
+
+package "1. 姿态捕捉层" as PoseCapture {
+    [Camera Service] as Camera #ffcdd2
+    [Pose Detector] as Pose #ffcdd2
+    note right of Camera: 30fps,640x480视频采集
+    note right of Pose: MediaPipe实时检测(468+33+42点)
+}
+
+package "2. 姿态处理层" as PoseProcessing {
+    [Pose Smoother] as Smoother #e3f2fd
+    [Auto Center] as Center #e3f2fd
+    [3D Converter] as ThreeD #e3f2fd
+    note right of Smoother: 卡尔曼滤波平滑
+    note right of Center: 姿态数据自动居中
+    note right of ThreeD: 裸眼3D转换
+}
+
+package "3. 传输层" as Transmission {
+    [Pose Sender] as PoseSender #bbdefb
+    [Socket Manager] as SocketManager #bbdefb
+    interface "Data Protocol" as Protocol
+    note right of PoseSender: 压缩传输(~10kb/s)
+}
+
+package "4. 渲染层" as Rendering {
+    [Pose Deformer] as Deformer #c8e6c9
+    [Pose Renderer] as PoseRenderer #c8e6c9
+    [WebGL Renderer] as WebGL #c8e6c9
+    note right of Deformer: 骨骼绑定与变形
+}
+
+package "支持系统" as Support {
+    together {
+        [Data Compression] as Compression
+        [Data Storage] as Storage
+    }
+    together {
+        [Performance Monitor] as Performance
+        [Metrics Collector] as Metrics
+    }
+    together {
+        [Auth Service] as Auth
+        [Error Handler] as ErrorHandler
+    }
+}
+
+' 主数据流
+Camera --> Pose : 1.1 视频流
+Pose --> Smoother : 1.2 原始姿态
+Smoother --> Center : 2.1 平滑姿态
+Center --> ThreeD : 2.2 居中姿态
+ThreeD --> PoseSender : 2.3 3D姿态
+PoseSender --> SocketManager : 3.1 压缩数据
+SocketManager --> Deformer : 3.2 传输数据
+Deformer --> PoseRenderer : 4.1 变形数据
+PoseRenderer --> WebGL : 4.2 渲染数据
+
+' 支持系统连接
+SocketManager ..|> Protocol
+Protocol --> Compression
+SocketManager --> Storage
+SocketManager --> Auth
+ErrorHandler ..> SocketManager
+Performance --> Metrics
+Camera ..> Performance
+Pose ..> Performance
+SocketManager ..> Performance
+
+note "实时姿态捕捉系统" as N1
+
+@enduml

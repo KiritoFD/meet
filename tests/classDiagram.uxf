@@ -1,0 +1,74 @@
+classDiagram
+    %% 核心管理器类
+    class SocketManager {
+        -socketio
+        -_status: ConnectionStatus
+        -security_config: SecurityConfig
+        +connect()
+        +disconnect()
+        +send_data()
+        +get_status()
+    }
+
+    class RoomManager {
+        -_rooms: Dict
+        -_members: Dict
+        +create_room()
+        +join_room()
+        +leave_room()
+        +broadcast()
+    }
+
+    class PoseSender {
+        -socket: SocketManager
+        -protocol: PoseProtocol
+        +send_pose_frame()
+        +send_audio_frame()
+        -_send_data()
+    }
+
+    %% 配置类
+    class SecurityConfig {
+        +secret_key: str
+        +token_expiry: int
+        +encryption_enabled: bool
+        +compression_level: int
+    }
+
+    class ConnectionStatus {
+        +connected: bool
+        +last_heartbeat: float
+        +reconnect_count: int
+        +error_count: int
+    }
+
+    %% 数据类
+    class PoseData {
+        +pose_landmarks: List
+        +face_landmarks: List
+        +hand_landmarks: List
+        +timestamp: float
+    }
+
+    class RoomMember {
+        +id: str
+        +join_time: float
+        +last_active: float
+        +role: str
+    }
+
+    %% 监控类
+    class PerformanceMonitor {
+        -metrics: Dict
+        +update()
+        +get_stats()
+        -_cleanup()
+    }
+
+    %% 关系定义
+    SocketManager --> SecurityConfig
+    SocketManager --> ConnectionStatus
+    RoomManager --> RoomMember
+    PoseSender --> SocketManager
+    PoseSender --> PoseData
+    PoseSender --> PerformanceMonitor
