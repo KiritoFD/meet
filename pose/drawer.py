@@ -1,7 +1,12 @@
 import cv2
-import mediapipe as mp
 import numpy as np
+import mediapipe as mp
 import logging
+from typing import Dict, List, Tuple, Optional, Union
+
+# Add missing import for PoseData
+from .types import PoseData, Keypoint
+
 from config.settings import POSE_CONFIG
 
 logger = logging.getLogger(__name__)
@@ -160,4 +165,147 @@ class PoseDrawer:
             return False
         except Exception as e:
             logger.error(f"绘制姿态时出错: {str(e)}")
-            return False 
+            return False
+
+    def draw_pose(self, image: np.ndarray, pose_data: PoseData) -> np.ndarray:
+        """
+        在图像上绘制姿态关键点和连接线
+        
+        Args:
+            image: 输入图像
+            pose_data: 姿态数据
+            
+        Returns:
+            绘制了姿态的图像
+        """
+        if image is None:
+            logger.error("输入图像为空")
+            return None
+            
+        if pose_data is None:
+            logger.warning("没有姿态数据可绘制")
+            return image
+            
+        # 获取关键点 - 同时支持keypoints和landmarks属性
+        keypoints = getattr(pose_data, 'keypoints', None) or getattr(pose_data, 'landmarks', [])
+        
+        if not keypoints:
+            logger.warning("姿态数据中没有关键点")
+            return image
+        
+        try:
+            # 创建一个副本以避免修改原始图像
+            img_copy = image.copy()
+            h, w = img_copy.shape[:2]
+            
+            # 转换关键点为MediaPipe格式以便使用内置绘制函数
+            landmarks = self._convert_keypoints_to_landmarks(keypoints, h, w)
+            
+            # 创建结果对象，供MediaPipe绘制函数使用
+            results = type('obj', (object,), {
+                'pose_landmarks': landmarks,
+                'pose_world_landmarks': None  # 不需要世界坐标系
+            })
+            
+            # 使用MediaPipe绘制函数
+            self.mp_drawing.draw_landmarks(
+                img_copy,
+                results.pose_landmarks,
+                self.POSE_CONNECTIONS,
+                landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style()
+            )
+            
+            return img_copy
+            
+        except Exception as e:
+            logger.error(f"绘制姿态时出错: {e}")
+            return image
+    
+    def _convert_keypoints_to_landmarks(self, keypoints: List[Keypoint], height: int, width: int):
+        """将我们的关键点格式转换为MediaPipe的landmarks格式"""
+        
+        landmarks_proto = self.mp_pose.PoseLandmarkList()
+        
+        for kp in keypoints:
+            landmark = landmarks_proto.landmark.add()
+            landmark.x = kp.x 
+            landmark.y = kp.y
+            landmark.z = kp.z if hasattr(kp, 'z') else 0.0
+            landmark.visibility = kp.visibility if hasattr(kp, 'visibility') else 1.0
+        
+        return landmarks_proto
+    
+    def draw_comparison(self, img1: np.ndarray, img2: np.ndarray) -> np.ndarray:
+        """
+        绘制两张图像的比较视图
+        
+        Args:
+            img1: 第一张图像
+            img2: 第二张图像
+            
+        Returns:
+            合并后的图像
+        """
+        if img1 is None or img2 is None:
+            logger.error("输入图像为空")
+            return None
+            
+        # 确保两张图像大小相同
+        h1, w1 = img1.shape[:2]
+        h2, w2 = img2.shape[:2]
+        
+        if h1 != h2 or w1 != w2:
+            img2 = cv2.resize(img2, (w1, h1))
+            
+        # 水平拼接
+        return np.hstack((img1, img2))
+    
+    def draw_skeleton(self, image: np.ndarray, keypoints: List[Keypoint]) -> np.ndarray:
+        """
+        仅绘制骨架，不使用MediaPipe的绘制函数
+        
+        Args:
+            image: 输入图像
+            keypoints: 关键点列表
+            
+        Returns:
+            绘制了骨架的图像
+        """
+        if image is None:
+            return None
+            
+        if not keypoints:
+            return image
+            
+        img_copy = image.copy()
+        h, w = img_copy.shape[:2]
+        
+        # 绘制关键点
+        for kp in keypoints:
+            x, y = int(kp.x * w), int(kp.y * h)
+            visibility = getattr(kp, 'visibility', 1.0)
+            
+            # 根据可见度调整颜色
+            if visibility > 0.5:
+                color = self.keypoint_color
+            else:
+                color = (0, 0, 255)  # 红色表示低可见度
+                
+            cv2.circle(img_copy, (x, y), self.radius, color, -1)
+        
+        # 绘制连接线
+        for connection in self.POSE_CONNECTIONS:
+            start_idx, end_idx = connection
+            
+            if start_idx < len(keypoints) and end_idx < len(keypoints):
+                start_kp = keypoints[start_idx]
+                end_kp = keypoints[end_idx]
+                
+                start_x, start_y = int(start_kp.x * w), int(start_kp.y * h)
+                end_x, end_y = int(end_kp.x * w), int(end_kp.y * h)
+                
+                # 只绘制两个端点都可见的连接
+                if getattr(start_kp, 'visibility', 1.0) > 0.5 and getattr(end_kp, 'visibility', 1.0) > 0.5:
+                    cv2.line(img_copy, (start_x, start_y), (end_x, end_y), self.connection_color, self.thickness)
+        
+        return img_copy

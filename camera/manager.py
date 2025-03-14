@@ -34,6 +34,9 @@ class CameraManager:
         self.height = self.config.get('height', 480)
         self.fps = self.config.get('fps', 30)
         
+        # 添加 frame_rate 属性
+        self.frame_rate = config.get('frame_rate', 30) if config else 30
+        
         # 预先设置环境变量
         os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'  # 禁用MSMF
         os.environ['OPENCV_VIDEOIO_PRIORITY_DSHOW'] = '1'  # 优先DirectShow
@@ -167,15 +170,22 @@ class CameraManager:
     def get_settings(self) -> Dict:
         """获取当前相机设置"""
         if not self.camera:
-            return self.default_settings
-        
+            return {
+                "width": self.width,
+                "height": self.height,
+                "fps": self.frame_rate,  # 使用 frame_rate 而非 current_fps
+                "exposure": None,
+                "brightness": None,
+                "contrast": None
+            }
+            
         return {
-            'brightness': int(self.camera.get(cv2.CAP_PROP_BRIGHTNESS)),
-            'contrast': int(self.camera.get(cv2.CAP_PROP_CONTRAST)),
-            'exposure': int(self.camera.get(cv2.CAP_PROP_EXPOSURE)),
-            'gain': int(self.camera.get(cv2.CAP_PROP_GAIN)),
-            'width': int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH)),
-            'height': int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            "width": int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            "height": int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+            "fps": self.frame_rate,  # 使用 frame_rate 而非 current_fps
+            "exposure": self.camera.get(cv2.CAP_PROP_EXPOSURE),
+            "brightness": self.camera.get(cv2.CAP_PROP_BRIGHTNESS),
+            "contrast": self.camera.get(cv2.CAP_PROP_CONTRAST)
         }
         
     def update_settings(self, settings: Dict) -> bool:
@@ -204,6 +214,10 @@ class CameraManager:
                     self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, value)
                 elif key == 'height':
                     self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, value)
+                elif key == 'fps':
+                    self.frame_rate = value
+                    if self.camera and self.is_running:
+                        self.camera.set(cv2.CAP_PROP_FPS, self.frame_rate)
                 
             return True
             
@@ -228,4 +242,3 @@ class CameraManager:
         except Exception as e:
             logger.error(f"重置相机设置失败: {e}")
             return False
-        
