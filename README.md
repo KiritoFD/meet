@@ -50,7 +50,7 @@
 
 打开conda的命令行环境，在项目根目录运行：
   
-    conda envs create -f envs/meet.yaml
+    conda env create -f envs/meet.yaml
 运行代码时解释器选择meet环境
 
     cd meet
