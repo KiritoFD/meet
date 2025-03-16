@@ -1,6 +1,12 @@
-import torch
-import torch.nn as nn
 import numpy as np
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+    print("PyTorch is not available. Using NumPy fallback for frame smoothing.")
+
+import torch.nn as nn
 import cv2
 import logging
 from typing import Optional, List
@@ -84,87 +90,79 @@ class NAFNet(nn.Module):
         return x
 
 class FrameSmoother:
-    """基础帧平滑器"""
-    
-    def __init__(self, 
-                 temporal_weight: float = 0.8,
-                 spatial_weight: float = 0.5,
-                 **kwargs):  # 添加 **kwargs 支持扩展参数
-        """初始化平滑器
-        
-        Args:
-            temporal_weight: 时间平滑权重 (0-1)
-            spatial_weight: 空间平滑权重 (0-1)
-            **kwargs: 扩展参数
+    """
+    Smooths frames or keypoints over time to reduce jitter.
+    Falls back to NumPy implementation if PyTorch is not available.
+    """
+    def __init__(self, window_size=5, alpha=0.7):
+        self.window_size = window_size
+        self.alpha = alpha
+        self.history = []
+        self.torch_available = TORCH_AVAILABLE
+        logger.info(f"Frame smoother initialized. Using PyTorch: {self.torch_available}")
+
+    def smooth(self, data):
         """
-        self.temporal_weight = temporal_weight
-        self.spatial_weight = spatial_weight
-        self.frame_buffer = []
-        
-    def _smooth_points(self, points: np.ndarray) -> np.ndarray:
-        """平滑关键点坐标
+        Apply exponential moving average smoothing to the data.
         
         Args:
-            points: 关键点坐标数组 [N, 3]
+            data: Array-like data to smooth (can be numpy array or torch tensor)
             
         Returns:
-            平滑后的坐标数组 [N, 3]
+            Smoothed data in the same format as input
         """
-        if not self.frame_buffer:
-            self.frame_buffer.append(points.copy())
-            return points
+        if data is None:
+            return None
+        
+        # Convert input to appropriate format based on available library
+        if self.torch_available:
+            # PyTorch implementation
+            if not isinstance(data, torch.Tensor):
+                data_tensor = torch.tensor(data, dtype=torch.float32)
+            else:
+                data_tensor = data.clone()
+                
+            # Apply smoothing
+            if not self.history:
+                self.history.append(data_tensor)
+                return data
+                
+            smoothed = self.alpha * data_tensor + (1 - self.alpha) * self.history[-1]
             
-        # 时间域平滑
-        smoothed = (
-            self.temporal_weight * points + 
-            (1 - self.temporal_weight) * self.frame_buffer[-1]
-        )
-        
-        # 空间域平滑（可选）
-        if self.spatial_weight > 0:
-            kernel = np.array([0.25, 0.5, 0.25])  # 简单的1D平滑核
-            for i in range(3):  # x, y, z
-                smoothed[:, i] = np.convolve(
-                    smoothed[:, i],
-                    kernel,
-                    mode='same'
-                )
-        
-        # 更新缓冲区
-        self.frame_buffer.append(smoothed.copy())
-        if len(self.frame_buffer) > 5:  # 保持固定大小的缓冲区
-            self.frame_buffer.pop(0)
+            # Update history
+            self.history.append(smoothed)
+            if len(self.history) > self.window_size:
+                self.history.pop(0)
+                
+            return smoothed.numpy() if not isinstance(data, torch.Tensor) else smoothed
             
-        return smoothed
-        
-    def smooth(self, pose_data: PoseData) -> PoseData:
-        """平滑姿态数据
-        
-        Args:
-            pose_data: 输入的姿态数据
+        else:
+            # NumPy implementation
+            data_np = np.array(data, dtype=np.float32)
             
-        Returns:
-            平滑后的姿态数据
-        """
-        # 获取关键点坐标数组
-        points = pose_data.values
-        
-        # 应用平滑
-        smoothed = self._smooth_points(points)
-        
-        # 创建新的姿态数据
-        return PoseData(
-            landmarks=[
-                Landmark(x=x, y=y, z=z)
-                for x, y, z in smoothed
-            ],
-            timestamp=pose_data.timestamp,
-            confidence=pose_data.confidence
-        )
-        
+            # Apply smoothing
+            if not self.history:
+                self.history.append(data_np)
+                return data
+                
+            smoothed = self.alpha * data_np + (1 - self.alpha) * self.history[-1]
+            
+            # Update history
+            self.history.append(smoothed)
+            if len(self.history) > self.window_size:
+                self.history.pop(0)
+                
+            return smoothed
+
     def reset(self):
-        """重置平滑器状态"""
-        self.frame_buffer.clear()
+        """Reset the smoothing history"""
+        self.history = []
+
+    def _preprocess_frame(self, frame: np.ndarray):
+        if TORCH_AVAILABLE:
+            return torch.tensor(frame, dtype=torch.float32)
+        else:
+            return np.array(frame, dtype=np.float32)
 
     def _preprocess_frame(self, frame: np.ndarray) -> torch.Tensor:
         """优化的预处理"""
@@ -199,4 +197,4 @@ class FrameSmoother:
             if frame.shape[:2] != (self.orig_height, self.orig_width):
                 frame = cv2.resize(frame, (self.orig_width, self.orig_height), 
                                  interpolation=cv2.INTER_LINEAR)
-            return frame 
+            return frame
