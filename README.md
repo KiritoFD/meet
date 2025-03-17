@@ -44,6 +44,7 @@
 ## 快速开始
 ![alt text](<Screenshot 2025-02-17 165926.png>)
 ### 环境配置
+0. 在本分支中envs文件夹下的meet1文件夹是完整conda环境，请复制到anaconda/envs(提交的压缩包中是在meet-main中的meet1文件夹)
 
 1. 解压环境：
 先安装anaconda https://www.anaconda.com/download/success 下载
