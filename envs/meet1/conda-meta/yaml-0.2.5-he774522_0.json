@@ -1,0 +1,91 @@
+{
+  "build": "he774522_0",
+  "build_number": 0,
+  "channel": "https://repo.anaconda.com/pkgs/main/win-64",
+  "constrains": [],
+  "depends": [
+    "vc >=14.1,<15.0a0",
+    "vs2015_runtime >=14.16.27012,<15.0a0"
+  ],
+  "extracted_package_dir": "C:\\Users\\28961\\anaconda3\\pkgs\\yaml-0.2.5-he774522_0",
+  "files": [
+    "Library/bin/yaml.dll",
+    "Library/cmake/yamlConfig.cmake",
+    "Library/cmake/yamlConfigVersion.cmake",
+    "Library/cmake/yamlTargets-release.cmake",
+    "Library/cmake/yamlTargets.cmake",
+    "Library/include/yaml.h",
+    "Library/lib/yaml.lib",
+    ".nonadmin"
+  ],
+  "fn": "yaml-0.2.5-he774522_0.conda",
+  "license": "MIT",
+  "link": {
+    "source": "C:\\Users\\28961\\anaconda3\\pkgs\\yaml-0.2.5-he774522_0",
+    "type": 1
+  },
+  "md5": "959a63017c520ef9d345bd82ab344e3e",
+  "name": "yaml",
+  "package_tarball_full_path": "C:\\Users\\28961\\anaconda3\\pkgs\\yaml-0.2.5-he774522_0.conda",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Library/bin/yaml.dll",
+        "path_type": "hardlink",
+        "sha256": "c629f1a8661e068b362fe57088d32bd70674d78b65efe350161970fc04ee15d3",
+        "sha256_in_prefix": "c629f1a8661e068b362fe57088d32bd70674d78b65efe350161970fc04ee15d3",
+        "size_in_bytes": 103936
+      },
+      {
+        "_path": "Library/cmake/yamlConfig.cmake",
+        "path_type": "hardlink",
+        "sha256": "1c33b7ca2f660860dd4193f1af08460affa7ecd307b000bfdfc6f5bbced3d0bc",
+        "sha256_in_prefix": "1c33b7ca2f660860dd4193f1af08460affa7ecd307b000bfdfc6f5bbced3d0bc",
+        "size_in_bytes": 983
+      },
+      {
+        "_path": "Library/cmake/yamlConfigVersion.cmake",
+        "path_type": "hardlink",
+        "sha256": "968758ca4f17c575307a834bfc64f2315aa0b63fb75d4f2148540c4bc7b4e0c7",
+        "sha256_in_prefix": "968758ca4f17c575307a834bfc64f2315aa0b63fb75d4f2148540c4bc7b4e0c7",
+        "size_in_bytes": 1419
+      },
+      {
+        "_path": "Library/cmake/yamlTargets-release.cmake",
+        "path_type": "hardlink",
+        "sha256": "c795521565d184ced0f914d995c58dd604bc0accf64c8590c4f8db28575010e5",
+        "sha256_in_prefix": "c795521565d184ced0f914d995c58dd604bc0accf64c8590c4f8db28575010e5",
+        "size_in_bytes": 836
+      },
+      {
+        "_path": "Library/cmake/yamlTargets.cmake",
+        "path_type": "hardlink",
+        "sha256": "4b62739363c76279e13e69688d2ab2bb49b9f0d0e58beb2c0740ec41cf818318",
+        "sha256_in_prefix": "4b62739363c76279e13e69688d2ab2bb49b9f0d0e58beb2c0740ec41cf818318",
+        "size_in_bytes": 3291
+      },
+      {
+        "_path": "Library/include/yaml.h",
+        "path_type": "hardlink",
+        "sha256": "de39c9fc2b2c8584775e6d0dc0f13c8e778ceba47d419cff9d85465ca35d6954",
+        "sha256_in_prefix": "de39c9fc2b2c8584775e6d0dc0f13c8e778ceba47d419cff9d85465ca35d6954",
+        "size_in_bytes": 54439
+      },
+      {
+        "_path": "Library/lib/yaml.lib",
+        "path_type": "hardlink",
+        "sha256": "2107a45852a2e2b7eea1b78b0773eee376e32cdc6d5d4af4d26b6aaa0cc0b2f6",
+        "sha256_in_prefix": "2107a45852a2e2b7eea1b78b0773eee376e32cdc6d5d4af4d26b6aaa0cc0b2f6",
+        "size_in_bytes": 15316
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "yaml==0.2.5=he774522_0",
+  "sha256": "e197edaa90488491bd6e0eaa51329d2d93242c6acd7d0aa7b0351d4b24412368",
+  "size": 63112,
+  "subdir": "win-64",
+  "timestamp": 1593116189000,
+  "url": "https://repo.anaconda.com/pkgs/main/win-64/yaml-0.2.5-he774522_0.conda",
+  "version": "0.2.5"
+}

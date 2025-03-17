@@ -1,0 +1,48 @@
+{
+  "build": "0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/nvidia/win-64",
+  "constrains": [],
+  "depends": [],
+  "extracted_package_dir": "C:\\Users\\28961\\anaconda3\\pkgs\\libnvfatbin-12.4.127-0",
+  "files": [
+    "lib/x64/nvfatbin.lib",
+    "lib/x64/nvfatbin_static.lib",
+    ".nonadmin"
+  ],
+  "fn": "libnvfatbin-12.4.127-0.tar.bz2",
+  "license": "",
+  "link": {
+    "source": "C:\\Users\\28961\\anaconda3\\pkgs\\libnvfatbin-12.4.127-0",
+    "type": 1
+  },
+  "md5": "da5d963647b98a7369a28395c2cf819c",
+  "name": "libnvfatbin",
+  "package_tarball_full_path": "C:\\Users\\28961\\anaconda3\\pkgs\\libnvfatbin-12.4.127-0.tar.bz2",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "lib/x64/nvfatbin.lib",
+        "path_type": "hardlink",
+        "sha256": "8868e4c0b54e0027b40ae3a635c73f73cc60f987170a2963645d39642eadcb3f",
+        "sha256_in_prefix": "8868e4c0b54e0027b40ae3a635c73f73cc60f987170a2963645d39642eadcb3f",
+        "size_in_bytes": 3560
+      },
+      {
+        "_path": "lib/x64/nvfatbin_static.lib",
+        "path_type": "hardlink",
+        "sha256": "4b229fd6f7c3ccdd918b5f9a9e58d2974d67ff81c27d6f3729e463ea088d8ac6",
+        "sha256_in_prefix": "4b229fd6f7c3ccdd918b5f9a9e58d2974d67ff81c27d6f3729e463ea088d8ac6",
+        "size_in_bytes": 4004556
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "libnvfatbin==12.4.127=0",
+  "sha256": "d57875274d991bdf5c8b9e78fec217fdf9920d7e6853fde7ed11948e256bc6ca",
+  "size": 1141742,
+  "subdir": "win-64",
+  "timestamp": 1710544235000,
+  "url": "https://conda.anaconda.org/nvidia/win-64/libnvfatbin-12.4.127-0.tar.bz2",
+  "version": "12.4.127"
+}

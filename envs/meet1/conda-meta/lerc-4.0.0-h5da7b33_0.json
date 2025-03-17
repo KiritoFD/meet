@@ -1,0 +1,77 @@
+{
+  "build": "h5da7b33_0",
+  "build_number": 0,
+  "channel": "https://repo.anaconda.com/pkgs/main/win-64",
+  "constrains": [],
+  "depends": [
+    "vc >=14.2,<15.0a0",
+    "vs2015_runtime >=14.29.30133,<15.0a0"
+  ],
+  "extracted_package_dir": "C:\\Users\\28961\\anaconda3\\pkgs\\lerc-4.0.0-h5da7b33_0",
+  "files": [
+    "Library/bin/Lerc.dll",
+    "Library/include/Lerc_c_api.h",
+    "Library/include/Lerc_types.h",
+    "Library/lib/Lerc.lib",
+    "Library/lib/pkgconfig/Lerc.pc",
+    ".nonadmin"
+  ],
+  "fn": "lerc-4.0.0-h5da7b33_0.conda",
+  "license": "Apache-2.0",
+  "link": {
+    "source": "C:\\Users\\28961\\anaconda3\\pkgs\\lerc-4.0.0-h5da7b33_0",
+    "type": 1
+  },
+  "md5": "0ca244715eee0627a86e4d51a40727f1",
+  "name": "lerc",
+  "package_tarball_full_path": "C:\\Users\\28961\\anaconda3\\pkgs\\lerc-4.0.0-h5da7b33_0.conda",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Library/bin/Lerc.dll",
+        "path_type": "hardlink",
+        "sha256": "72f0ce1a3dc908922473b39b76b92da6a7308e5929e8a1b385790a0f546d2d87",
+        "sha256_in_prefix": "72f0ce1a3dc908922473b39b76b92da6a7308e5929e8a1b385790a0f546d2d87",
+        "size_in_bytes": 531728
+      },
+      {
+        "_path": "Library/include/Lerc_c_api.h",
+        "path_type": "hardlink",
+        "sha256": "51c3d4c683eac91beb16e521a7ae38516ac06b867dc12e5555961cb7d1975e65",
+        "sha256_in_prefix": "51c3d4c683eac91beb16e521a7ae38516ac06b867dc12e5555961cb7d1975e65",
+        "size_in_bytes": 22507
+      },
+      {
+        "_path": "Library/include/Lerc_types.h",
+        "path_type": "hardlink",
+        "sha256": "4887c98b138f7cebaa4f26699e9a8647d612058892b261c37395728b3695b038",
+        "sha256_in_prefix": "4887c98b138f7cebaa4f26699e9a8647d612058892b261c37395728b3695b038",
+        "size_in_bytes": 1285
+      },
+      {
+        "_path": "Library/lib/Lerc.lib",
+        "path_type": "hardlink",
+        "sha256": "13ce2fe2bdd4485cc63cfca64477eb5a7a8fe6406bfd867120c73c0668286859",
+        "sha256_in_prefix": "13ce2fe2bdd4485cc63cfca64477eb5a7a8fe6406bfd867120c73c0668286859",
+        "size_in_bytes": 4158
+      },
+      {
+        "_path": "Library/lib/pkgconfig/Lerc.pc",
+        "file_mode": "text",
+        "path_type": "hardlink",
+        "prefix_placeholder": "C:/b/abs_e0hmrns5kz/croot/lerc_1734423378485/_h_env",
+        "sha256": "6c03a73c39e7a63a1f188839dcba8b47872bdd3b91baaa703e28d2e9d275bb0c",
+        "sha256_in_prefix": "ce8c04afca37eff949f27ac1c13463655a12cd7b8ae8da6d46fc7bb89c968bfb",
+        "size_in_bytes": 342
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "lerc==4.0.0=h5da7b33_0",
+  "sha256": "93dac5ffe9b614a239fa2b17f293f9831b535a7ccb905067555ae83236f1ac2f",
+  "size": 189931,
+  "subdir": "win-64",
+  "timestamp": 1734423494000,
+  "url": "https://repo.anaconda.com/pkgs/main/win-64/lerc-4.0.0-h5da7b33_0.conda",
+  "version": "4.0.0"
+}

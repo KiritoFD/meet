@@ -1,0 +1,59 @@
+{
+  "build": "h59b6b97_0",
+  "build_number": 0,
+  "channel": "https://repo.anaconda.com/pkgs/main/win-64",
+  "constrains": [],
+  "depends": [
+    "vc >=14.1,<15.0a0",
+    "vs2015_runtime >=14.16.27012,<15.0a0"
+  ],
+  "extracted_package_dir": "C:\\Users\\28961\\anaconda3\\pkgs\\tbb-2021.8.0-h59b6b97_0",
+  "files": [
+    "Library/bin/tbb12.dll",
+    "Library/bin/tbbmalloc.dll",
+    "Library/bin/tbbmalloc_proxy.dll",
+    ".nonadmin"
+  ],
+  "fn": "tbb-2021.8.0-h59b6b97_0.conda",
+  "license": "Apache-2.0",
+  "link": {
+    "source": "C:\\Users\\28961\\anaconda3\\pkgs\\tbb-2021.8.0-h59b6b97_0",
+    "type": 1
+  },
+  "md5": "aa60f11c1789a50a20be2e657e31513a",
+  "name": "tbb",
+  "package_tarball_full_path": "C:\\Users\\28961\\anaconda3\\pkgs\\tbb-2021.8.0-h59b6b97_0.conda",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Library/bin/tbb12.dll",
+        "path_type": "hardlink",
+        "sha256": "cfa65ed9a09ce88cf9a85c85c3a9b0d11ab77668e92c8a6c85eeb2070336c8da",
+        "sha256_in_prefix": "cfa65ed9a09ce88cf9a85c85c3a9b0d11ab77668e92c8a6c85eeb2070336c8da",
+        "size_in_bytes": 199168
+      },
+      {
+        "_path": "Library/bin/tbbmalloc.dll",
+        "path_type": "hardlink",
+        "sha256": "9d771b2a30f2ea5094664ff89e22ad4dc19b2e4c95df4134347944216945f584",
+        "sha256_in_prefix": "9d771b2a30f2ea5094664ff89e22ad4dc19b2e4c95df4134347944216945f584",
+        "size_in_bytes": 99328
+      },
+      {
+        "_path": "Library/bin/tbbmalloc_proxy.dll",
+        "path_type": "hardlink",
+        "sha256": "1803d3fdb0c2ec282dcc216be0ef908eab06d0a0d2e99b6bd54f8a2e176a5036",
+        "sha256_in_prefix": "1803d3fdb0c2ec282dcc216be0ef908eab06d0a0d2e99b6bd54f8a2e176a5036",
+        "size_in_bytes": 30720
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "tbb==2021.8.0=h59b6b97_0",
+  "sha256": "3856c9fc5fc42c10d8a765e3277c3739bfcf009713f2aca33c025f7645bb9d89",
+  "size": 152854,
+  "subdir": "win-64",
+  "timestamp": 1680167347000,
+  "url": "https://repo.anaconda.com/pkgs/main/win-64/tbb-2021.8.0-h59b6b97_0.conda",
+  "version": "2021.8.0"
+}

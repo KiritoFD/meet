@@ -1,0 +1,3123 @@
+{
+  "build": "h44ae7cf_1",
+  "build_number": 1,
+  "channel": "https://repo.anaconda.com/pkgs/main/win-64",
+  "constrains": [],
+  "depends": [
+    "vc >=14.2,<15.0a0",
+    "vs2015_runtime >=14.29.30133,<15.0a0",
+    "zlib >=1.2.13,<1.3.0a0",
+    "jpeg >=9e,<10a",
+    "zstd >=1.5.2,<1.6.0a0",
+    "xz >=5.2.10,<6.0a0",
+    "lerc >=4.0.0,<5.0a0",
+    "libdeflate >=1.22,<1.23.0a0"
+  ],
+  "extracted_package_dir": "C:\\Users\\28961\\anaconda3\\pkgs\\libtiff-4.5.1-h44ae7cf_1",
+  "files": [
+    "Library/bin/fax2ps.exe",
+    "Library/bin/fax2tiff.exe",
+    "Library/bin/libtiff.dll",
+    "Library/bin/pal2rgb.exe",
+    "Library/bin/ppm2tiff.exe",
+    "Library/bin/raw2tiff.exe",
+    "Library/bin/tiff.dll",
+    "Library/bin/tiff2bw.exe",
+    "Library/bin/tiff2pdf.exe",
+    "Library/bin/tiff2ps.exe",
+    "Library/bin/tiff2rgba.exe",
+    "Library/bin/tiffcmp.exe",
+    "Library/bin/tiffcp.exe",
+    "Library/bin/tiffcrop.exe",
+    "Library/bin/tiffdither.exe",
+    "Library/bin/tiffdump.exe",
+    "Library/bin/tiffinfo.exe",
+    "Library/bin/tiffmedian.exe",
+    "Library/bin/tiffset.exe",
+    "Library/bin/tiffsplit.exe",
+    "Library/include/tiff.h",
+    "Library/include/tiffconf.h",
+    "Library/include/tiffio.h",
+    "Library/include/tiffio.hxx",
+    "Library/include/tiffvers.h",
+    "Library/lib/cmake/tiff/TiffConfig.cmake",
+    "Library/lib/cmake/tiff/TiffConfigVersion.cmake",
+    "Library/lib/cmake/tiff/TiffTargets-release.cmake",
+    "Library/lib/cmake/tiff/TiffTargets.cmake",
+    "Library/lib/libtiff.lib",
+    "Library/lib/pkgconfig/libtiff-4.pc",
+    "Library/lib/tiff.lib",
+    "Library/lib/tiffxx.lib",
+    "Library/share/doc/tiff/manual/html/.buildinfo",
+    "Library/share/doc/tiff/manual/html/_images/bali.jpg",
+    "Library/share/doc/tiff/manual/html/_images/cat.gif",
+    "Library/share/doc/tiff/manual/html/_images/cover.jpg",
+    "Library/share/doc/tiff/manual/html/_images/cramps.gif",
+    "Library/share/doc/tiff/manual/html/_images/dave.gif",
+    "Library/share/doc/tiff/manual/html/_images/esri.png",
+    "Library/share/doc/tiff/manual/html/_images/jim.gif",
+    "Library/share/doc/tiff/manual/html/_images/leica.png",
+    "Library/share/doc/tiff/manual/html/_images/quad.jpg",
+    "Library/share/doc/tiff/manual/html/_images/ring.gif",
+    "Library/share/doc/tiff/manual/html/_images/safe.png",
+    "Library/share/doc/tiff/manual/html/_images/smallliz.jpg",
+    "Library/share/doc/tiff/manual/html/_images/strike.gif",
+    "Library/share/doc/tiff/manual/html/_images/weogeo.png",
+    "Library/share/doc/tiff/manual/html/_sources/addingtags.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/build.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/contrib.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFAccessTagMethods.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFClientInfo.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFClose.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFCreateDirectory.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFCustomDirectory.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFCustomTagList.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFDataWidth.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFDeferStrileArrayWriting.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFError.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldDataType.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldName.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldPassCount.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldQuery.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldReadCount.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldTag.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldWriteCount.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFlush.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFGetField.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFMergeFieldInfo.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFOpen.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFOpenOptions.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFPrintDirectory.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFProcFunctions.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFRGBAImage.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadDirectory.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadEncodedStrip.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadEncodedTile.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadFromUserBuffer.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRGBAImage.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRGBAStrip.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRGBATile.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRawStrip.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRawTile.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadScanline.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadTile.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFSetDirectory.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFSetField.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFSetTagExtender.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFStrileQuery.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWarning.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteDirectory.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteEncodedStrip.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteEncodedTile.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteRawStrip.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteRawTile.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteScanline.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteTile.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFbuffer.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFcodec.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFcolor.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFmemory.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFquery.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFsize.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFstrip.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFswab.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/TIFFtile.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/_TIFFRewriteField.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/_TIFFauxiliary.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/functions/libtiff.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/images.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/index.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/internals.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/libtiff.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/multi_page.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/project/acknowledgements.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/project/bugs.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/project/index.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/project/license.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/project/mailinglist.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/historical.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/index.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta007.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta016.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta018.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta024.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta028.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta029.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta031.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta032.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta033.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta034.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta035.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta036.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.1.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.2.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.3.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.4.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.5.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.6beta.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.7.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.6.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.6.1.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.0alpha.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.0beta.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.0beta2.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.1.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.2.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.3.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.4.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.8.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.8.1.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.8.2.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.0beta.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.1.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.2.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.3.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.4.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.5.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.1.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.10.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.2.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.3.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.4.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.4beta.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.5.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.6.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.7.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.8.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.9.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.1.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.2.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.3.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.4.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.5.0.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/releases/v4.5.1.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/specification/bigtiff.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/specification/coverage-bigtiff.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/specification/coverage.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/specification/index.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/specification/technote2.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/terms.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/fax2ps.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/fax2tiff.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/pal2rgb.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/ppm2tiff.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/raw2tiff.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/rgb2ycbcr.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/thumbnail.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiff2bw.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiff2pdf.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiff2ps.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiff2rgba.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffcmp.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffcp.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffcrop.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffdither.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffdump.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffgt.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffinfo.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffmedian.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffset.rst.txt",
+    "Library/share/doc/tiff/manual/html/_sources/tools/tiffsplit.rst.txt",
+    "Library/share/doc/tiff/manual/html/_static/basic.css",
+    "Library/share/doc/tiff/manual/html/_static/contents.png",
+    "Library/share/doc/tiff/manual/html/_static/doctools.js",
+    "Library/share/doc/tiff/manual/html/_static/documentation_options.js",
+    "Library/share/doc/tiff/manual/html/_static/file.png",
+    "Library/share/doc/tiff/manual/html/_static/language_data.js",
+    "Library/share/doc/tiff/manual/html/_static/minus.png",
+    "Library/share/doc/tiff/manual/html/_static/navigation.png",
+    "Library/share/doc/tiff/manual/html/_static/plus.png",
+    "Library/share/doc/tiff/manual/html/_static/pygments.css",
+    "Library/share/doc/tiff/manual/html/_static/searchtools.js",
+    "Library/share/doc/tiff/manual/html/_static/sphinx_highlight.js",
+    "Library/share/doc/tiff/manual/html/_static/sphinxdoc.css",
+    "Library/share/doc/tiff/manual/html/addingtags.html",
+    "Library/share/doc/tiff/manual/html/build.html",
+    "Library/share/doc/tiff/manual/html/contrib.html",
+    "Library/share/doc/tiff/manual/html/functions.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFAccessTagMethods.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFClientInfo.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFClose.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFCreateDirectory.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFCustomDirectory.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFCustomTagList.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFDataWidth.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFDeferStrileArrayWriting.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFError.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFFieldDataType.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFFieldName.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFFieldPassCount.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFFieldQuery.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFFieldReadCount.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFFieldTag.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFFieldWriteCount.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFFlush.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFGetField.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFMergeFieldInfo.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFOpen.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFOpenOptions.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFPrintDirectory.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFProcFunctions.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFRGBAImage.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadDirectory.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadEncodedStrip.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadEncodedTile.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadFromUserBuffer.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadRGBAImage.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadRGBAStrip.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadRGBATile.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadRawStrip.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadRawTile.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadScanline.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFReadTile.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFSetDirectory.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFSetField.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFSetTagExtender.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFStrileQuery.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFWarning.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFWriteDirectory.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFWriteEncodedStrip.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFWriteEncodedTile.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFWriteRawStrip.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFWriteRawTile.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFWriteScanline.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFWriteTile.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFbuffer.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFcodec.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFcolor.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFmemory.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFquery.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFsize.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFstrip.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFswab.html",
+    "Library/share/doc/tiff/manual/html/functions/TIFFtile.html",
+    "Library/share/doc/tiff/manual/html/functions/_TIFFRewriteField.html",
+    "Library/share/doc/tiff/manual/html/functions/_TIFFauxiliary.html",
+    "Library/share/doc/tiff/manual/html/functions/libtiff.html",
+    "Library/share/doc/tiff/manual/html/genindex.html",
+    "Library/share/doc/tiff/manual/html/images.html",
+    "Library/share/doc/tiff/manual/html/index.html",
+    "Library/share/doc/tiff/manual/html/internals.html",
+    "Library/share/doc/tiff/manual/html/libtiff.html",
+    "Library/share/doc/tiff/manual/html/multi_page.html",
+    "Library/share/doc/tiff/manual/html/objects.inv",
+    "Library/share/doc/tiff/manual/html/project/acknowledgements.html",
+    "Library/share/doc/tiff/manual/html/project/bugs.html",
+    "Library/share/doc/tiff/manual/html/project/index.html",
+    "Library/share/doc/tiff/manual/html/project/license.html",
+    "Library/share/doc/tiff/manual/html/project/mailinglist.html",
+    "Library/share/doc/tiff/manual/html/releases/historical.html",
+    "Library/share/doc/tiff/manual/html/releases/index.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta007.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta016.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta018.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta024.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta028.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta029.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta031.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta032.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta033.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta034.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta035.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.4beta036.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.5.1.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.5.2.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.5.3.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.5.4.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.5.5.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.5.6beta.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.5.7.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.6.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.6.1.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.7.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.7.0alpha.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.7.0beta.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.7.0beta2.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.7.1.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.7.2.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.7.3.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.7.4.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.8.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.8.1.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.8.2.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.9.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.9.0beta.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.9.1.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.9.2.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.9.3.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.9.4.html",
+    "Library/share/doc/tiff/manual/html/releases/v3.9.5.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.1.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.10.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.2.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.3.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.4.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.4beta.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.5.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.6.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.7.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.8.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.0.9.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.1.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.2.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.3.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.4.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.5.0.html",
+    "Library/share/doc/tiff/manual/html/releases/v4.5.1.html",
+    "Library/share/doc/tiff/manual/html/search.html",
+    "Library/share/doc/tiff/manual/html/searchindex.js",
+    "Library/share/doc/tiff/manual/html/specification/bigtiff.html",
+    "Library/share/doc/tiff/manual/html/specification/coverage-bigtiff.html",
+    "Library/share/doc/tiff/manual/html/specification/coverage.html",
+    "Library/share/doc/tiff/manual/html/specification/index.html",
+    "Library/share/doc/tiff/manual/html/specification/technote2.html",
+    "Library/share/doc/tiff/manual/html/terms.html",
+    "Library/share/doc/tiff/manual/html/tools.html",
+    "Library/share/doc/tiff/manual/html/tools/fax2ps.html",
+    "Library/share/doc/tiff/manual/html/tools/fax2tiff.html",
+    "Library/share/doc/tiff/manual/html/tools/pal2rgb.html",
+    "Library/share/doc/tiff/manual/html/tools/ppm2tiff.html",
+    "Library/share/doc/tiff/manual/html/tools/raw2tiff.html",
+    "Library/share/doc/tiff/manual/html/tools/rgb2ycbcr.html",
+    "Library/share/doc/tiff/manual/html/tools/thumbnail.html",
+    "Library/share/doc/tiff/manual/html/tools/tiff2bw.html",
+    "Library/share/doc/tiff/manual/html/tools/tiff2pdf.html",
+    "Library/share/doc/tiff/manual/html/tools/tiff2ps.html",
+    "Library/share/doc/tiff/manual/html/tools/tiff2rgba.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffcmp.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffcp.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffcrop.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffdither.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffdump.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffgt.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffinfo.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffmedian.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffset.html",
+    "Library/share/doc/tiff/manual/html/tools/tiffsplit.html",
+    ".nonadmin"
+  ],
+  "fn": "libtiff-4.5.1-h44ae7cf_1.conda",
+  "license": "HPND",
+  "link": {
+    "source": "C:\\Users\\28961\\anaconda3\\pkgs\\libtiff-4.5.1-h44ae7cf_1",
+    "type": 1
+  },
+  "md5": "2327d5ca2da71f04128647b0f8e7eb2a",
+  "name": "libtiff",
+  "package_tarball_full_path": "C:\\Users\\28961\\anaconda3\\pkgs\\libtiff-4.5.1-h44ae7cf_1.conda",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Library/bin/fax2ps.exe",
+        "path_type": "hardlink",
+        "sha256": "7c4b6bcb82a9797d4d6c3807b5f9ca4d72400c9cf4694aa94d8a9f9a9f02606d",
+        "sha256_in_prefix": "7c4b6bcb82a9797d4d6c3807b5f9ca4d72400c9cf4694aa94d8a9f9a9f02606d",
+        "size_in_bytes": 33552
+      },
+      {
+        "_path": "Library/bin/fax2tiff.exe",
+        "path_type": "hardlink",
+        "sha256": "49006b7389f263c20ab9d1a81aae7a1456f236b89a3cd7d58cf0728c8045526c",
+        "sha256_in_prefix": "49006b7389f263c20ab9d1a81aae7a1456f236b89a3cd7d58cf0728c8045526c",
+        "size_in_bytes": 30480
+      },
+      {
+        "_path": "Library/bin/libtiff.dll",
+        "path_type": "hardlink",
+        "sha256": "a7b95245bf128ce1b074e40aa37af974d2cd14fec3f80ae1a1f029202e61cf32",
+        "sha256_in_prefix": "a7b95245bf128ce1b074e40aa37af974d2cd14fec3f80ae1a1f029202e61cf32",
+        "size_in_bytes": 485136
+      },
+      {
+        "_path": "Library/bin/pal2rgb.exe",
+        "path_type": "hardlink",
+        "sha256": "d826aff94d05c4f44d6f55e93802553fbc4d3f92be6e644be7cc9ac57a817cf6",
+        "sha256_in_prefix": "d826aff94d05c4f44d6f55e93802553fbc4d3f92be6e644be7cc9ac57a817cf6",
+        "size_in_bytes": 29456
+      },
+      {
+        "_path": "Library/bin/ppm2tiff.exe",
+        "path_type": "hardlink",
+        "sha256": "8e698cb2fa029a66bfcc5722646976b956dcf190f713c83675472b2b5117b37e",
+        "sha256_in_prefix": "8e698cb2fa029a66bfcc5722646976b956dcf190f713c83675472b2b5117b37e",
+        "size_in_bytes": 29968
+      },
+      {
+        "_path": "Library/bin/raw2tiff.exe",
+        "path_type": "hardlink",
+        "sha256": "9cc8406e2edb80b1cef29b847c2ca1250896e90f92b1bcd581d98138d02ee716",
+        "sha256_in_prefix": "9cc8406e2edb80b1cef29b847c2ca1250896e90f92b1bcd581d98138d02ee716",
+        "size_in_bytes": 37648
+      },
+      {
+        "_path": "Library/bin/tiff.dll",
+        "path_type": "hardlink",
+        "sha256": "16528de20fbb9921b34e18e99f6da68795904c6a2ca250d2dca7df818c764a99",
+        "sha256_in_prefix": "16528de20fbb9921b34e18e99f6da68795904c6a2ca250d2dca7df818c764a99",
+        "size_in_bytes": 485136
+      },
+      {
+        "_path": "Library/bin/tiff2bw.exe",
+        "path_type": "hardlink",
+        "sha256": "46920c2e2651efde3bd8bc4afaf1d9351167917c345068c62b4157efeb8a45be",
+        "sha256_in_prefix": "46920c2e2651efde3bd8bc4afaf1d9351167917c345068c62b4157efeb8a45be",
+        "size_in_bytes": 30480
+      },
+      {
+        "_path": "Library/bin/tiff2pdf.exe",
+        "path_type": "hardlink",
+        "sha256": "f34547ce4db5b5d189b6d0d68734ec9accbddc8eaaa98a1370d0314af8e68875",
+        "sha256_in_prefix": "f34547ce4db5b5d189b6d0d68734ec9accbddc8eaaa98a1370d0314af8e68875",
+        "size_in_bytes": 89872
+      },
+      {
+        "_path": "Library/bin/tiff2ps.exe",
+        "path_type": "hardlink",
+        "sha256": "1f4d01f3048070ebcff166b1cdc14b75c894f8974df15758526a8684c1e27df3",
+        "sha256_in_prefix": "1f4d01f3048070ebcff166b1cdc14b75c894f8974df15758526a8684c1e27df3",
+        "size_in_bytes": 61712
+      },
+      {
+        "_path": "Library/bin/tiff2rgba.exe",
+        "path_type": "hardlink",
+        "sha256": "af817c7e1a2f7a09c0143879c320d820ddf6d4925c78e310191cb78fc8584837",
+        "sha256_in_prefix": "af817c7e1a2f7a09c0143879c320d820ddf6d4925c78e310191cb78fc8584837",
+        "size_in_bytes": 30480
+      },
+      {
+        "_path": "Library/bin/tiffcmp.exe",
+        "path_type": "hardlink",
+        "sha256": "3f2fd95e1cc77c631cc2ba6f8d7e536798466b18b8eda5fa3b9150ac8b08e0a0",
+        "sha256_in_prefix": "3f2fd95e1cc77c631cc2ba6f8d7e536798466b18b8eda5fa3b9150ac8b08e0a0",
+        "size_in_bytes": 33552
+      },
+      {
+        "_path": "Library/bin/tiffcp.exe",
+        "path_type": "hardlink",
+        "sha256": "bcb0506b3543b591e373211ba4bae8e5b0fa06470962e2243b3e506bec2919ed",
+        "sha256_in_prefix": "bcb0506b3543b591e373211ba4bae8e5b0fa06470962e2243b3e506bec2919ed",
+        "size_in_bytes": 50448
+      },
+      {
+        "_path": "Library/bin/tiffcrop.exe",
+        "path_type": "hardlink",
+        "sha256": "3ae73b6aadb70ef2c3d8a8dacccbf1d871bb5faf6c98d9762c5acf30b29ee81f",
+        "sha256_in_prefix": "3ae73b6aadb70ef2c3d8a8dacccbf1d871bb5faf6c98d9762c5acf30b29ee81f",
+        "size_in_bytes": 123152
+      },
+      {
+        "_path": "Library/bin/tiffdither.exe",
+        "path_type": "hardlink",
+        "sha256": "ea55080ef072ddef36006a2c3011b14aa0492558c50c325917f84751b975aa93",
+        "sha256_in_prefix": "ea55080ef072ddef36006a2c3011b14aa0492558c50c325917f84751b975aa93",
+        "size_in_bytes": 29456
+      },
+      {
+        "_path": "Library/bin/tiffdump.exe",
+        "path_type": "hardlink",
+        "sha256": "e6372c68a0e671c3cf862b0a5ec41846cc2a9a3cc4972106372550a9ed0743bd",
+        "sha256_in_prefix": "e6372c68a0e671c3cf862b0a5ec41846cc2a9a3cc4972106372550a9ed0743bd",
+        "size_in_bytes": 34576
+      },
+      {
+        "_path": "Library/bin/tiffinfo.exe",
+        "path_type": "hardlink",
+        "sha256": "6554cbe12c94e543760b9152eddcd87257855a06b1d50f2af5685ad4001873c7",
+        "sha256_in_prefix": "6554cbe12c94e543760b9152eddcd87257855a06b1d50f2af5685ad4001873c7",
+        "size_in_bytes": 34064
+      },
+      {
+        "_path": "Library/bin/tiffmedian.exe",
+        "path_type": "hardlink",
+        "sha256": "4539c02e5be3db89a4c5069bf0cfbfaba0ed151629e14f71d822558b009c7b96",
+        "sha256_in_prefix": "4539c02e5be3db89a4c5069bf0cfbfaba0ed151629e14f71d822558b009c7b96",
+        "size_in_bytes": 34576
+      },
+      {
+        "_path": "Library/bin/tiffset.exe",
+        "path_type": "hardlink",
+        "sha256": "259dca0b5fdb2943f70f29fd29365a1fe2565472f2d53813fa9d0c93d2650897",
+        "sha256_in_prefix": "259dca0b5fdb2943f70f29fd29365a1fe2565472f2d53813fa9d0c93d2650897",
+        "size_in_bytes": 28944
+      },
+      {
+        "_path": "Library/bin/tiffsplit.exe",
+        "path_type": "hardlink",
+        "sha256": "bd090cb594c9b65b9b060bf97dff03a1f177c2fd3b235d913253c1db0da6f327",
+        "sha256_in_prefix": "bd090cb594c9b65b9b060bf97dff03a1f177c2fd3b235d913253c1db0da6f327",
+        "size_in_bytes": 31504
+      },
+      {
+        "_path": "Library/include/tiff.h",
+        "path_type": "hardlink",
+        "sha256": "7ff09eee8460f8e9e051b9b70a430ee23c4876967b8c502d47ecd7ccb8b2d867",
+        "sha256_in_prefix": "7ff09eee8460f8e9e051b9b70a430ee23c4876967b8c502d47ecd7ccb8b2d867",
+        "size_in_bytes": 59659
+      },
+      {
+        "_path": "Library/include/tiffconf.h",
+        "path_type": "hardlink",
+        "sha256": "33f879b39152ee98e3cbc245a6456574c901811e1b9d75cae15cc6fc28512dc4",
+        "sha256_in_prefix": "33f879b39152ee98e3cbc245a6456574c901811e1b9d75cae15cc6fc28512dc4",
+        "size_in_bytes": 4071
+      },
+      {
+        "_path": "Library/include/tiffio.h",
+        "path_type": "hardlink",
+        "sha256": "304e7ebf0b2805db8f96df30ce5f53eae4d86124ec42c587d4e69a9f5f419da3",
+        "sha256_in_prefix": "304e7ebf0b2805db8f96df30ce5f53eae4d86124ec42c587d4e69a9f5f419da3",
+        "size_in_bytes": 28466
+      },
+      {
+        "_path": "Library/include/tiffio.hxx",
+        "path_type": "hardlink",
+        "sha256": "cd7ebd22cdba45167415b000e923f7d0ef9301028a3e775e3ace9e8c60d15ece",
+        "sha256_in_prefix": "cd7ebd22cdba45167415b000e923f7d0ef9301028a3e775e3ace9e8c60d15ece",
+        "size_in_bytes": 1525
+      },
+      {
+        "_path": "Library/include/tiffvers.h",
+        "path_type": "hardlink",
+        "sha256": "08a7a8dc12968f77fb4ec7dcb481b590ba2b6e558ca6569d941938915c65a81c",
+        "sha256_in_prefix": "08a7a8dc12968f77fb4ec7dcb481b590ba2b6e558ca6569d941938915c65a81c",
+        "size_in_bytes": 1142
+      },
+      {
+        "_path": "Library/lib/cmake/tiff/TiffConfig.cmake",
+        "path_type": "hardlink",
+        "sha256": "fc5760267b964a1fe03dd5f4f524374ad3d32e04107b698b3b259cf6fbb1890b",
+        "sha256_in_prefix": "fc5760267b964a1fe03dd5f4f524374ad3d32e04107b698b3b259cf6fbb1890b",
+        "size_in_bytes": 152
+      },
+      {
+        "_path": "Library/lib/cmake/tiff/TiffConfigVersion.cmake",
+        "path_type": "hardlink",
+        "sha256": "ceb1caf9ddaaa3631ee932ba8af652be735b6c8d9e8eb6a31a7bae51bca72834",
+        "sha256_in_prefix": "ceb1caf9ddaaa3631ee932ba8af652be735b6c8d9e8eb6a31a7bae51bca72834",
+        "size_in_bytes": 2827
+      },
+      {
+        "_path": "Library/lib/cmake/tiff/TiffTargets-release.cmake",
+        "path_type": "hardlink",
+        "sha256": "8deb7e2b9a20721d5230311faf74c0ea774383292c4affcac829217a9505f571",
+        "sha256_in_prefix": "8deb7e2b9a20721d5230311faf74c0ea774383292c4affcac829217a9505f571",
+        "size_in_bytes": 878
+      },
+      {
+        "_path": "Library/lib/cmake/tiff/TiffTargets.cmake",
+        "path_type": "hardlink",
+        "sha256": "accf3fa7c287a5ba74054bedb55f8b6d623a401cc6726dabf080e083d1c746c3",
+        "sha256_in_prefix": "accf3fa7c287a5ba74054bedb55f8b6d623a401cc6726dabf080e083d1c746c3",
+        "size_in_bytes": 3982
+      },
+      {
+        "_path": "Library/lib/libtiff.lib",
+        "path_type": "hardlink",
+        "sha256": "93f8ab50f0d4d4832a215630179acc64b6162a1719434ef3ec2f8227c0381233",
+        "sha256_in_prefix": "93f8ab50f0d4d4832a215630179acc64b6162a1719434ef3ec2f8227c0381233",
+        "size_in_bytes": 41966
+      },
+      {
+        "_path": "Library/lib/pkgconfig/libtiff-4.pc",
+        "file_mode": "text",
+        "path_type": "hardlink",
+        "prefix_placeholder": "C:/b/abs_a1lq7e8n3j/croot/libtiff_1734425696405/_h_env",
+        "sha256": "a6c773a004a0a46dfc3381dadadbc04bf4231173bb6abe2d8f2bc23e825d2652",
+        "sha256_in_prefix": "c9b3467f092fa8e58cd08bb3c836063a72db3be75c1c24e2009b683c214f7f3d",
+        "size_in_bytes": 370
+      },
+      {
+        "_path": "Library/lib/tiff.lib",
+        "path_type": "hardlink",
+        "sha256": "93f8ab50f0d4d4832a215630179acc64b6162a1719434ef3ec2f8227c0381233",
+        "sha256_in_prefix": "93f8ab50f0d4d4832a215630179acc64b6162a1719434ef3ec2f8227c0381233",
+        "size_in_bytes": 41966
+      },
+      {
+        "_path": "Library/lib/tiffxx.lib",
+        "path_type": "hardlink",
+        "sha256": "52e3757fec2e5064caebc311136a05c1b582f4ed87bb73c31b3e464af1cd6090",
+        "sha256_in_prefix": "52e3757fec2e5064caebc311136a05c1b582f4ed87bb73c31b3e464af1cd6090",
+        "size_in_bytes": 22602
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/.buildinfo",
+        "path_type": "hardlink",
+        "sha256": "d05f036cc99d3fdc34c87a65d6ab8bffa5ddc322bb595292fb75926b58e41f67",
+        "sha256_in_prefix": "d05f036cc99d3fdc34c87a65d6ab8bffa5ddc322bb595292fb75926b58e41f67",
+        "size_in_bytes": 230
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/bali.jpg",
+        "path_type": "hardlink",
+        "sha256": "57fbce241665df2822435f44322637200aacfe1a7f6148b980c2a2cca58c6bbd",
+        "sha256_in_prefix": "57fbce241665df2822435f44322637200aacfe1a7f6148b980c2a2cca58c6bbd",
+        "size_in_bytes": 26152
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/cat.gif",
+        "path_type": "hardlink",
+        "sha256": "ed2814eeef7e921c3147d331a1e31bacef5ec590097843e7f0316412ee20c953",
+        "sha256_in_prefix": "ed2814eeef7e921c3147d331a1e31bacef5ec590097843e7f0316412ee20c953",
+        "size_in_bytes": 12477
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/cover.jpg",
+        "path_type": "hardlink",
+        "sha256": "dfd70d65eb33dea306da1a307fb9f72630a21250bf728b41529762b12d0295e7",
+        "sha256_in_prefix": "dfd70d65eb33dea306da1a307fb9f72630a21250bf728b41529762b12d0295e7",
+        "size_in_bytes": 20189
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/cramps.gif",
+        "path_type": "hardlink",
+        "sha256": "9bb21338ae3863dcfc9bde1ac24c497a8791d9392f90d82efb745bacb7f7e362",
+        "sha256_in_prefix": "9bb21338ae3863dcfc9bde1ac24c497a8791d9392f90d82efb745bacb7f7e362",
+        "size_in_bytes": 13137
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/dave.gif",
+        "path_type": "hardlink",
+        "sha256": "2a08404ea8e5f50524c8830ea75f7055d36953089ed3e4f62b1656078b30f46d",
+        "sha256_in_prefix": "2a08404ea8e5f50524c8830ea75f7055d36953089ed3e4f62b1656078b30f46d",
+        "size_in_bytes": 8220
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/esri.png",
+        "path_type": "hardlink",
+        "sha256": "0b08fe2974039c735b3721cd5407c8e6d37597121a46a51ef327b03932abf823",
+        "sha256_in_prefix": "0b08fe2974039c735b3721cd5407c8e6d37597121a46a51ef327b03932abf823",
+        "size_in_bytes": 10281
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/jim.gif",
+        "path_type": "hardlink",
+        "sha256": "d260032455466bae854b9d2721bb3b937dd6fee1bdfb864e614869fbeddeab03",
+        "sha256_in_prefix": "d260032455466bae854b9d2721bb3b937dd6fee1bdfb864e614869fbeddeab03",
+        "size_in_bytes": 14493
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/leica.png",
+        "path_type": "hardlink",
+        "sha256": "c9ee55e89a357360856bc74a9bd1a36dc2f3cf9124d55c4286559818cde0df31",
+        "sha256_in_prefix": "c9ee55e89a357360856bc74a9bd1a36dc2f3cf9124d55c4286559818cde0df31",
+        "size_in_bytes": 6451
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/quad.jpg",
+        "path_type": "hardlink",
+        "sha256": "36a886608ca0dde3501bdf46fcdfa10e40739a1d78ca17acbd60e08c1610d824",
+        "sha256_in_prefix": "36a886608ca0dde3501bdf46fcdfa10e40739a1d78ca17acbd60e08c1610d824",
+        "size_in_bytes": 23904
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/ring.gif",
+        "path_type": "hardlink",
+        "sha256": "778f692d0429b8b619eadc19f61ee21437cc67fd81fea7576e9d378ef17b183f",
+        "sha256_in_prefix": "778f692d0429b8b619eadc19f61ee21437cc67fd81fea7576e9d378ef17b183f",
+        "size_in_bytes": 4275
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/safe.png",
+        "path_type": "hardlink",
+        "sha256": "d90a295292d448734a4604a8fe1ace96ddb8413d213d4946452cfd36f5cbfb83",
+        "sha256_in_prefix": "d90a295292d448734a4604a8fe1ace96ddb8413d213d4946452cfd36f5cbfb83",
+        "size_in_bytes": 10285
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/smallliz.jpg",
+        "path_type": "hardlink",
+        "sha256": "7e29ac5dfaab783ea2b144ee67833c7a07e83e60098ff4988cc71a73c9a5faf9",
+        "sha256_in_prefix": "7e29ac5dfaab783ea2b144ee67833c7a07e83e60098ff4988cc71a73c9a5faf9",
+        "size_in_bytes": 16463
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/strike.gif",
+        "path_type": "hardlink",
+        "sha256": "fd9bd5d12ef19b77162d1f3519a79712514dc03c9978b710482b6e66c2c1c68f",
+        "sha256_in_prefix": "fd9bd5d12ef19b77162d1f3519a79712514dc03c9978b710482b6e66c2c1c68f",
+        "size_in_bytes": 5610
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_images/weogeo.png",
+        "path_type": "hardlink",
+        "sha256": "f63327b4a89230c80fa845c76318486371da12079ca9d4329fcdd868298b1216",
+        "sha256_in_prefix": "f63327b4a89230c80fa845c76318486371da12079ca9d4329fcdd868298b1216",
+        "size_in_bytes": 4160
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/addingtags.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "ff6109866a3e01f58bc8a954d22aed75bbbffb87e6f05c229fdab54a52bce2c6",
+        "sha256_in_prefix": "ff6109866a3e01f58bc8a954d22aed75bbbffb87e6f05c229fdab54a52bce2c6",
+        "size_in_bytes": 13048
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/build.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "5c4efbea550d00ec12d43da775e6098f0ecc3fa554f8d13b6299a10b48b76e32",
+        "sha256_in_prefix": "5c4efbea550d00ec12d43da775e6098f0ecc3fa554f8d13b6299a10b48b76e32",
+        "size_in_bytes": 25347
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/contrib.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "ba717b895152131666d8eef42cb8533f7fd6cef7d4442a3073d7af745c90e8ef",
+        "sha256_in_prefix": "ba717b895152131666d8eef42cb8533f7fd6cef7d4442a3073d7af745c90e8ef",
+        "size_in_bytes": 3161
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "323a03b78aafefa9b7fd924c4f7ec1d3ac1e32ecb1bd9134f60e4a383fba93d1",
+        "sha256_in_prefix": "323a03b78aafefa9b7fd924c4f7ec1d3ac1e32ecb1bd9134f60e4a383fba93d1",
+        "size_in_bytes": 1849
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFAccessTagMethods.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "034b242707940b86b2ff9b74e9e841e6cced74150c814a0ed709b9f44284c314",
+        "sha256_in_prefix": "034b242707940b86b2ff9b74e9e841e6cced74150c814a0ed709b9f44284c314",
+        "size_in_bytes": 426
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFClientInfo.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "49a2e03870b7e01951c7df49e52fd9b8183fe9a9df070bdec9a54d61e19efa4d",
+        "sha256_in_prefix": "49a2e03870b7e01951c7df49e52fd9b8183fe9a9df070bdec9a54d61e19efa4d",
+        "size_in_bytes": 890
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFClose.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "34e720ea7621a01cca83d44ca3104914da485d864fd3eb3edfdb0d334151a665",
+        "sha256_in_prefix": "34e720ea7621a01cca83d44ca3104914da485d864fd3eb3edfdb0d334151a665",
+        "size_in_bytes": 1111
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFCreateDirectory.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "4574333105cd9ee9d30385a224b04732dc7e1deaa0e61abad89daefae2f5065d",
+        "sha256_in_prefix": "4574333105cd9ee9d30385a224b04732dc7e1deaa0e61abad89daefae2f5065d",
+        "size_in_bytes": 2669
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFCustomDirectory.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "c3f971de4050e5eda4f795293772cbed8bc5681d97727d9553aad932d08da9c6",
+        "sha256_in_prefix": "c3f971de4050e5eda4f795293772cbed8bc5681d97727d9553aad932d08da9c6",
+        "size_in_bytes": 7183
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFCustomTagList.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "5cbc7e7db0504c2eacf94ce7d9931c917c2108a65664f416d526482adf39578c",
+        "sha256_in_prefix": "5cbc7e7db0504c2eacf94ce7d9931c917c2108a65664f416d526482adf39578c",
+        "size_in_bytes": 1023
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFDataWidth.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "c7557aaaf423b255f834feff38fb920c3ccf6fa87ecd1c024ea180e0d50ba24d",
+        "sha256_in_prefix": "c7557aaaf423b255f834feff38fb920c3ccf6fa87ecd1c024ea180e0d50ba24d",
+        "size_in_bytes": 916
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFDeferStrileArrayWriting.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "2533a936100aeb4162d3909defa9c47e4493564d6f92e5b532161f28dc4163df",
+        "sha256_in_prefix": "2533a936100aeb4162d3909defa9c47e4493564d6f92e5b532161f28dc4163df",
+        "size_in_bytes": 1836
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFError.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "a57c781a8fc53283752035206102352558f40fd664deba5fcb3f478f51f51a8e",
+        "sha256_in_prefix": "a57c781a8fc53283752035206102352558f40fd664deba5fcb3f478f51f51a8e",
+        "size_in_bytes": 4033
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldDataType.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "874580e716d2f88f210125358f52aa9d7923ee793e255120413f678d95c7addb",
+        "sha256_in_prefix": "874580e716d2f88f210125358f52aa9d7923ee793e255120413f678d95c7addb",
+        "size_in_bytes": 576
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldName.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "f968b70c1e064e01ef4a3e60ddac08a431962acf4b376fcb7ae14cb5296978f8",
+        "sha256_in_prefix": "f968b70c1e064e01ef4a3e60ddac08a431962acf4b376fcb7ae14cb5296978f8",
+        "size_in_bytes": 523
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldPassCount.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "d643a1a8c5ca1fa4a316fe8e2a7212a615663bbd617a854d5c6bfe177ab41b95",
+        "sha256_in_prefix": "d643a1a8c5ca1fa4a316fe8e2a7212a615663bbd617a854d5c6bfe177ab41b95",
+        "size_in_bytes": 978
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldQuery.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "18aa1b8cd9b78ee9ec89d87a4bd9620026a652c7b3dddb386c3ae0ecc310d0db",
+        "sha256_in_prefix": "18aa1b8cd9b78ee9ec89d87a4bd9620026a652c7b3dddb386c3ae0ecc310d0db",
+        "size_in_bytes": 2643
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldReadCount.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "7de63a42a0ff990951a780666ff78c6f5b3c4d8cb9ac1d6cd48c25b891946797",
+        "sha256_in_prefix": "7de63a42a0ff990951a780666ff78c6f5b3c4d8cb9ac1d6cd48c25b891946797",
+        "size_in_bytes": 1250
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldTag.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "f4ffad72a7b70d8354ec437b7e3a876b0bff51a67af17e1e255a3d9b3ba360e8",
+        "sha256_in_prefix": "f4ffad72a7b70d8354ec437b7e3a876b0bff51a67af17e1e255a3d9b3ba360e8",
+        "size_in_bytes": 652
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFieldWriteCount.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e597ff8275ac9f2a0011de1de18e1194c2c5b6588bd1c91345139d5d6dafd54f",
+        "sha256_in_prefix": "e597ff8275ac9f2a0011de1de18e1194c2c5b6588bd1c91345139d5d6dafd54f",
+        "size_in_bytes": 1503
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFFlush.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "9107080ddcc012a605f549d026eb655c3de5aa86353d81373950444b9da4e948",
+        "sha256_in_prefix": "9107080ddcc012a605f549d026eb655c3de5aa86353d81373950444b9da4e948",
+        "size_in_bytes": 1137
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFGetField.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "12e6090b7f3e171891486ae21b4bb544cd4b95028e9d855c883313f5f7a85800",
+        "sha256_in_prefix": "12e6090b7f3e171891486ae21b4bb544cd4b95028e9d855c883313f5f7a85800",
+        "size_in_bytes": 10951
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFMergeFieldInfo.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "2064c8737a56923482872c23ef6627af18bcf014c05dc70e59a978f780abeb7a",
+        "sha256_in_prefix": "2064c8737a56923482872c23ef6627af18bcf014c05dc70e59a978f780abeb7a",
+        "size_in_bytes": 662
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFOpen.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "82dbfa252694cbed6b356e4086db93ee62f9388a1844ce3c54e85d5883d5cbbf",
+        "sha256_in_prefix": "82dbfa252694cbed6b356e4086db93ee62f9388a1844ce3c54e85d5883d5cbbf",
+        "size_in_bytes": 12666
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFOpenOptions.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "a53fad6707cdc983286581d4649ef0916200f47447c2bd824abbe94528b851f1",
+        "sha256_in_prefix": "a53fad6707cdc983286581d4649ef0916200f47447c2bd824abbe94528b851f1",
+        "size_in_bytes": 2466
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFPrintDirectory.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "958a3aa171bebbf34055ae3715f0060499cf48a54cdd28c6b47d4f97d19923f9",
+        "sha256_in_prefix": "958a3aa171bebbf34055ae3715f0060499cf48a54cdd28c6b47d4f97d19923f9",
+        "size_in_bytes": 1433
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFProcFunctions.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "2a2784eaebcc753ea7436e12f240a9c531a7b1edc6c9dcf331f8c9d5e321d5ff",
+        "sha256_in_prefix": "2a2784eaebcc753ea7436e12f240a9c531a7b1edc6c9dcf331f8c9d5e321d5ff",
+        "size_in_bytes": 1273
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFRGBAImage.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "deeed301f0ad46dc9139c5df4d54fa11a4880755e9bc97c77cf6257caa61af91",
+        "sha256_in_prefix": "deeed301f0ad46dc9139c5df4d54fa11a4880755e9bc97c77cf6257caa61af91",
+        "size_in_bytes": 7949
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadDirectory.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "dcaee0b301107cf14bde76251963619aa04fac8e97e968d1b300aa7f70ccffbf",
+        "sha256_in_prefix": "dcaee0b301107cf14bde76251963619aa04fac8e97e968d1b300aa7f70ccffbf",
+        "size_in_bytes": 4883
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadEncodedStrip.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "25bc5ae4c2631d6119f410d838890c20ea9b5294a8924ec941acce8d9a26f544",
+        "sha256_in_prefix": "25bc5ae4c2631d6119f410d838890c20ea9b5294a8924ec941acce8d9a26f544",
+        "size_in_bytes": 1651
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadEncodedTile.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "802763a7df6418b748069ab39cd33c13b6087cadf13016ce9b1d8530e51c4b71",
+        "sha256_in_prefix": "802763a7df6418b748069ab39cd33c13b6087cadf13016ce9b1d8530e51c4b71",
+        "size_in_bytes": 1605
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadFromUserBuffer.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "f47b7e626ee89644abc668b7d99679b56ca4213640d59671cb22f9d665466a37",
+        "sha256_in_prefix": "f47b7e626ee89644abc668b7d99679b56ca4213640d59671cb22f9d665466a37",
+        "size_in_bytes": 1146
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRGBAImage.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "96b75fc6b49548c4bf373ef95b0595df03bbac3e94bc41ed1ad18b69afdf5a20",
+        "sha256_in_prefix": "96b75fc6b49548c4bf373ef95b0595df03bbac3e94bc41ed1ad18b69afdf5a20",
+        "size_in_bytes": 5429
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRGBAStrip.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "9f54db92bedd812aec5192984a3905345b2fc588dda04d486a25bca0e08d49bb",
+        "sha256_in_prefix": "9f54db92bedd812aec5192984a3905345b2fc588dda04d486a25bca0e08d49bb",
+        "size_in_bytes": 4426
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRGBATile.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b9d860de2a443d0b3cc33d566755cf1472abfedab2d3d08a8f97723eca3d4414",
+        "sha256_in_prefix": "b9d860de2a443d0b3cc33d566755cf1472abfedab2d3d08a8f97723eca3d4414",
+        "size_in_bytes": 4465
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRawStrip.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "94afab2e3dfbb97bfd357cb4d1a7d6a5911e317aedd44a677e8afe43ae780ff7",
+        "sha256_in_prefix": "94afab2e3dfbb97bfd357cb4d1a7d6a5911e317aedd44a677e8afe43ae780ff7",
+        "size_in_bytes": 1054
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadRawTile.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "540404ede7be9217db73dce962cd5960d1303ab4c5d6c772aeadb288095adf11",
+        "sha256_in_prefix": "540404ede7be9217db73dce962cd5960d1303ab4c5d6c772aeadb288095adf11",
+        "size_in_bytes": 1159
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadScanline.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e9879a7bfba93e3780a8fa06b85223739e7e5a5d2dc7ff145462f5bedcdc5201",
+        "sha256_in_prefix": "e9879a7bfba93e3780a8fa06b85223739e7e5a5d2dc7ff145462f5bedcdc5201",
+        "size_in_bytes": 2430
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFReadTile.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "ba01a51fd3526144d45c2dc2357eddb05dabeb399aa63315e0c5297a2142ff21",
+        "sha256_in_prefix": "ba01a51fd3526144d45c2dc2357eddb05dabeb399aa63315e0c5297a2142ff21",
+        "size_in_bytes": 1701
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFSetDirectory.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "31d634b6d8c13ad7179ea271cbd122b1d6eb2a71a3caf950a27af96e67702150",
+        "sha256_in_prefix": "31d634b6d8c13ad7179ea271cbd122b1d6eb2a71a3caf950a27af96e67702150",
+        "size_in_bytes": 2125
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFSetField.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "34a37c00ad6efb24937be3f7d1bee123bd4f8e502c82fffbf25e973691f4e9b6",
+        "sha256_in_prefix": "34a37c00ad6efb24937be3f7d1bee123bd4f8e502c82fffbf25e973691f4e9b6",
+        "size_in_bytes": 9949
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFSetTagExtender.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "fdecaedbd1bc6322d8c609d12450f552b0d99b34550d69f2d5cb3c36f771c9af",
+        "sha256_in_prefix": "fdecaedbd1bc6322d8c609d12450f552b0d99b34550d69f2d5cb3c36f771c9af",
+        "size_in_bytes": 724
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFStrileQuery.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "707ef6468feb9d5fc9a92eec9efb287b7cb839707315eff5d69077a6f28b1e84",
+        "sha256_in_prefix": "707ef6468feb9d5fc9a92eec9efb287b7cb839707315eff5d69077a6f28b1e84",
+        "size_in_bytes": 2672
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWarning.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e6aa711cc9e55ac75de75045671b09f911b97e3c5fb07c3acda1bc907036d469",
+        "sha256_in_prefix": "e6aa711cc9e55ac75de75045671b09f911b97e3c5fb07c3acda1bc907036d469",
+        "size_in_bytes": 4061
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteDirectory.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "2100d79eea8953d3674a267f7d45e11882a7d1900a2da18b56dbafc6a9316930",
+        "sha256_in_prefix": "2100d79eea8953d3674a267f7d45e11882a7d1900a2da18b56dbafc6a9316930",
+        "size_in_bytes": 4803
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteEncodedStrip.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "91672a480e1433449a959039dbe4b19759ce27cf8cbbbf3ef41154b9c5c97aac",
+        "sha256_in_prefix": "91672a480e1433449a959039dbe4b19759ce27cf8cbbbf3ef41154b9c5c97aac",
+        "size_in_bytes": 2164
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteEncodedTile.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "9362f815b2d34d32dd823836238d23d7718e05c3613d2ec21078b051314212d7",
+        "sha256_in_prefix": "9362f815b2d34d32dd823836238d23d7718e05c3613d2ec21078b051314212d7",
+        "size_in_bytes": 2014
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteRawStrip.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e170052e01c85f6d94a6e5395e18ed43d424d64e4c8d0abba2679b49212378ef",
+        "sha256_in_prefix": "e170052e01c85f6d94a6e5395e18ed43d424d64e4c8d0abba2679b49212378ef",
+        "size_in_bytes": 1804
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteRawTile.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "092e52296cf38f8bcb2bad55eda826a5e6c422a88b2209a37cd75d0c7713417d",
+        "sha256_in_prefix": "092e52296cf38f8bcb2bad55eda826a5e6c422a88b2209a37cd75d0c7713417d",
+        "size_in_bytes": 1545
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteScanline.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "d6f919a9d5c1b945ecb3ab79e798083cb6f8a1fe46c3791fcbb6d8f330a6ec19",
+        "sha256_in_prefix": "d6f919a9d5c1b945ecb3ab79e798083cb6f8a1fe46c3791fcbb6d8f330a6ec19",
+        "size_in_bytes": 4260
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFWriteTile.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b0f693a40f00650f32f5437426f8793e0a9354e2a5b4efa9c7a8631270e23098",
+        "sha256_in_prefix": "b0f693a40f00650f32f5437426f8793e0a9354e2a5b4efa9c7a8631270e23098",
+        "size_in_bytes": 1401
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFbuffer.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e1bba0c3fd7d5f6eb944f6fdc23cf3393fe9ba01ce214215edc9a1ef443ce932",
+        "sha256_in_prefix": "e1bba0c3fd7d5f6eb944f6fdc23cf3393fe9ba01ce214215edc9a1ef443ce932",
+        "size_in_bytes": 1858
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFcodec.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "7175a437006601e4716618b70bc8f280f58fdc6d331d8d3383c77d08c59ac15b",
+        "sha256_in_prefix": "7175a437006601e4716618b70bc8f280f58fdc6d331d8d3383c77d08c59ac15b",
+        "size_in_bytes": 2221
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFcolor.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b994703c70a8b421c60ae66231b3d515529d21f3ac7e0cf4bce6736db8342bc1",
+        "sha256_in_prefix": "b994703c70a8b421c60ae66231b3d515529d21f3ac7e0cf4bce6736db8342bc1",
+        "size_in_bytes": 7007
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFmemory.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "9a1b382df2391920a9630a0aac818acc8e3f3147c9304b42dc52875f10c4e897",
+        "sha256_in_prefix": "9a1b382df2391920a9630a0aac818acc8e3f3147c9304b42dc52875f10c4e897",
+        "size_in_bytes": 1844
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFquery.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "06888bcb6caa28da8ef72c7e55521abaeba39cca5271ddff3074335b352c65bb",
+        "sha256_in_prefix": "06888bcb6caa28da8ef72c7e55521abaeba39cca5271ddff3074335b352c65bb",
+        "size_in_bytes": 4246
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFsize.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "1d3c4064965d4cef92d9264a35c54d55d74cf067a6523b8be741e42589d7bab0",
+        "sha256_in_prefix": "1d3c4064965d4cef92d9264a35c54d55d74cf067a6523b8be741e42589d7bab0",
+        "size_in_bytes": 1421
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFstrip.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "fd62c6f1a64e5f7f25a0756c35c217b054cf9d68e93b8c4b6e74e2ec042b1a41",
+        "sha256_in_prefix": "fd62c6f1a64e5f7f25a0756c35c217b054cf9d68e93b8c4b6e74e2ec042b1a41",
+        "size_in_bytes": 3101
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFswab.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "953c2e7a6754fb5fe03fcfb5d10d3dd92321bf389acbfba7ff248262a29e027e",
+        "sha256_in_prefix": "953c2e7a6754fb5fe03fcfb5d10d3dd92321bf389acbfba7ff248262a29e027e",
+        "size_in_bytes": 2283
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/TIFFtile.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "122403db8eabbfe4e3cb1194b78c7d259954557d6f14c47df8632b183d87092d",
+        "sha256_in_prefix": "122403db8eabbfe4e3cb1194b78c7d259954557d6f14c47df8632b183d87092d",
+        "size_in_bytes": 3161
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/_TIFFRewriteField.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "a30315c0d7d96e8912e097540a1b1ec05e85a9139fb17ce7b140dd79d64f92ad",
+        "sha256_in_prefix": "a30315c0d7d96e8912e097540a1b1ec05e85a9139fb17ce7b140dd79d64f92ad",
+        "size_in_bytes": 682
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/_TIFFauxiliary.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "71736ab1a725c52e2de4ffc56929c8102c5893d7b576d502c956df42cd0e9517",
+        "sha256_in_prefix": "71736ab1a725c52e2de4ffc56929c8102c5893d7b576d502c956df42cd0e9517",
+        "size_in_bytes": 886
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/functions/libtiff.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "862f2841c3a3818097981c02bb9eff6d61530e0bdf056b9653e245e820d3e371",
+        "sha256_in_prefix": "862f2841c3a3818097981c02bb9eff6d61530e0bdf056b9653e245e820d3e371",
+        "size_in_bytes": 31784
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/images.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "eed7f8d9808c74c16025f36535efa863ab68a923370b796d880eeee2256dfa15",
+        "sha256_in_prefix": "eed7f8d9808c74c16025f36535efa863ab68a923370b796d880eeee2256dfa15",
+        "size_in_bytes": 794
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/index.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e74bd44d34b87a4c7e13aa514ed0229bd6b3287e9ced8206b895ebbb4c93538f",
+        "sha256_in_prefix": "e74bd44d34b87a4c7e13aa514ed0229bd6b3287e9ced8206b895ebbb4c93538f",
+        "size_in_bytes": 2472
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/internals.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "2110ae52c3b8fc27d1492484378826692b0b07e6d9b1964eda0d4a4f44dcae21",
+        "sha256_in_prefix": "2110ae52c3b8fc27d1492484378826692b0b07e6d9b1964eda0d4a4f44dcae21",
+        "size_in_bytes": 17687
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/libtiff.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e1bc6f4579f6f34075109b6caa6b61acb119c0e111f6346ac812e48639116beb",
+        "sha256_in_prefix": "e1bc6f4579f6f34075109b6caa6b61acb119c0e111f6346ac812e48639116beb",
+        "size_in_bytes": 25273
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/multi_page.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "85417b453b2fe9c62258d47653638c9b0fdc503a2dfe2016eefe2d35d8ff28a6",
+        "sha256_in_prefix": "85417b453b2fe9c62258d47653638c9b0fdc503a2dfe2016eefe2d35d8ff28a6",
+        "size_in_bytes": 8153
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/project/acknowledgements.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "f25936c5b1c1707ab216c0169734cdb66ce656c66a25d434fae8f390d71a7ace",
+        "sha256_in_prefix": "f25936c5b1c1707ab216c0169734cdb66ce656c66a25d434fae8f390d71a7ace",
+        "size_in_bytes": 2916
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/project/bugs.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "4146fbf578415e404ac32e08f78bf57f721e7bdaebe3302efe26b796e5ea21f2",
+        "sha256_in_prefix": "4146fbf578415e404ac32e08f78bf57f721e7bdaebe3302efe26b796e5ea21f2",
+        "size_in_bytes": 2175
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/project/index.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "1b04a12620da8576be96b827acc4ce8df7c2ae0ae7ca047a6b06e314c6d26c53",
+        "sha256_in_prefix": "1b04a12620da8576be96b827acc4ce8df7c2ae0ae7ca047a6b06e314c6d26c53",
+        "size_in_bytes": 747
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/project/license.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "02e86af3b805e0f2075ebb5ac512831f6ab2a97ddeb186de076c418956418ba1",
+        "sha256_in_prefix": "02e86af3b805e0f2075ebb5ac512831f6ab2a97ddeb186de076c418956418ba1",
+        "size_in_bytes": 1181
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/project/mailinglist.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b691ae82f527257cf53ca7854c1902a85f44c061e4ff127e80c0f7fa3ce37811",
+        "sha256_in_prefix": "b691ae82f527257cf53ca7854c1902a85f44c061e4ff127e80c0f7fa3ce37811",
+        "size_in_bytes": 749
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/historical.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "81759e416cba8fff14275d3b78470370d3613377cbdcd86edc5cb04eef4a14cf",
+        "sha256_in_prefix": "81759e416cba8fff14275d3b78470370d3613377cbdcd86edc5cb04eef4a14cf",
+        "size_in_bytes": 625
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/index.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "c4508845945e323abd22e87b6f83ced56d13e20a013baedf55c6606135d5d235",
+        "sha256_in_prefix": "c4508845945e323abd22e87b6f83ced56d13e20a013baedf55c6606135d5d235",
+        "size_in_bytes": 318
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta007.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "2dc6f2cb5506c286794220d1222605fa62b778b271b5a1fcc857c57b95eb1efc",
+        "sha256_in_prefix": "2dc6f2cb5506c286794220d1222605fa62b778b271b5a1fcc857c57b95eb1efc",
+        "size_in_bytes": 2964
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta016.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "14f89cbc210dfb84efedd80ad88f05b9c2bfd28e6cab712d39a14cf612d9e958",
+        "sha256_in_prefix": "14f89cbc210dfb84efedd80ad88f05b9c2bfd28e6cab712d39a14cf612d9e958",
+        "size_in_bytes": 2587
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta018.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "94003bf68c2661dadd73a499a532a4ed6f69f87efcda3723c3c8a649ba35823e",
+        "sha256_in_prefix": "94003bf68c2661dadd73a499a532a4ed6f69f87efcda3723c3c8a649ba35823e",
+        "size_in_bytes": 1799
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta024.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "97ea73579264940d66c911ba310de7e42eb9a73560270e6555d31ace7f4318af",
+        "sha256_in_prefix": "97ea73579264940d66c911ba310de7e42eb9a73560270e6555d31ace7f4318af",
+        "size_in_bytes": 4177
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta028.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "31b8188ea30fe3ce2f15ec22efe342c058282a41ecd98b23f3f987a3fea12b5c",
+        "sha256_in_prefix": "31b8188ea30fe3ce2f15ec22efe342c058282a41ecd98b23f3f987a3fea12b5c",
+        "size_in_bytes": 4691
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta029.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "8319c5f616ce24f3285f1e63b5e8c8129a96abed734b70cc3ab12a8ab1268f26",
+        "sha256_in_prefix": "8319c5f616ce24f3285f1e63b5e8c8129a96abed734b70cc3ab12a8ab1268f26",
+        "size_in_bytes": 1871
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta031.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "1e99bd203fec51a7696152494716e3185de407e7b82eb25f849f4eda5b09109f",
+        "sha256_in_prefix": "1e99bd203fec51a7696152494716e3185de407e7b82eb25f849f4eda5b09109f",
+        "size_in_bytes": 2462
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta032.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "961271a800f3ab2465bf15cc62bf9021dd849241a3a5f732f168b85442d2f2f0",
+        "sha256_in_prefix": "961271a800f3ab2465bf15cc62bf9021dd849241a3a5f732f168b85442d2f2f0",
+        "size_in_bytes": 1675
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta033.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "dd4526e9df8a2cdee31b3f6fe0ccb362a5ca543d7c57797f2e8fad483f35bc43",
+        "sha256_in_prefix": "dd4526e9df8a2cdee31b3f6fe0ccb362a5ca543d7c57797f2e8fad483f35bc43",
+        "size_in_bytes": 1341
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta034.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "771f7950d9220daf84a4d92400f29d5ee44c82c9bb3637ddd49a9d77ff8ad67f",
+        "sha256_in_prefix": "771f7950d9220daf84a4d92400f29d5ee44c82c9bb3637ddd49a9d77ff8ad67f",
+        "size_in_bytes": 1451
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta035.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "4ce1f532907776e743f9b187b268787c711953e5e08a4dc074706eb771f5955d",
+        "sha256_in_prefix": "4ce1f532907776e743f9b187b268787c711953e5e08a4dc074706eb771f5955d",
+        "size_in_bytes": 1100
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.4beta036.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "8b7c06650b22953ba50fee4d384cfce599a91efb7fb31bdda0b0667721cfae9d",
+        "sha256_in_prefix": "8b7c06650b22953ba50fee4d384cfce599a91efb7fb31bdda0b0667721cfae9d",
+        "size_in_bytes": 3582
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.1.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "04a83964415d7c56e9605a96faf8184a38fdb9d639418e6865a223099e5d3146",
+        "sha256_in_prefix": "04a83964415d7c56e9605a96faf8184a38fdb9d639418e6865a223099e5d3146",
+        "size_in_bytes": 1471
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.2.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "7751be068f98403b6f931f16eb0c9ebead99527d973684c4f8076a5c12f1536b",
+        "sha256_in_prefix": "7751be068f98403b6f931f16eb0c9ebead99527d973684c4f8076a5c12f1536b",
+        "size_in_bytes": 2562
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.3.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b7fe90ccdd728722f85daa3ad65fe2732d57b004c2118a11f674cea1cad63211",
+        "sha256_in_prefix": "b7fe90ccdd728722f85daa3ad65fe2732d57b004c2118a11f674cea1cad63211",
+        "size_in_bytes": 3477
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.4.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "856058774b5172ed63ff5a5e2e8c89f566541b54563880e994e0fc81276f225f",
+        "sha256_in_prefix": "856058774b5172ed63ff5a5e2e8c89f566541b54563880e994e0fc81276f225f",
+        "size_in_bytes": 1573
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.5.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "6fd9323290cdb3bb7aa4fab970f99edbbccca88f979871b630880cbc065f8821",
+        "sha256_in_prefix": "6fd9323290cdb3bb7aa4fab970f99edbbccca88f979871b630880cbc065f8821",
+        "size_in_bytes": 4227
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.6beta.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "73268e9affde3109bc3bdc78abcac0a178dab5a6b47d169e860af3e9f30f916d",
+        "sha256_in_prefix": "73268e9affde3109bc3bdc78abcac0a178dab5a6b47d169e860af3e9f30f916d",
+        "size_in_bytes": 5203
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.5.7.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "bf250635d5fdac5a46afb788332b545bba10e48fe1a9ffeed9c6c53597795b79",
+        "sha256_in_prefix": "bf250635d5fdac5a46afb788332b545bba10e48fe1a9ffeed9c6c53597795b79",
+        "size_in_bytes": 9930
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.6.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "db586f6e575d633283aedd38cf451b15ae9d9589c776bd8af69139543abcd26b",
+        "sha256_in_prefix": "db586f6e575d633283aedd38cf451b15ae9d9589c776bd8af69139543abcd26b",
+        "size_in_bytes": 16119
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.6.1.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "2c79512be7a59a28b4f2851c800f9e459ac4ff2aa8e912ba0fc29cec58755adb",
+        "sha256_in_prefix": "2c79512be7a59a28b4f2851c800f9e459ac4ff2aa8e912ba0fc29cec58755adb",
+        "size_in_bytes": 5487
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "0015c6c444e0e047b69f013fc0ab01891d7e78eda9006dfb6dbf62a00c244a73",
+        "sha256_in_prefix": "0015c6c444e0e047b69f013fc0ab01891d7e78eda9006dfb6dbf62a00c244a73",
+        "size_in_bytes": 2415
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.0alpha.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "7afd43e08c8c36a1196ab3b41f9df2b9e0a536f63a8701c17c7a111b77fde6a4",
+        "sha256_in_prefix": "7afd43e08c8c36a1196ab3b41f9df2b9e0a536f63a8701c17c7a111b77fde6a4",
+        "size_in_bytes": 5981
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.0beta.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "cd86e05ad9ee17393061532fae4313b9329e9d3083b2a47de5d590bc8d762250",
+        "sha256_in_prefix": "cd86e05ad9ee17393061532fae4313b9329e9d3083b2a47de5d590bc8d762250",
+        "size_in_bytes": 3162
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.0beta2.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "6626dcc2546e2cac17c5390f27295022bfc0701a728384c90db10df62b4aab32",
+        "sha256_in_prefix": "6626dcc2546e2cac17c5390f27295022bfc0701a728384c90db10df62b4aab32",
+        "size_in_bytes": 2055
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.1.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b8e9f673dccd36de77dbe211bfc8d4c3e476eb8f83cdb1036e19183fda32a20f",
+        "sha256_in_prefix": "b8e9f673dccd36de77dbe211bfc8d4c3e476eb8f83cdb1036e19183fda32a20f",
+        "size_in_bytes": 5435
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.2.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "cebe97e7aa42be95dd9172ea91cf745ceb663eaef648afc72d514941997baf0f",
+        "sha256_in_prefix": "cebe97e7aa42be95dd9172ea91cf745ceb663eaef648afc72d514941997baf0f",
+        "size_in_bytes": 4519
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.3.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "76f16ab578cee839151768db3fe2935dfadd584dd467b80b9b9f390b4f6acb4f",
+        "sha256_in_prefix": "76f16ab578cee839151768db3fe2935dfadd584dd467b80b9b9f390b4f6acb4f",
+        "size_in_bytes": 6079
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.7.4.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "71e339d29e3a3e42ab7ac771c66b1bb2a9e101fa823ffe7878f4b6aebb17a11a",
+        "sha256_in_prefix": "71e339d29e3a3e42ab7ac771c66b1bb2a9e101fa823ffe7878f4b6aebb17a11a",
+        "size_in_bytes": 2995
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.8.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b5807cfda2e57d82693ce7a40b192ecb8b4dcad6b93e7d7c05301171eff95896",
+        "sha256_in_prefix": "b5807cfda2e57d82693ce7a40b192ecb8b4dcad6b93e7d7c05301171eff95896",
+        "size_in_bytes": 4808
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.8.1.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "a7b294cd0aa24409a82b2f1d9f63757391639da02caed713f9243ba77547e894",
+        "sha256_in_prefix": "a7b294cd0aa24409a82b2f1d9f63757391639da02caed713f9243ba77547e894",
+        "size_in_bytes": 4883
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.8.2.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "07e77e4b8c9e10835a046bfcfd55e67783de4a77a153c6a4b11bc2f53f736321",
+        "sha256_in_prefix": "07e77e4b8c9e10835a046bfcfd55e67783de4a77a153c6a4b11bc2f53f736321",
+        "size_in_bytes": 2335
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "ca175fb35bfc1e8089530169d51e8a4a2fd568cc0babd7859e1cb6b4f72a5d57",
+        "sha256_in_prefix": "ca175fb35bfc1e8089530169d51e8a4a2fd568cc0babd7859e1cb6b4f72a5d57",
+        "size_in_bytes": 7583
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.0beta.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "f12edd56285a5122737b32febaf0c867ed3c8371f7431f7539bae61aeb6246cd",
+        "sha256_in_prefix": "f12edd56285a5122737b32febaf0c867ed3c8371f7431f7539bae61aeb6246cd",
+        "size_in_bytes": 8825
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.1.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "18d2b95b28d3de49f33fcc18cdda721a82811e9384203525869a2a8d18e04098",
+        "sha256_in_prefix": "18d2b95b28d3de49f33fcc18cdda721a82811e9384203525869a2a8d18e04098",
+        "size_in_bytes": 1813
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.2.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "5fcc8b961092926574a2f1e1d97073a5c2841508effa99a70a9fb8add01298f6",
+        "sha256_in_prefix": "5fcc8b961092926574a2f1e1d97073a5c2841508effa99a70a9fb8add01298f6",
+        "size_in_bytes": 1977
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.3.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "57894a7b3290b74c24ddfc000255ee2f64412ea2d4abb00c5b3c04d8dc804e2c",
+        "sha256_in_prefix": "57894a7b3290b74c24ddfc000255ee2f64412ea2d4abb00c5b3c04d8dc804e2c",
+        "size_in_bytes": 3365
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.4.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b6af42f039d72847b54d8543d6b96bb891f9c7d2f4f10da3d2ad5b30b5d9efd2",
+        "sha256_in_prefix": "b6af42f039d72847b54d8543d6b96bb891f9c7d2f4f10da3d2ad5b30b5d9efd2",
+        "size_in_bytes": 2225
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v3.9.5.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "66a6a82c8e1c3cdb9580c5f32f720acf712ea60b856d181907147c0a7111cb92",
+        "sha256_in_prefix": "66a6a82c8e1c3cdb9580c5f32f720acf712ea60b856d181907147c0a7111cb92",
+        "size_in_bytes": 8029
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e140de8be22668cc4f8599286767c0f0f86d4bf6f785fc44d4962a645e46743c",
+        "sha256_in_prefix": "e140de8be22668cc4f8599286767c0f0f86d4bf6f785fc44d4962a645e46743c",
+        "size_in_bytes": 9989
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.1.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "74f98f4c9cc8a273ec3db48896a5f4bf1f38f7faa54201b579bb88394231410a",
+        "sha256_in_prefix": "74f98f4c9cc8a273ec3db48896a5f4bf1f38f7faa54201b579bb88394231410a",
+        "size_in_bytes": 1743
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.10.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "214ad6fafed92fed2fff21f10f76588bf4896a9c765fe9730cbba5d45a453e97",
+        "sha256_in_prefix": "214ad6fafed92fed2fff21f10f76588bf4896a9c765fe9730cbba5d45a453e97",
+        "size_in_bytes": 9912
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.2.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "32f7558422e4f489e2291dedacaeeb3da3962102d44d73208a5568420f3ab598",
+        "sha256_in_prefix": "32f7558422e4f489e2291dedacaeeb3da3962102d44d73208a5568420f3ab598",
+        "size_in_bytes": 1731
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.3.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "1096ac812deaffe226a88b288ab308ab61412323952b7595c1d6ea712e882f94",
+        "sha256_in_prefix": "1096ac812deaffe226a88b288ab308ab61412323952b7595c1d6ea712e882f94",
+        "size_in_bytes": 2051
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.4.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "f5b3c1258537f15860abc345e95ab31afedd9bc6722373f4eba6c7796e254b5e",
+        "sha256_in_prefix": "f5b3c1258537f15860abc345e95ab31afedd9bc6722373f4eba6c7796e254b5e",
+        "size_in_bytes": 6152
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.4beta.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "c821bc545705c4e8d4f0541f91976c2dc3f0bf20d91e123d684b54492b7a0d1d",
+        "sha256_in_prefix": "c821bc545705c4e8d4f0541f91976c2dc3f0bf20d91e123d684b54492b7a0d1d",
+        "size_in_bytes": 11172
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.5.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "bd5c7b166605f96bf68e686d96cb38b68925b6eae2a89e5069b00ed49e050747",
+        "sha256_in_prefix": "bd5c7b166605f96bf68e686d96cb38b68925b6eae2a89e5069b00ed49e050747",
+        "size_in_bytes": 2994
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.6.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e12aeb53bced5f001304a427b3e8c297cc98150aa5940bf8c7c999c9494f944c",
+        "sha256_in_prefix": "e12aeb53bced5f001304a427b3e8c297cc98150aa5940bf8c7c999c9494f944c",
+        "size_in_bytes": 2355
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.7.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "f6a2397b974e8de5dd9ffb623e8083f88250909542e41a6f110501053d1b2a27",
+        "sha256_in_prefix": "f6a2397b974e8de5dd9ffb623e8083f88250909542e41a6f110501053d1b2a27",
+        "size_in_bytes": 15808
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.8.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "cb9eeaf17197de8e57f99f3e173c3d20466a8826d02e13b48e12001d998fce95",
+        "sha256_in_prefix": "cb9eeaf17197de8e57f99f3e173c3d20466a8826d02e13b48e12001d998fce95",
+        "size_in_bytes": 15909
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.0.9.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "194fb81855559e87f3fc0981e15b95c5516148f7f189156bd13529a09be5f573",
+        "sha256_in_prefix": "194fb81855559e87f3fc0981e15b95c5516148f7f189156bd13529a09be5f573",
+        "size_in_bytes": 16728
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.1.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "a6df39edc7ac9e7951fa5bab06fa338b6de5f6251be7fd66df5f6ae6a659309f",
+        "sha256_in_prefix": "a6df39edc7ac9e7951fa5bab06fa338b6de5f6251be7fd66df5f6ae6a659309f",
+        "size_in_bytes": 4185
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.2.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "768a45b1c725ff4d43b57db11e56af371ac93d0303fa901782071a252d040afe",
+        "sha256_in_prefix": "768a45b1c725ff4d43b57db11e56af371ac93d0303fa901782071a252d040afe",
+        "size_in_bytes": 4155
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.3.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "7ec231e695159a20ba8d71a7666576b2be521bdd720c9d049b04cb32398e4a7e",
+        "sha256_in_prefix": "7ec231e695159a20ba8d71a7666576b2be521bdd720c9d049b04cb32398e4a7e",
+        "size_in_bytes": 3230
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.4.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "00593c1020df8d0c7d7d088eff559133668b16fe4bab44c4d2a16c569fe9a7ca",
+        "sha256_in_prefix": "00593c1020df8d0c7d7d088eff559133668b16fe4bab44c4d2a16c569fe9a7ca",
+        "size_in_bytes": 5258
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.5.0.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "252473bb741f4b0201d3d50d3112b3347190d4f398571d45225e8ef24b47f65d",
+        "sha256_in_prefix": "252473bb741f4b0201d3d50d3112b3347190d4f398571d45225e8ef24b47f65d",
+        "size_in_bytes": 6516
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/releases/v4.5.1.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "0db1ba0a1c37ff872cdf9b80bc8b5983479ef2e2cd44a37ebbffcc81868f2b28",
+        "sha256_in_prefix": "0db1ba0a1c37ff872cdf9b80bc8b5983479ef2e2cd44a37ebbffcc81868f2b28",
+        "size_in_bytes": 5769
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/specification/bigtiff.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "3e326178f6c0cdbe0ebcf1a1c789d57b49ff47dbbd6e40120155bfd386db9fac",
+        "sha256_in_prefix": "3e326178f6c0cdbe0ebcf1a1c789d57b49ff47dbbd6e40120155bfd386db9fac",
+        "size_in_bytes": 3126
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/specification/coverage-bigtiff.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "95b3c40005cd992a15fbfcd8cb9e5fa523f82d550adfbd412460a36cb8853829",
+        "sha256_in_prefix": "95b3c40005cd992a15fbfcd8cb9e5fa523f82d550adfbd412460a36cb8853829",
+        "size_in_bytes": 3970
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/specification/coverage.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "940292a18f1f4e2c06b15d4fc0330d1eb387a386f5573ee0e3aa596494676403",
+        "sha256_in_prefix": "940292a18f1f4e2c06b15d4fc0330d1eb387a386f5573ee0e3aa596494676403",
+        "size_in_bytes": 26518
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/specification/index.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "9d9bf469be555b5cf9aa6016736256ec2a6e31f574919024179d2641e3e7714d",
+        "sha256_in_prefix": "9d9bf469be555b5cf9aa6016736256ec2a6e31f574919024179d2641e3e7714d",
+        "size_in_bytes": 1178
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/specification/technote2.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "91843f54016ba93d9569cdc2ff1679ff32782ec5b2dd9420e521b9c7f1aca3a6",
+        "sha256_in_prefix": "91843f54016ba93d9569cdc2ff1679ff32782ec5b2dd9420e521b9c7f1aca3a6",
+        "size_in_bytes": 36835
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/terms.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "7c2ebd36cb128f2b1af456125ba1e928729db096314f8d6e4075aaeef46b8707",
+        "sha256_in_prefix": "7c2ebd36cb128f2b1af456125ba1e928729db096314f8d6e4075aaeef46b8707",
+        "size_in_bytes": 2970
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "e8b73246eb242c70a3df95ef775792493686f364c26d8e882093bd97f447aa5c",
+        "sha256_in_prefix": "e8b73246eb242c70a3df95ef775792493686f364c26d8e882093bd97f447aa5c",
+        "size_in_bytes": 4789
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/fax2ps.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "39274de2ffb048ef4bcffbe6cc82e927288e53978aeff8b2917a5aeafaa1883e",
+        "sha256_in_prefix": "39274de2ffb048ef4bcffbe6cc82e927288e53978aeff8b2917a5aeafaa1883e",
+        "size_in_bytes": 3446
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/fax2tiff.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "78eb52850cba41beb6027b3b450cd811f9121a05b4a5ade0c28eb69962511378",
+        "sha256_in_prefix": "78eb52850cba41beb6027b3b450cd811f9121a05b4a5ade0c28eb69962511378",
+        "size_in_bytes": 6762
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/pal2rgb.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "5891f05750409e1ed39b34c1508bf28a9d5f2f0f21cde9008d30b066b3ed9d80",
+        "sha256_in_prefix": "5891f05750409e1ed39b34c1508bf28a9d5f2f0f21cde9008d30b066b3ed9d80",
+        "size_in_bytes": 2081
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/ppm2tiff.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b61cbd5417f14f748cf90698c2bf24ffb19f4ccd67265c6391a8b2f4a0961fba",
+        "sha256_in_prefix": "b61cbd5417f14f748cf90698c2bf24ffb19f4ccd67265c6391a8b2f4a0961fba",
+        "size_in_bytes": 1683
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/raw2tiff.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "c2e12817f403dc3db9a58685535a22dda6522403f0ac0ca94a1f8a5a753b65b2",
+        "sha256_in_prefix": "c2e12817f403dc3db9a58685535a22dda6522403f0ac0ca94a1f8a5a753b65b2",
+        "size_in_bytes": 4625
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/rgb2ycbcr.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "3ae078235f29d9891187e4bfc11b2b3029c37e4c35e69074b6b9b991db476c68",
+        "sha256_in_prefix": "3ae078235f29d9891187e4bfc11b2b3029c37e4c35e69074b6b9b991db476c68",
+        "size_in_bytes": 1818
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/thumbnail.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "1ee6edf750ea43a8a06f54e56a7e8573ee3fb5c8f888fce07772f2c9928b6d34",
+        "sha256_in_prefix": "1ee6edf750ea43a8a06f54e56a7e8573ee3fb5c8f888fce07772f2c9928b6d34",
+        "size_in_bytes": 1662
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiff2bw.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "d839fb7d852d60772010b8262143a155bbeaa391211dccbf5f7ac81d3c1a0d6d",
+        "sha256_in_prefix": "d839fb7d852d60772010b8262143a155bbeaa391211dccbf5f7ac81d3c1a0d6d",
+        "size_in_bytes": 1564
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiff2pdf.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "54d7df43ae1d0bc1e6216c8c5f2962f5cc1c42d41d4ca9b75dee1ce0720097e7",
+        "sha256_in_prefix": "54d7df43ae1d0bc1e6216c8c5f2962f5cc1c42d41d4ca9b75dee1ce0720097e7",
+        "size_in_bytes": 5941
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiff2ps.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "9b84f8534acabbef11fc6542dd79643f968f305f9f7e2fb1073fb87e8c8b891c",
+        "sha256_in_prefix": "9b84f8534acabbef11fc6542dd79643f968f305f9f7e2fb1073fb87e8c8b891c",
+        "size_in_bytes": 7016
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiff2rgba.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "5e1c94ac4c2f73fbcf3cb35128e0f046e4be251ba1aaf79d0a8b729997f2dd8a",
+        "sha256_in_prefix": "5e1c94ac4c2f73fbcf3cb35128e0f046e4be251ba1aaf79d0a8b729997f2dd8a",
+        "size_in_bytes": 2355
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffcmp.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "7f06ffbde40bb27a86a6ba9601677933958aa6c20807c6e984f7759d8a372b37",
+        "sha256_in_prefix": "7f06ffbde40bb27a86a6ba9601677933958aa6c20807c6e984f7759d8a372b37",
+        "size_in_bytes": 1498
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffcp.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "246082d809ccc9f3da710f4eeb55a9eae30a081d36bb5cc34f8d43fe29fcaff8",
+        "sha256_in_prefix": "246082d809ccc9f3da710f4eeb55a9eae30a081d36bb5cc34f8d43fe29fcaff8",
+        "size_in_bytes": 8400
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffcrop.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "d89e11117149ba5418cbcf38ab9c9f430b8f326b7ce0e20472bf2ef2edb9bc90",
+        "sha256_in_prefix": "d89e11117149ba5418cbcf38ab9c9f430b8f326b7ce0e20472bf2ef2edb9bc90",
+        "size_in_bytes": 22745
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffdither.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "9d4c033c2858c67980cf1d4446abc627768c958526f148864b43c7acce8f9e73",
+        "sha256_in_prefix": "9d4c033c2858c67980cf1d4446abc627768c958526f148864b43c7acce8f9e73",
+        "size_in_bytes": 2781
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffdump.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "4e48515159b7e0086f45e1d3233851b07e2c3c340825f22bef36864a5eea990b",
+        "sha256_in_prefix": "4e48515159b7e0086f45e1d3233851b07e2c3c340825f22bef36864a5eea990b",
+        "size_in_bytes": 1476
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffgt.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "d28d849cb4ab85ea3ca8ee4d5d7f2d632cedc3c888af96749021af001f0e4df1",
+        "sha256_in_prefix": "d28d849cb4ab85ea3ca8ee4d5d7f2d632cedc3c888af96749021af001f0e4df1",
+        "size_in_bytes": 5461
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffinfo.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "b4fa20526c8d92d8ceb515d4edc71813cf8d3bcf04a6c656c3e17ed88565e218",
+        "sha256_in_prefix": "b4fa20526c8d92d8ceb515d4edc71813cf8d3bcf04a6c656c3e17ed88565e218",
+        "size_in_bytes": 1364
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffmedian.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "375f384b6b43fe57c9d3c4058a8524c075c4483156513ffe079d5bb02b430b74",
+        "sha256_in_prefix": "375f384b6b43fe57c9d3c4058a8524c075c4483156513ffe079d5bb02b430b74",
+        "size_in_bytes": 2099
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffset.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "274c1ccc9cd9223c891562e892cc9421cedd93bd7461a117e4ce3fa8bd55fcf8",
+        "sha256_in_prefix": "274c1ccc9cd9223c891562e892cc9421cedd93bd7461a117e4ce3fa8bd55fcf8",
+        "size_in_bytes": 1453
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_sources/tools/tiffsplit.rst.txt",
+        "path_type": "hardlink",
+        "sha256": "717249bcfbc4006c46ddbe44a310d8cf33d7988c0a17a8444880ff9e8c8bd158",
+        "sha256_in_prefix": "717249bcfbc4006c46ddbe44a310d8cf33d7988c0a17a8444880ff9e8c8bd158",
+        "size_in_bytes": 930
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/basic.css",
+        "path_type": "hardlink",
+        "sha256": "9980fa28cbdcd8d6b437edcb1a911e0e2a788d7fa0dfe6ea25a302d824a3094d",
+        "sha256_in_prefix": "9980fa28cbdcd8d6b437edcb1a911e0e2a788d7fa0dfe6ea25a302d824a3094d",
+        "size_in_bytes": 14813
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/contents.png",
+        "path_type": "hardlink",
+        "sha256": "97df6b4561785becb6ac097c8dc054c132e54ba2a7bc52c00eaac15658f64be6",
+        "sha256_in_prefix": "97df6b4561785becb6ac097c8dc054c132e54ba2a7bc52c00eaac15658f64be6",
+        "size_in_bytes": 107
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/doctools.js",
+        "path_type": "hardlink",
+        "sha256": "3d62b81f63b0418a39a8f5a323203d88ddafc8c5226f86d311970025d86d7b6c",
+        "sha256_in_prefix": "3d62b81f63b0418a39a8f5a323203d88ddafc8c5226f86d311970025d86d7b6c",
+        "size_in_bytes": 4472
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/documentation_options.js",
+        "path_type": "hardlink",
+        "sha256": "e8c9f967b8ccbea475741b1ee6fd3dfc6cdcf6f0b24b30252df1e0a2c3ec2af1",
+        "sha256_in_prefix": "e8c9f967b8ccbea475741b1ee6fd3dfc6cdcf6f0b24b30252df1e0a2c3ec2af1",
+        "size_in_bytes": 420
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/file.png",
+        "path_type": "hardlink",
+        "sha256": "5c4bc9a16aebf38c4b950f59b8e501ca36495328cb9eb622218bce9064a35e3e",
+        "sha256_in_prefix": "5c4bc9a16aebf38c4b950f59b8e501ca36495328cb9eb622218bce9064a35e3e",
+        "size_in_bytes": 286
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/language_data.js",
+        "path_type": "hardlink",
+        "sha256": "95b1d44e1ba5a3155d89f8427a3b2c981158f956bf48b9cdf0030265e8b7a609",
+        "sha256_in_prefix": "95b1d44e1ba5a3155d89f8427a3b2c981158f956bf48b9cdf0030265e8b7a609",
+        "size_in_bytes": 4758
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/minus.png",
+        "path_type": "hardlink",
+        "sha256": "47e7fc50db3699f1ca41ce9a2ffa202c00c5d1d5180c55f62ba859b1bd6cc008",
+        "sha256_in_prefix": "47e7fc50db3699f1ca41ce9a2ffa202c00c5d1d5180c55f62ba859b1bd6cc008",
+        "size_in_bytes": 90
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/navigation.png",
+        "path_type": "hardlink",
+        "sha256": "3ff5183c3b40ebf3bc4f9c8f734a72948800f59f690d161576c251b34ba629c3",
+        "sha256_in_prefix": "3ff5183c3b40ebf3bc4f9c8f734a72948800f59f690d161576c251b34ba629c3",
+        "size_in_bytes": 120
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/plus.png",
+        "path_type": "hardlink",
+        "sha256": "54115199b96a130cba02147c47c0deb43dcc9b9f08b5162bba8642b34980ac63",
+        "sha256_in_prefix": "54115199b96a130cba02147c47c0deb43dcc9b9f08b5162bba8642b34980ac63",
+        "size_in_bytes": 90
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/pygments.css",
+        "path_type": "hardlink",
+        "sha256": "547c0d5c0f599a639aba69a2f40b9d7c2c291c69c72be356066f86aa8eb022f1",
+        "sha256_in_prefix": "547c0d5c0f599a639aba69a2f40b9d7c2c291c69c72be356066f86aa8eb022f1",
+        "size_in_bytes": 4846
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/searchtools.js",
+        "path_type": "hardlink",
+        "sha256": "5b9facbcb36e5e15e409e2db42439fb8cbc1e43275e337a645bb3c76c3191b93",
+        "sha256_in_prefix": "5b9facbcb36e5e15e409e2db42439fb8cbc1e43275e337a645bb3c76c3191b93",
+        "size_in_bytes": 18215
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/sphinx_highlight.js",
+        "path_type": "hardlink",
+        "sha256": "0a20464b65797522de18421a7db1a0851a26aae6dd06b7109d442236313c27ee",
+        "sha256_in_prefix": "0a20464b65797522de18421a7db1a0851a26aae6dd06b7109d442236313c27ee",
+        "size_in_bytes": 4712
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/_static/sphinxdoc.css",
+        "path_type": "hardlink",
+        "sha256": "17bac8585397af7be75e5fb9729b7363623a6c0736a57a556efee74642813632",
+        "sha256_in_prefix": "17bac8585397af7be75e5fb9729b7363623a6c0736a57a556efee74642813632",
+        "size_in_bytes": 6263
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/addingtags.html",
+        "path_type": "hardlink",
+        "sha256": "a36c4f3a8d76d529b53178f1f2ef07997f41bb85d49ff310c2c235756cf4cfee",
+        "sha256_in_prefix": "a36c4f3a8d76d529b53178f1f2ef07997f41bb85d49ff310c2c235756cf4cfee",
+        "size_in_bytes": 43077
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/build.html",
+        "path_type": "hardlink",
+        "sha256": "f2498e90e4548e1ce5d8e9030f80c4f2d4d0a53a9f95a3bf629f5bc538bacd6c",
+        "sha256_in_prefix": "f2498e90e4548e1ce5d8e9030f80c4f2d4d0a53a9f95a3bf629f5bc538bacd6c",
+        "size_in_bytes": 65420
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/contrib.html",
+        "path_type": "hardlink",
+        "sha256": "772c04f557d9563b68004bd43fa860b9693a65951adfb5c57da3072762e6d1da",
+        "sha256_in_prefix": "772c04f557d9563b68004bd43fa860b9693a65951adfb5c57da3072762e6d1da",
+        "size_in_bytes": 9624
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions.html",
+        "path_type": "hardlink",
+        "sha256": "35d999211c3da2641e5ca1223da4febbdacb319b0e0e41a0bde5d33765ac04dd",
+        "sha256_in_prefix": "35d999211c3da2641e5ca1223da4febbdacb319b0e0e41a0bde5d33765ac04dd",
+        "size_in_bytes": 11177
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFAccessTagMethods.html",
+        "path_type": "hardlink",
+        "sha256": "1c2a9846c9285ed2997155bb03b8ad9186cd57bb917602f1081762a222adf58b",
+        "sha256_in_prefix": "1c2a9846c9285ed2997155bb03b8ad9186cd57bb917602f1081762a222adf58b",
+        "size_in_bytes": 6642
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFClientInfo.html",
+        "path_type": "hardlink",
+        "sha256": "bc722783f4c92bdd018455a4e998f26019f8550782f4284b8031ed890ff46697",
+        "sha256_in_prefix": "bc722783f4c92bdd018455a4e998f26019f8550782f4284b8031ed890ff46697",
+        "size_in_bytes": 8813
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFClose.html",
+        "path_type": "hardlink",
+        "sha256": "f6f318a6d0c18e8218a0bcc8823d1e466ad84155aef34b35fdb0135be4756fe6",
+        "sha256_in_prefix": "f6f318a6d0c18e8218a0bcc8823d1e466ad84155aef34b35fdb0135be4756fe6",
+        "size_in_bytes": 9247
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFCreateDirectory.html",
+        "path_type": "hardlink",
+        "sha256": "c9b4bdc19abd02ac5412b4ceee810d8af936cfe3a4c810ec3f62dbf408d3312f",
+        "sha256_in_prefix": "c9b4bdc19abd02ac5412b4ceee810d8af936cfe3a4c810ec3f62dbf408d3312f",
+        "size_in_bytes": 15708
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFCustomDirectory.html",
+        "path_type": "hardlink",
+        "sha256": "83bac55942949ea9e49455cd3e3668265315f76c0adf64d01f7d287c6912a3f8",
+        "sha256_in_prefix": "83bac55942949ea9e49455cd3e3668265315f76c0adf64d01f7d287c6912a3f8",
+        "size_in_bytes": 28722
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFCustomTagList.html",
+        "path_type": "hardlink",
+        "sha256": "a9615e96114a6342c5a42ab220e4e229f58a0ab10ddef9fd63bb26575f981897",
+        "sha256_in_prefix": "a9615e96114a6342c5a42ab220e4e229f58a0ab10ddef9fd63bb26575f981897",
+        "size_in_bytes": 9015
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFDataWidth.html",
+        "path_type": "hardlink",
+        "sha256": "7dbb4212af00068b57c7e5e62589f0ea0d0d000d0d0ae0d1d59101c0eea58198",
+        "sha256_in_prefix": "7dbb4212af00068b57c7e5e62589f0ea0d0d000d0d0ae0d1d59101c0eea58198",
+        "size_in_bytes": 9045
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFDeferStrileArrayWriting.html",
+        "path_type": "hardlink",
+        "sha256": "2a2c4d342061c9dd82bde16c00d2e478963904bf9e5ccb8c37b8d16031b3305a",
+        "sha256_in_prefix": "2a2c4d342061c9dd82bde16c00d2e478963904bf9e5ccb8c37b8d16031b3305a",
+        "size_in_bytes": 10948
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFError.html",
+        "path_type": "hardlink",
+        "sha256": "febc76af535a5c5ed5658d106915b0377baa48bb4326274632f24b85943e11f1",
+        "sha256_in_prefix": "febc76af535a5c5ed5658d106915b0377baa48bb4326274632f24b85943e11f1",
+        "size_in_bytes": 25282
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFFieldDataType.html",
+        "path_type": "hardlink",
+        "sha256": "ad00d8039fb4d2b1c9dc6f7edecdb44feccaf63350b27164aa4561a3a39e7b84",
+        "sha256_in_prefix": "ad00d8039fb4d2b1c9dc6f7edecdb44feccaf63350b27164aa4561a3a39e7b84",
+        "size_in_bytes": 7815
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFFieldName.html",
+        "path_type": "hardlink",
+        "sha256": "0c49743fbb62bb54e0437335654a872d6e2846b5e5d5fca024dc53a2f0b73274",
+        "sha256_in_prefix": "0c49743fbb62bb54e0437335654a872d6e2846b5e5d5fca024dc53a2f0b73274",
+        "size_in_bytes": 7859
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFFieldPassCount.html",
+        "path_type": "hardlink",
+        "sha256": "d29a36eb2cf86bd4aaa3ba8253a959b877634c44ccb50b2f28cafe590106d8da",
+        "sha256_in_prefix": "d29a36eb2cf86bd4aaa3ba8253a959b877634c44ccb50b2f28cafe590106d8da",
+        "size_in_bytes": 9568
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFFieldQuery.html",
+        "path_type": "hardlink",
+        "sha256": "1d3f7f05cd68015b01c5ca0597112b4287b906b74b0169287defa370bba42d5e",
+        "sha256_in_prefix": "1d3f7f05cd68015b01c5ca0597112b4287b906b74b0169287defa370bba42d5e",
+        "size_in_bytes": 15850
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFFieldReadCount.html",
+        "path_type": "hardlink",
+        "sha256": "f76583564a4e4031022b67158aa3170c5400ef8b9699029add5917158bbe5bd9",
+        "sha256_in_prefix": "f76583564a4e4031022b67158aa3170c5400ef8b9699029add5917158bbe5bd9",
+        "size_in_bytes": 9657
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFFieldTag.html",
+        "path_type": "hardlink",
+        "sha256": "f21f46cc9924901ff7f68624d165a2ff9c3f20854129d2a75c9b74c46a4b5a2b",
+        "sha256_in_prefix": "f21f46cc9924901ff7f68624d165a2ff9c3f20854129d2a75c9b74c46a4b5a2b",
+        "size_in_bytes": 7979
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFFieldWriteCount.html",
+        "path_type": "hardlink",
+        "sha256": "3f07a2587631cba9d5224018261fe7305f5194e9ad6df38fc83837ee417aea65",
+        "sha256_in_prefix": "3f07a2587631cba9d5224018261fe7305f5194e9ad6df38fc83837ee417aea65",
+        "size_in_bytes": 10008
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFFlush.html",
+        "path_type": "hardlink",
+        "sha256": "712b81616f619d40889eff40cca3f2ddc643dbcce90899904db3c03ba7c268e9",
+        "sha256_in_prefix": "712b81616f619d40889eff40cca3f2ddc643dbcce90899904db3c03ba7c268e9",
+        "size_in_bytes": 9157
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFGetField.html",
+        "path_type": "hardlink",
+        "sha256": "ce33d49c7477fc08c32f7690d6c3de170862a3ad4bc31a24a9acfe596aa2ff3b",
+        "sha256_in_prefix": "ce33d49c7477fc08c32f7690d6c3de170862a3ad4bc31a24a9acfe596aa2ff3b",
+        "size_in_bytes": 44903
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFMergeFieldInfo.html",
+        "path_type": "hardlink",
+        "sha256": "042d1510a4040f4db2cd8348e56d596a688c1b80f0a80bcc13a70063aa9bc0ce",
+        "sha256_in_prefix": "042d1510a4040f4db2cd8348e56d596a688c1b80f0a80bcc13a70063aa9bc0ce",
+        "size_in_bytes": 7917
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFOpen.html",
+        "path_type": "hardlink",
+        "sha256": "5db0bfa3021f779f1e0f7dad5b98b194b1ce562fd053862c1e807b04616ef359",
+        "sha256_in_prefix": "5db0bfa3021f779f1e0f7dad5b98b194b1ce562fd053862c1e807b04616ef359",
+        "size_in_bytes": 51765
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFOpenOptions.html",
+        "path_type": "hardlink",
+        "sha256": "b840773889308ee9ade8e46e098cbfb19069bba859f09ca2fa1627f6fa181abf",
+        "sha256_in_prefix": "b840773889308ee9ade8e46e098cbfb19069bba859f09ca2fa1627f6fa181abf",
+        "size_in_bytes": 15694
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFPrintDirectory.html",
+        "path_type": "hardlink",
+        "sha256": "83ba3640ac124dc3739d6f6d52979959ecb3a3cab1d6123577727651f5c450da",
+        "sha256_in_prefix": "83ba3640ac124dc3739d6f6d52979959ecb3a3cab1d6123577727651f5c450da",
+        "size_in_bytes": 9859
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFProcFunctions.html",
+        "path_type": "hardlink",
+        "sha256": "06c2b98728023b1657be2fdf532d4e8905b5088203dd3a28a0221dec637ab31c",
+        "sha256_in_prefix": "06c2b98728023b1657be2fdf532d4e8905b5088203dd3a28a0221dec637ab31c",
+        "size_in_bytes": 12804
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFRGBAImage.html",
+        "path_type": "hardlink",
+        "sha256": "7a6427b2fb652f3d1956cdbf8b769a1fd269a242fce824466711b82fb85cd3f0",
+        "sha256_in_prefix": "7a6427b2fb652f3d1956cdbf8b769a1fd269a242fce824466711b82fb85cd3f0",
+        "size_in_bytes": 30964
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadDirectory.html",
+        "path_type": "hardlink",
+        "sha256": "f868929c89e6583d440cbc6a533eb42e435d1cb898b1503858026ceeb287a531",
+        "sha256_in_prefix": "f868929c89e6583d440cbc6a533eb42e435d1cb898b1503858026ceeb287a531",
+        "size_in_bytes": 18272
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadEncodedStrip.html",
+        "path_type": "hardlink",
+        "sha256": "d1c4c028a1344eca6b2daf4397bdd9529884e4cdebcab4e56137a5fc533b00be",
+        "sha256_in_prefix": "d1c4c028a1344eca6b2daf4397bdd9529884e4cdebcab4e56137a5fc533b00be",
+        "size_in_bytes": 9783
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadEncodedTile.html",
+        "path_type": "hardlink",
+        "sha256": "ae84fcefd36aa614af3d684a691e01e101a41e02e5120c303f1310dfb49e60e1",
+        "sha256_in_prefix": "ae84fcefd36aa614af3d684a691e01e101a41e02e5120c303f1310dfb49e60e1",
+        "size_in_bytes": 9891
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadFromUserBuffer.html",
+        "path_type": "hardlink",
+        "sha256": "3cbe1fe8d8a4e63c631c3aec4b04f2e790526daccfa2f8b02fea51a9706cdc31",
+        "sha256_in_prefix": "3cbe1fe8d8a4e63c631c3aec4b04f2e790526daccfa2f8b02fea51a9706cdc31",
+        "size_in_bytes": 9756
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadRGBAImage.html",
+        "path_type": "hardlink",
+        "sha256": "e46d344eabd0824ebfb1590b82b7e0d0b2c87cecfd076a0cda46f59099e8ad35",
+        "sha256_in_prefix": "e46d344eabd0824ebfb1590b82b7e0d0b2c87cecfd076a0cda46f59099e8ad35",
+        "size_in_bytes": 23058
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadRGBAStrip.html",
+        "path_type": "hardlink",
+        "sha256": "5899d74f657880b31dfd692f08304ab00829c4cd29d8d1f62994935228c3f748",
+        "sha256_in_prefix": "5899d74f657880b31dfd692f08304ab00829c4cd29d8d1f62994935228c3f748",
+        "size_in_bytes": 18836
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadRGBATile.html",
+        "path_type": "hardlink",
+        "sha256": "41d6f60ee5eda40986a7e8eaf90eab94ce088af4feae1c61f941b99c8bb867be",
+        "sha256_in_prefix": "41d6f60ee5eda40986a7e8eaf90eab94ce088af4feae1c61f941b99c8bb867be",
+        "size_in_bytes": 19030
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadRawStrip.html",
+        "path_type": "hardlink",
+        "sha256": "a1b98be361038a9879d7d4b2b1febdc998e0b402e6fedf1e481d4ab4fd3b4d0f",
+        "sha256_in_prefix": "a1b98be361038a9879d7d4b2b1febdc998e0b402e6fedf1e481d4ab4fd3b4d0f",
+        "size_in_bytes": 8829
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadRawTile.html",
+        "path_type": "hardlink",
+        "sha256": "8d6977fd2991458c6638836368ae6ca1c46d0603035112eae46a48f300f1ab69",
+        "sha256_in_prefix": "8d6977fd2991458c6638836368ae6ca1c46d0603035112eae46a48f300f1ab69",
+        "size_in_bytes": 9061
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadScanline.html",
+        "path_type": "hardlink",
+        "sha256": "832d6e4cce5b93f7805d8c356aefa5aaa7872291282aaa66512a25f3de696f46",
+        "sha256_in_prefix": "832d6e4cce5b93f7805d8c356aefa5aaa7872291282aaa66512a25f3de696f46",
+        "size_in_bytes": 11156
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFReadTile.html",
+        "path_type": "hardlink",
+        "sha256": "72747f4a154954233bbc6ed6754a2675f4baf864ae0a1cb4b353efddb4039b4f",
+        "sha256_in_prefix": "72747f4a154954233bbc6ed6754a2675f4baf864ae0a1cb4b353efddb4039b4f",
+        "size_in_bytes": 10111
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFSetDirectory.html",
+        "path_type": "hardlink",
+        "sha256": "213ff933ae2af2ddd4a820be2f163403c67f1560d90f625a84e9248074f955da",
+        "sha256_in_prefix": "213ff933ae2af2ddd4a820be2f163403c67f1560d90f625a84e9248074f955da",
+        "size_in_bytes": 12366
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFSetField.html",
+        "path_type": "hardlink",
+        "sha256": "27d29a98514203de6687639b179254e56bed262414e87b4fec2a8b02d721eff9",
+        "sha256_in_prefix": "27d29a98514203de6687639b179254e56bed262414e87b4fec2a8b02d721eff9",
+        "size_in_bytes": 37132
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFSetTagExtender.html",
+        "path_type": "hardlink",
+        "sha256": "98878e46e161ee028a4fc6035ea6d40e7285e5b36e445e7925c7ddf31af62147",
+        "sha256_in_prefix": "98878e46e161ee028a4fc6035ea6d40e7285e5b36e445e7925c7ddf31af62147",
+        "size_in_bytes": 7409
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFStrileQuery.html",
+        "path_type": "hardlink",
+        "sha256": "319438a197809a6f8530f4fe406a452671fb2841c9fba0d47d3b304a7d1b45c6",
+        "sha256_in_prefix": "319438a197809a6f8530f4fe406a452671fb2841c9fba0d47d3b304a7d1b45c6",
+        "size_in_bytes": 14779
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFWarning.html",
+        "path_type": "hardlink",
+        "sha256": "d274ee3446e832bc767afb0b0e851f7c5bdadd3833419e8ca6f2521923e3642a",
+        "sha256_in_prefix": "d274ee3446e832bc767afb0b0e851f7c5bdadd3833419e8ca6f2521923e3642a",
+        "size_in_bytes": 25172
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFWriteDirectory.html",
+        "path_type": "hardlink",
+        "sha256": "245c5d194bc103f6d71380ddd92abc8e821f5e568a84a72edfffca00d8750888",
+        "sha256_in_prefix": "245c5d194bc103f6d71380ddd92abc8e821f5e568a84a72edfffca00d8750888",
+        "size_in_bytes": 19806
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFWriteEncodedStrip.html",
+        "path_type": "hardlink",
+        "sha256": "2cc8b10ca438a6a0c76086140402343cb35ebc8ff435794b6b93f23e7131efcd",
+        "sha256_in_prefix": "2cc8b10ca438a6a0c76086140402343cb35ebc8ff435794b6b93f23e7131efcd",
+        "size_in_bytes": 12128
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFWriteEncodedTile.html",
+        "path_type": "hardlink",
+        "sha256": "68ceb82390eaf8820e530bc0255e9ee029fb9dccb08d365b720c1b55f1a18ccf",
+        "sha256_in_prefix": "68ceb82390eaf8820e530bc0255e9ee029fb9dccb08d365b720c1b55f1a18ccf",
+        "size_in_bytes": 11868
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFWriteRawStrip.html",
+        "path_type": "hardlink",
+        "sha256": "c7536c50f6a293696933c2bd8906f8ae9f5117badd07f0e04dbea598b0dd69d1",
+        "sha256_in_prefix": "c7536c50f6a293696933c2bd8906f8ae9f5117badd07f0e04dbea598b0dd69d1",
+        "size_in_bytes": 11950
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFWriteRawTile.html",
+        "path_type": "hardlink",
+        "sha256": "3f745acc994fd7e1c05874beb92962a058c90934e30f9c905b92602f2eedebd0",
+        "sha256_in_prefix": "3f745acc994fd7e1c05874beb92962a058c90934e30f9c905b92602f2eedebd0",
+        "size_in_bytes": 11054
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFWriteScanline.html",
+        "path_type": "hardlink",
+        "sha256": "fde966aeb9fa2811a54e76b535d51bd9938ed8194586e0b4230544129bffdba3",
+        "sha256_in_prefix": "fde966aeb9fa2811a54e76b535d51bd9938ed8194586e0b4230544129bffdba3",
+        "size_in_bytes": 16306
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFWriteTile.html",
+        "path_type": "hardlink",
+        "sha256": "5f18749e81d37688482d9797ad4ead383d920dfd23011b4c92ab00498da19033",
+        "sha256_in_prefix": "5f18749e81d37688482d9797ad4ead383d920dfd23011b4c92ab00498da19033",
+        "size_in_bytes": 9755
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFbuffer.html",
+        "path_type": "hardlink",
+        "sha256": "6c4503583bbfb374e800c6b080333c98ae4fe6e8f35e5dd6ebd33511189c428b",
+        "sha256_in_prefix": "6c4503583bbfb374e800c6b080333c98ae4fe6e8f35e5dd6ebd33511189c428b",
+        "size_in_bytes": 10938
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFcodec.html",
+        "path_type": "hardlink",
+        "sha256": "6b82a1f5c23d4626749c70863db183c4e9fa971e09e4d7539bc94ba743a66fd1",
+        "sha256_in_prefix": "6b82a1f5c23d4626749c70863db183c4e9fa971e09e4d7539bc94ba743a66fd1",
+        "size_in_bytes": 13793
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFcolor.html",
+        "path_type": "hardlink",
+        "sha256": "1b7ef6b0c1414e883a97c3c79119f869c824653f2d7a8b1ba58bf2170b85862e",
+        "sha256_in_prefix": "1b7ef6b0c1414e883a97c3c79119f869c824653f2d7a8b1ba58bf2170b85862e",
+        "size_in_bytes": 40032
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFmemory.html",
+        "path_type": "hardlink",
+        "sha256": "c7ad3ffbb11d260daabd71ae1133b2c39e947a81d2ec78054ae5d46cfd7771bb",
+        "sha256_in_prefix": "c7ad3ffbb11d260daabd71ae1133b2c39e947a81d2ec78054ae5d46cfd7771bb",
+        "size_in_bytes": 15766
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFquery.html",
+        "path_type": "hardlink",
+        "sha256": "f00e4290dc1ef5a4609dab463a82a98462363e3e24b2cca40f845455222f9e72",
+        "sha256_in_prefix": "f00e4290dc1ef5a4609dab463a82a98462363e3e24b2cca40f845455222f9e72",
+        "size_in_bytes": 24500
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFsize.html",
+        "path_type": "hardlink",
+        "sha256": "4222d0c84f355647dbad8347c8acf5531da1ef6177569c9be9dda295708f89d5",
+        "sha256_in_prefix": "4222d0c84f355647dbad8347c8acf5531da1ef6177569c9be9dda295708f89d5",
+        "size_in_bytes": 10945
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFstrip.html",
+        "path_type": "hardlink",
+        "sha256": "fe09bc0d85afb29ccf87508cf007e7df74ff975410d3b2963f22a9fcd124b6e5",
+        "sha256_in_prefix": "fe09bc0d85afb29ccf87508cf007e7df74ff975410d3b2963f22a9fcd124b6e5",
+        "size_in_bytes": 18365
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFswab.html",
+        "path_type": "hardlink",
+        "sha256": "5c03d111cfe8eae0f93bc28b03edc9c7ffebfea9e035f014a4f6cc17ab730962",
+        "sha256_in_prefix": "5c03d111cfe8eae0f93bc28b03edc9c7ffebfea9e035f014a4f6cc17ab730962",
+        "size_in_bytes": 18748
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/TIFFtile.html",
+        "path_type": "hardlink",
+        "sha256": "fc75aadf943f710311ad3c5bd18d90ba4f5b6500d7298c44ab066b7c594f7f70",
+        "sha256_in_prefix": "fc75aadf943f710311ad3c5bd18d90ba4f5b6500d7298c44ab066b7c594f7f70",
+        "size_in_bytes": 19285
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/_TIFFRewriteField.html",
+        "path_type": "hardlink",
+        "sha256": "68b15fdc0d0c7ad37e968a11653a1125a9dd26293d2c9662fc8f69009f3e085d",
+        "sha256_in_prefix": "68b15fdc0d0c7ad37e968a11653a1125a9dd26293d2c9662fc8f69009f3e085d",
+        "size_in_bytes": 7653
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/_TIFFauxiliary.html",
+        "path_type": "hardlink",
+        "sha256": "0ac2c4446473a8bbca212bb2a22c47d361a562f6645d52820bc239feac118035",
+        "sha256_in_prefix": "0ac2c4446473a8bbca212bb2a22c47d361a562f6645d52820bc239feac118035",
+        "size_in_bytes": 9585
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/functions/libtiff.html",
+        "path_type": "hardlink",
+        "sha256": "9ec71d83479de6000cf53e254a049dd1c66f59d7a6b079d571138c8f3e0951d7",
+        "sha256_in_prefix": "9ec71d83479de6000cf53e254a049dd1c66f59d7a6b079d571138c8f3e0951d7",
+        "size_in_bytes": 98772
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/genindex.html",
+        "path_type": "hardlink",
+        "sha256": "1583ee13468c8ffc530f3dcb83b2cf3e661db26a8920b8a17ec41a9277ff4927",
+        "sha256_in_prefix": "1583ee13468c8ffc530f3dcb83b2cf3e661db26a8920b8a17ec41a9277ff4927",
+        "size_in_bytes": 78504
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/images.html",
+        "path_type": "hardlink",
+        "sha256": "6d4956b3197fed21ba232b35592dd8ab0a04e70b82c6ff45f04a05958046aabc",
+        "sha256_in_prefix": "6d4956b3197fed21ba232b35592dd8ab0a04e70b82c6ff45f04a05958046aabc",
+        "size_in_bytes": 5530
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/index.html",
+        "path_type": "hardlink",
+        "sha256": "5f9f666eb43c856caf85bcfaadc53dc85d4d95247e9529e925a2cc7b365194df",
+        "sha256_in_prefix": "5f9f666eb43c856caf85bcfaadc53dc85d4d95247e9529e925a2cc7b365194df",
+        "size_in_bytes": 21029
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/internals.html",
+        "path_type": "hardlink",
+        "sha256": "b3828362ded71f7ba6b8e5bb44b3f49bbbfc7ad1420a22f1595859d1249cbfe1",
+        "sha256_in_prefix": "b3828362ded71f7ba6b8e5bb44b3f49bbbfc7ad1420a22f1595859d1249cbfe1",
+        "size_in_bytes": 40589
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/libtiff.html",
+        "path_type": "hardlink",
+        "sha256": "ec2ffd36b8a0ae62abae265d9349c48cfffb6c509e53de89bd1bdf8719cf0cff",
+        "sha256_in_prefix": "ec2ffd36b8a0ae62abae265d9349c48cfffb6c509e53de89bd1bdf8719cf0cff",
+        "size_in_bytes": 80820
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/multi_page.html",
+        "path_type": "hardlink",
+        "sha256": "ecad116943abfa442398b5b3ba44f7111af8b1a4431547e0a794ac32ed21d72f",
+        "sha256_in_prefix": "ecad116943abfa442398b5b3ba44f7111af8b1a4431547e0a794ac32ed21d72f",
+        "size_in_bytes": 31302
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/objects.inv",
+        "path_type": "hardlink",
+        "sha256": "379526e7f14b43956eae35d633a2cbbd045ee36c74104c7bdd2c8922bdcf89c1",
+        "sha256_in_prefix": "379526e7f14b43956eae35d633a2cbbd045ee36c74104c7bdd2c8922bdcf89c1",
+        "size_in_bytes": 8768
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/project/acknowledgements.html",
+        "path_type": "hardlink",
+        "sha256": "a980539f3cf67d5ee2d2d852fda8b46b7c9f7a545d17fb4678da9e1142d2502e",
+        "sha256_in_prefix": "a980539f3cf67d5ee2d2d852fda8b46b7c9f7a545d17fb4678da9e1142d2502e",
+        "size_in_bytes": 10009
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/project/bugs.html",
+        "path_type": "hardlink",
+        "sha256": "35939f793a8acb7812b8efca83d5e862031e4807d4891a8d150940790e65bdff",
+        "sha256_in_prefix": "35939f793a8acb7812b8efca83d5e862031e4807d4891a8d150940790e65bdff",
+        "size_in_bytes": 8235
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/project/index.html",
+        "path_type": "hardlink",
+        "sha256": "6efe7c0b1a775d37ffb535d96003f377b3e02ac65b40c4dbbae79e3263d88070",
+        "sha256_in_prefix": "6efe7c0b1a775d37ffb535d96003f377b3e02ac65b40c4dbbae79e3263d88070",
+        "size_in_bytes": 5552
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/project/license.html",
+        "path_type": "hardlink",
+        "sha256": "d07f0648d02054ac5c229349fe1848ec7bfd46bee0e265fee372bcf7e44a74b9",
+        "sha256_in_prefix": "d07f0648d02054ac5c229349fe1848ec7bfd46bee0e265fee372bcf7e44a74b9",
+        "size_in_bytes": 5674
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/project/mailinglist.html",
+        "path_type": "hardlink",
+        "sha256": "9a5977baaf055e9a5fa8cac6fc6078c2f325d4d0e9ddd0e45deded401988da7f",
+        "sha256_in_prefix": "9a5977baaf055e9a5fa8cac6fc6078c2f325d4d0e9ddd0e45deded401988da7f",
+        "size_in_bytes": 6146
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/historical.html",
+        "path_type": "hardlink",
+        "sha256": "2c2dd80939dc45f4f026d47e8e044c251f2b247895026a666d6e3c960f143682",
+        "sha256_in_prefix": "2c2dd80939dc45f4f026d47e8e044c251f2b247895026a666d6e3c960f143682",
+        "size_in_bytes": 8823
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/index.html",
+        "path_type": "hardlink",
+        "sha256": "1199c937a1744cda556ad7a53988c1092a44f9da71e92ce139835e0601631491",
+        "sha256_in_prefix": "1199c937a1744cda556ad7a53988c1092a44f9da71e92ce139835e0601631491",
+        "size_in_bytes": 6406
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta007.html",
+        "path_type": "hardlink",
+        "sha256": "3d51a98ab59c686568efdc7af59c5482a02f64224ff6eff56d6d63eb77e6fd9f",
+        "sha256_in_prefix": "3d51a98ab59c686568efdc7af59c5482a02f64224ff6eff56d6d63eb77e6fd9f",
+        "size_in_bytes": 10106
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta016.html",
+        "path_type": "hardlink",
+        "sha256": "b7c7f54322d25c74e46db0d1a7103318aced7cc9bf8ee2467bc3ce9206a8b770",
+        "sha256_in_prefix": "b7c7f54322d25c74e46db0d1a7103318aced7cc9bf8ee2467bc3ce9206a8b770",
+        "size_in_bytes": 10489
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta018.html",
+        "path_type": "hardlink",
+        "sha256": "ba9487e04cc2851babaaaf0a21cced1c72167b7066066ca5ba926af415452e02",
+        "sha256_in_prefix": "ba9487e04cc2851babaaaf0a21cced1c72167b7066066ca5ba926af415452e02",
+        "size_in_bytes": 8660
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta024.html",
+        "path_type": "hardlink",
+        "sha256": "298b702b1e421d38162e999974224d427a6f8dacde6a304e018aaba984088359",
+        "sha256_in_prefix": "298b702b1e421d38162e999974224d427a6f8dacde6a304e018aaba984088359",
+        "size_in_bytes": 13477
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta028.html",
+        "path_type": "hardlink",
+        "sha256": "7795fc5190463400910516c1175125f7124f37963b31feed4d3b623355d09846",
+        "sha256_in_prefix": "7795fc5190463400910516c1175125f7124f37963b31feed4d3b623355d09846",
+        "size_in_bytes": 14135
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta029.html",
+        "path_type": "hardlink",
+        "sha256": "e56b387819e448eb561addbdcdaaabfc378ef63d5a604b3d58fcba452563dbcd",
+        "sha256_in_prefix": "e56b387819e448eb561addbdcdaaabfc378ef63d5a604b3d58fcba452563dbcd",
+        "size_in_bytes": 8422
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta031.html",
+        "path_type": "hardlink",
+        "sha256": "1971ec1f408f035833dd3cff0ddde534a0569e7937d0dcddd1766e9e4ca35526",
+        "sha256_in_prefix": "1971ec1f408f035833dd3cff0ddde534a0569e7937d0dcddd1766e9e4ca35526",
+        "size_in_bytes": 9372
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta032.html",
+        "path_type": "hardlink",
+        "sha256": "8b89ab1f015a753ec7b5c291764e91ea8054ab7b926918de1951102342766967",
+        "sha256_in_prefix": "8b89ab1f015a753ec7b5c291764e91ea8054ab7b926918de1951102342766967",
+        "size_in_bytes": 8859
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta033.html",
+        "path_type": "hardlink",
+        "sha256": "a76694ddd8b7b514ecfa6e6f685fe94a8d31d9444d40df2c7f1db3f29958cc1e",
+        "sha256_in_prefix": "a76694ddd8b7b514ecfa6e6f685fe94a8d31d9444d40df2c7f1db3f29958cc1e",
+        "size_in_bytes": 7828
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta034.html",
+        "path_type": "hardlink",
+        "sha256": "d2218c016ff2773cecd3ca870236ad93ca648db2e3418fd6df9bd2872ac9eb77",
+        "sha256_in_prefix": "d2218c016ff2773cecd3ca870236ad93ca648db2e3418fd6df9bd2872ac9eb77",
+        "size_in_bytes": 7683
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta035.html",
+        "path_type": "hardlink",
+        "sha256": "2f65b6ffb572bf139e5b324640957dc116e45ada39e98825e581117dddb8f29a",
+        "sha256_in_prefix": "2f65b6ffb572bf139e5b324640957dc116e45ada39e98825e581117dddb8f29a",
+        "size_in_bytes": 6992
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.4beta036.html",
+        "path_type": "hardlink",
+        "sha256": "f197f37330a6050813601ec133c6f9ed387bc2e4768456cf18cd14e307787d05",
+        "sha256_in_prefix": "f197f37330a6050813601ec133c6f9ed387bc2e4768456cf18cd14e307787d05",
+        "size_in_bytes": 11438
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.5.1.html",
+        "path_type": "hardlink",
+        "sha256": "76041f817ccc7e66e92a1003fcea79e871cf0a93191f9d06252a366945d6c7d5",
+        "sha256_in_prefix": "76041f817ccc7e66e92a1003fcea79e871cf0a93191f9d06252a366945d6c7d5",
+        "size_in_bytes": 7997
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.5.2.html",
+        "path_type": "hardlink",
+        "sha256": "a78251c3c441ffe6108d4d115722fcf328927604ef810b3603844c22d0164d16",
+        "sha256_in_prefix": "a78251c3c441ffe6108d4d115722fcf328927604ef810b3603844c22d0164d16",
+        "size_in_bytes": 10938
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.5.3.html",
+        "path_type": "hardlink",
+        "sha256": "4ef9a214b81a1882a35bdbcc82b239778513d9ced4061c003521b91e756ba192",
+        "sha256_in_prefix": "4ef9a214b81a1882a35bdbcc82b239778513d9ced4061c003521b91e756ba192",
+        "size_in_bytes": 11579
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.5.4.html",
+        "path_type": "hardlink",
+        "sha256": "d30e852fecae36a7919976324c696a8624f20fd3f93871bd16a8e742442c4a66",
+        "sha256_in_prefix": "d30e852fecae36a7919976324c696a8624f20fd3f93871bd16a8e742442c4a66",
+        "size_in_bytes": 8232
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.5.5.html",
+        "path_type": "hardlink",
+        "sha256": "069ae35375c1a809b45a32f3b3b8de39ea0d2995ef68c3a757c8448968b19a34",
+        "sha256_in_prefix": "069ae35375c1a809b45a32f3b3b8de39ea0d2995ef68c3a757c8448968b19a34",
+        "size_in_bytes": 15909
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.5.6beta.html",
+        "path_type": "hardlink",
+        "sha256": "ac6434f1827a54932d4f68ed78cff9b105d08009c517d3737461c62d4d4da097",
+        "sha256_in_prefix": "ac6434f1827a54932d4f68ed78cff9b105d08009c517d3737461c62d4d4da097",
+        "size_in_bytes": 17638
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.5.7.html",
+        "path_type": "hardlink",
+        "sha256": "4bfa25ffdc5c0ec5d3c003ec98e0666da0942e4e38e5ba1ab92fa0296bcf21d0",
+        "sha256_in_prefix": "4bfa25ffdc5c0ec5d3c003ec98e0666da0942e4e38e5ba1ab92fa0296bcf21d0",
+        "size_in_bytes": 29734
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.6.0.html",
+        "path_type": "hardlink",
+        "sha256": "91d02e72a2f17b469595c93c40b02d93d40720971ab8607ae32438e7e8630904",
+        "sha256_in_prefix": "91d02e72a2f17b469595c93c40b02d93d40720971ab8607ae32438e7e8630904",
+        "size_in_bytes": 46793
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.6.1.html",
+        "path_type": "hardlink",
+        "sha256": "3dec69fafaf5555841750599b0df8850b742dae0f7bb771b9cee7e2fed3019f4",
+        "sha256_in_prefix": "3dec69fafaf5555841750599b0df8850b742dae0f7bb771b9cee7e2fed3019f4",
+        "size_in_bytes": 18590
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.7.0.html",
+        "path_type": "hardlink",
+        "sha256": "41b5c6ff211b2d04825bf00a7504c16e2362f3159361079fc61051ac83512042",
+        "sha256_in_prefix": "41b5c6ff211b2d04825bf00a7504c16e2362f3159361079fc61051ac83512042",
+        "size_in_bytes": 11717
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.7.0alpha.html",
+        "path_type": "hardlink",
+        "sha256": "4f45bcc176a6532c954275a6bf47e05d7d74316f8adb7fd263645498cf652b85",
+        "sha256_in_prefix": "4f45bcc176a6532c954275a6bf47e05d7d74316f8adb7fd263645498cf652b85",
+        "size_in_bytes": 21162
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.7.0beta.html",
+        "path_type": "hardlink",
+        "sha256": "5abf7245406c25677c1059a7108d3f8a6e0d61cdeb66848f2cb0df79ffbc7fdb",
+        "sha256_in_prefix": "5abf7245406c25677c1059a7108d3f8a6e0d61cdeb66848f2cb0df79ffbc7fdb",
+        "size_in_bytes": 12530
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.7.0beta2.html",
+        "path_type": "hardlink",
+        "sha256": "2f4f43a91d9e6b0d92b8b3f675ef255b05c56dd0e8182f273e9efd06fce4814c",
+        "sha256_in_prefix": "2f4f43a91d9e6b0d92b8b3f675ef255b05c56dd0e8182f273e9efd06fce4814c",
+        "size_in_bytes": 9922
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.7.1.html",
+        "path_type": "hardlink",
+        "sha256": "0886d39a9494df411b25e1ee2c264f10b596e6db404b7b427ed320848ba85dfd",
+        "sha256_in_prefix": "0886d39a9494df411b25e1ee2c264f10b596e6db404b7b427ed320848ba85dfd",
+        "size_in_bytes": 20930
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.7.2.html",
+        "path_type": "hardlink",
+        "sha256": "aed201097a5ad2b3e4f67ff1c70e3f9687b35730aa4ba93c07a054355472a567",
+        "sha256_in_prefix": "aed201097a5ad2b3e4f67ff1c70e3f9687b35730aa4ba93c07a054355472a567",
+        "size_in_bytes": 18492
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.7.3.html",
+        "path_type": "hardlink",
+        "sha256": "a6e304420514b9e424e02362bf11abec9adfd911f49fc8ad0b4944b66993955c",
+        "sha256_in_prefix": "a6e304420514b9e424e02362bf11abec9adfd911f49fc8ad0b4944b66993955c",
+        "size_in_bytes": 22838
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.7.4.html",
+        "path_type": "hardlink",
+        "sha256": "7581b518af745b6629141be2c28a0690a85a1d77b53e0c032fe7440f80f123e8",
+        "sha256_in_prefix": "7581b518af745b6629141be2c28a0690a85a1d77b53e0c032fe7440f80f123e8",
+        "size_in_bytes": 13290
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.8.0.html",
+        "path_type": "hardlink",
+        "sha256": "afc2b1d9ac3a60d7391bcff36469f011c4e96fa0cd89cda610ee807a10019b10",
+        "sha256_in_prefix": "afc2b1d9ac3a60d7391bcff36469f011c4e96fa0cd89cda610ee807a10019b10",
+        "size_in_bytes": 19518
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.8.1.html",
+        "path_type": "hardlink",
+        "sha256": "b7169f659d936801b189302636d785dcd40e3ae0615865f453b98c77516b62e3",
+        "sha256_in_prefix": "b7169f659d936801b189302636d785dcd40e3ae0615865f453b98c77516b62e3",
+        "size_in_bytes": 20149
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.8.2.html",
+        "path_type": "hardlink",
+        "sha256": "b7dc555ff4f7e0ceb016f42f2e3a5b7e0b9366cadfc3015d155025d9c25b8a77",
+        "sha256_in_prefix": "b7dc555ff4f7e0ceb016f42f2e3a5b7e0b9366cadfc3015d155025d9c25b8a77",
+        "size_in_bytes": 12173
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.9.0.html",
+        "path_type": "hardlink",
+        "sha256": "420f9e30c06f3824ec3f447ef0cc6f3135985502da05315124be44ffae6921a0",
+        "sha256_in_prefix": "420f9e30c06f3824ec3f447ef0cc6f3135985502da05315124be44ffae6921a0",
+        "size_in_bytes": 23875
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.9.0beta.html",
+        "path_type": "hardlink",
+        "sha256": "20a2a1ef6d2851b15df57e0b7fa3d091a5016e7d9b1de37a9270d24c99c6dbb6",
+        "sha256_in_prefix": "20a2a1ef6d2851b15df57e0b7fa3d091a5016e7d9b1de37a9270d24c99c6dbb6",
+        "size_in_bytes": 27484
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.9.1.html",
+        "path_type": "hardlink",
+        "sha256": "ff7cf0da92551966d75f38e2a9b174e50be06968fe4a1bcb9731aa2199ac3308",
+        "sha256_in_prefix": "ff7cf0da92551966d75f38e2a9b174e50be06968fe4a1bcb9731aa2199ac3308",
+        "size_in_bytes": 8958
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.9.2.html",
+        "path_type": "hardlink",
+        "sha256": "4d6b15c619eb3287438d8fe0bb8ea32379e6e26db21f275b5f1fb7ef0ebe5b7d",
+        "sha256_in_prefix": "4d6b15c619eb3287438d8fe0bb8ea32379e6e26db21f275b5f1fb7ef0ebe5b7d",
+        "size_in_bytes": 9235
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.9.3.html",
+        "path_type": "hardlink",
+        "sha256": "c2baed8f3914797f444a2a1b20d86e1fd70137aab37ca1bb9b5d355cf40a13b4",
+        "sha256_in_prefix": "c2baed8f3914797f444a2a1b20d86e1fd70137aab37ca1bb9b5d355cf40a13b4",
+        "size_in_bytes": 12179
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.9.4.html",
+        "path_type": "hardlink",
+        "sha256": "b889c70182aea47686309a6d3893d72475f3391b1b8893a53aadcef9fbb7d4ef",
+        "sha256_in_prefix": "b889c70182aea47686309a6d3893d72475f3391b1b8893a53aadcef9fbb7d4ef",
+        "size_in_bytes": 9829
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v3.9.5.html",
+        "path_type": "hardlink",
+        "sha256": "ec046eba7b607f6c2560522337df3fbcc198761e40072f81bcbb24c70bf429eb",
+        "sha256_in_prefix": "ec046eba7b607f6c2560522337df3fbcc198761e40072f81bcbb24c70bf429eb",
+        "size_in_bytes": 25148
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.0.html",
+        "path_type": "hardlink",
+        "sha256": "e7428cb5e646d2a2442385de19d614b8e48d18d7b92315597958e6cc8c0f1650",
+        "sha256_in_prefix": "e7428cb5e646d2a2442385de19d614b8e48d18d7b92315597958e6cc8c0f1650",
+        "size_in_bytes": 24212
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.1.html",
+        "path_type": "hardlink",
+        "sha256": "ad3b2d6f3f484af6d185d1f0b461212ae1aff5777502940b6f41763bf426baf9",
+        "sha256_in_prefix": "ad3b2d6f3f484af6d185d1f0b461212ae1aff5777502940b6f41763bf426baf9",
+        "size_in_bytes": 8772
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.10.html",
+        "path_type": "hardlink",
+        "sha256": "1fdfe3158a5a9c552701159adab7e2ee97a69ed4265cc5a86a2dfb7b9d433a30",
+        "sha256_in_prefix": "1fdfe3158a5a9c552701159adab7e2ee97a69ed4265cc5a86a2dfb7b9d433a30",
+        "size_in_bytes": 23182
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.2.html",
+        "path_type": "hardlink",
+        "sha256": "35842d9c6afd6e43b31a9c5974b3a23a55b7e5eaeb925871712aaaa916052a7a",
+        "sha256_in_prefix": "35842d9c6afd6e43b31a9c5974b3a23a55b7e5eaeb925871712aaaa916052a7a",
+        "size_in_bytes": 9402
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.3.html",
+        "path_type": "hardlink",
+        "sha256": "530a08b3bf280ec665f301ba28aba8b153dfa003b72eab56f015caf6f758ebb9",
+        "sha256_in_prefix": "530a08b3bf280ec665f301ba28aba8b153dfa003b72eab56f015caf6f758ebb9",
+        "size_in_bytes": 10770
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.4.html",
+        "path_type": "hardlink",
+        "sha256": "c9f20367dd5266a62b1dbee967fec33ca6c219d908e34c62827174a1599127b4",
+        "sha256_in_prefix": "c9f20367dd5266a62b1dbee967fec33ca6c219d908e34c62827174a1599127b4",
+        "size_in_bytes": 18685
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.4beta.html",
+        "path_type": "hardlink",
+        "sha256": "db7575cdfa31299ecbc1eca7bd16625ad486f207a82c63e5ad0b702dc3963215",
+        "sha256_in_prefix": "db7575cdfa31299ecbc1eca7bd16625ad486f207a82c63e5ad0b702dc3963215",
+        "size_in_bytes": 33875
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.5.html",
+        "path_type": "hardlink",
+        "sha256": "7383fe167cdfa2a864e11e9d5b19d52cc5df380da6dbda0088c8982a4fc20b79",
+        "sha256_in_prefix": "7383fe167cdfa2a864e11e9d5b19d52cc5df380da6dbda0088c8982a4fc20b79",
+        "size_in_bytes": 10920
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.6.html",
+        "path_type": "hardlink",
+        "sha256": "2dd62c775665d624badac8ce98ae8591d19b206e775dbb9122d81c3486500f27",
+        "sha256_in_prefix": "2dd62c775665d624badac8ce98ae8591d19b206e775dbb9122d81c3486500f27",
+        "size_in_bytes": 9624
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.7.html",
+        "path_type": "hardlink",
+        "sha256": "9681ac48dc1e03e0db4170be62e36c8f1c498c77cc7a534c20b6c7c9b3e9bcfd",
+        "sha256_in_prefix": "9681ac48dc1e03e0db4170be62e36c8f1c498c77cc7a534c20b6c7c9b3e9bcfd",
+        "size_in_bytes": 42733
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.8.html",
+        "path_type": "hardlink",
+        "sha256": "b9f13e4c7bf6409c9b727992a62b50ed923d0e080baff27952f7feeba1fceb30",
+        "sha256_in_prefix": "b9f13e4c7bf6409c9b727992a62b50ed923d0e080baff27952f7feeba1fceb30",
+        "size_in_bytes": 47112
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.0.9.html",
+        "path_type": "hardlink",
+        "sha256": "194f0ac8ea9126cb430b7f5bba08733595e3c0326dea52bd1f97ed80c0bbaacf",
+        "sha256_in_prefix": "194f0ac8ea9126cb430b7f5bba08733595e3c0326dea52bd1f97ed80c0bbaacf",
+        "size_in_bytes": 44802
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.1.0.html",
+        "path_type": "hardlink",
+        "sha256": "4bedd1e8ab044bcf67ff6b53579a15b1ed04547ad3861b43b298a0af4544727a",
+        "sha256_in_prefix": "4bedd1e8ab044bcf67ff6b53579a15b1ed04547ad3861b43b298a0af4544727a",
+        "size_in_bytes": 14733
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.2.0.html",
+        "path_type": "hardlink",
+        "sha256": "e8122c3728e1b91ac19431f8b01a5481949438f85163cc38d931dc074961c44b",
+        "sha256_in_prefix": "e8122c3728e1b91ac19431f8b01a5481949438f85163cc38d931dc074961c44b",
+        "size_in_bytes": 12006
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.3.0.html",
+        "path_type": "hardlink",
+        "sha256": "bc4395a046c96ed61bcadbef1353e1fd4c73c895a271f6070735bc7ae2211daa",
+        "sha256_in_prefix": "bc4395a046c96ed61bcadbef1353e1fd4c73c895a271f6070735bc7ae2211daa",
+        "size_in_bytes": 11815
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.4.0.html",
+        "path_type": "hardlink",
+        "sha256": "371eecd1a126ffd1980feef4333eaf2bb4cd8dc0f4b02a313f0f795fccfac0d0",
+        "sha256_in_prefix": "371eecd1a126ffd1980feef4333eaf2bb4cd8dc0f4b02a313f0f795fccfac0d0",
+        "size_in_bytes": 19317
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.5.0.html",
+        "path_type": "hardlink",
+        "sha256": "7f62a4d99d6b463c8c07a5c3d1f824518a698c5831c90799da2c7542d56b4056",
+        "sha256_in_prefix": "7f62a4d99d6b463c8c07a5c3d1f824518a698c5831c90799da2c7542d56b4056",
+        "size_in_bytes": 20439
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/releases/v4.5.1.html",
+        "path_type": "hardlink",
+        "sha256": "f2e947ef9677b48096581a3129cfc7e03de1ae7564beb4f428c977c5f06a3a99",
+        "sha256_in_prefix": "f2e947ef9677b48096581a3129cfc7e03de1ae7564beb4f428c977c5f06a3a99",
+        "size_in_bytes": 17767
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/search.html",
+        "path_type": "hardlink",
+        "sha256": "02e2f7f0552a774410ea572913c999cebbf65610afb387932b06082c8c0a4de5",
+        "sha256_in_prefix": "02e2f7f0552a774410ea572913c999cebbf65610afb387932b06082c8c0a4de5",
+        "size_in_bytes": 3085
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/searchindex.js",
+        "path_type": "hardlink",
+        "sha256": "7499b024d20017cb7e1ac8b5d823afbb0577eba231aab60a93d990759b578dde",
+        "sha256_in_prefix": "7499b024d20017cb7e1ac8b5d823afbb0577eba231aab60a93d990759b578dde",
+        "size_in_bytes": 337520
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/specification/bigtiff.html",
+        "path_type": "hardlink",
+        "sha256": "f7db321b26e011dd01944b35675a3e9d752746a49cf28a51fd487be40cd1fd51",
+        "sha256_in_prefix": "f7db321b26e011dd01944b35675a3e9d752746a49cf28a51fd487be40cd1fd51",
+        "size_in_bytes": 11627
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/specification/coverage-bigtiff.html",
+        "path_type": "hardlink",
+        "sha256": "f0f6d0c83f46b2669b5c303d2ed1458bfc32b45dfc1567697460a901a585aaa3",
+        "sha256_in_prefix": "f0f6d0c83f46b2669b5c303d2ed1458bfc32b45dfc1567697460a901a585aaa3",
+        "size_in_bytes": 9445
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/specification/coverage.html",
+        "path_type": "hardlink",
+        "sha256": "d362bd76a54dc0af2fb27bae4c011af7d1fa102771d0d359f166d22943ba71ac",
+        "sha256_in_prefix": "d362bd76a54dc0af2fb27bae4c011af7d1fa102771d0d359f166d22943ba71ac",
+        "size_in_bytes": 77783
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/specification/index.html",
+        "path_type": "hardlink",
+        "sha256": "bc6b294aa453c1195f1546a1dd6dda2ce0ee6abd385f1b9a554a77e87cd9cf2a",
+        "sha256_in_prefix": "bc6b294aa453c1195f1546a1dd6dda2ce0ee6abd385f1b9a554a77e87cd9cf2a",
+        "size_in_bytes": 6874
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/specification/technote2.html",
+        "path_type": "hardlink",
+        "sha256": "bafcc560b2fade8d119ab047671c115603b322ef99fa33ff0e91d872b00d7a05",
+        "sha256_in_prefix": "bafcc560b2fade8d119ab047671c115603b322ef99fa33ff0e91d872b00d7a05",
+        "size_in_bytes": 59142
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/terms.html",
+        "path_type": "hardlink",
+        "sha256": "156b9d8460bc9b93411235f365fb9e02c8843480e696213daadda61b6ced90ae",
+        "sha256_in_prefix": "156b9d8460bc9b93411235f365fb9e02c8843480e696213daadda61b6ced90ae",
+        "size_in_bytes": 7677
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools.html",
+        "path_type": "hardlink",
+        "sha256": "bca0cbdc3c3ede05b286ba491c85b3c2eb0d3205b3343d792958b5e96546c69c",
+        "sha256_in_prefix": "bca0cbdc3c3ede05b286ba491c85b3c2eb0d3205b3343d792958b5e96546c69c",
+        "size_in_bytes": 14785
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/fax2ps.html",
+        "path_type": "hardlink",
+        "sha256": "d397a9e2044c57c996a3ce9e6a39998d9d2b3fec4093488c917946cc4fd6939c",
+        "sha256_in_prefix": "d397a9e2044c57c996a3ce9e6a39998d9d2b3fec4093488c917946cc4fd6939c",
+        "size_in_bytes": 12373
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/fax2tiff.html",
+        "path_type": "hardlink",
+        "sha256": "524035b9f583dfa0763411dabf3b4f2ece9ea6999f620393167d89ed05be993e",
+        "sha256_in_prefix": "524035b9f583dfa0763411dabf3b4f2ece9ea6999f620393167d89ed05be993e",
+        "size_in_bytes": 23289
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/pal2rgb.html",
+        "path_type": "hardlink",
+        "sha256": "2b6be32049d09eefa15004582bf79d89e0eb2b1dfb2458658e4e94991a297cb9",
+        "sha256_in_prefix": "2b6be32049d09eefa15004582bf79d89e0eb2b1dfb2458658e4e94991a297cb9",
+        "size_in_bytes": 9579
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/ppm2tiff.html",
+        "path_type": "hardlink",
+        "sha256": "cdf9bc8cb10a0fadef6bc2b7abd8384a25ef77e6b8fd93d9355f3cf6c872a3c8",
+        "sha256_in_prefix": "cdf9bc8cb10a0fadef6bc2b7abd8384a25ef77e6b8fd93d9355f3cf6c872a3c8",
+        "size_in_bytes": 8436
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/raw2tiff.html",
+        "path_type": "hardlink",
+        "sha256": "8a81df5b1314dbdf99a2423681bbf15e51ceb6846213e9a464563f6e11b5f5cd",
+        "sha256_in_prefix": "8a81df5b1314dbdf99a2423681bbf15e51ceb6846213e9a464563f6e11b5f5cd",
+        "size_in_bytes": 14503
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/rgb2ycbcr.html",
+        "path_type": "hardlink",
+        "sha256": "b9721a53b1fdf46ab519fda1a3e09af59f0c6dcbd8a98c0ce5d24738d006fa43",
+        "sha256_in_prefix": "b9721a53b1fdf46ab519fda1a3e09af59f0c6dcbd8a98c0ce5d24738d006fa43",
+        "size_in_bytes": 9411
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/thumbnail.html",
+        "path_type": "hardlink",
+        "sha256": "3cc3b4f11d02a53cf636338db97f5030f844c894d76a0aa6001d6c603e758d39",
+        "sha256_in_prefix": "3cc3b4f11d02a53cf636338db97f5030f844c894d76a0aa6001d6c603e758d39",
+        "size_in_bytes": 8947
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiff2bw.html",
+        "path_type": "hardlink",
+        "sha256": "974b9bf95ce095b4dba0a7b1ffbe6300de7e7b2e7478dd9aa6c0c07936786e13",
+        "sha256_in_prefix": "974b9bf95ce095b4dba0a7b1ffbe6300de7e7b2e7478dd9aa6c0c07936786e13",
+        "size_in_bytes": 9396
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiff2pdf.html",
+        "path_type": "hardlink",
+        "sha256": "ae8075278ed6a7a7e946d257640c55481e8f7ac26b4c403ce643a2fa79e3cbc8",
+        "sha256_in_prefix": "ae8075278ed6a7a7e946d257640c55481e8f7ac26b4c403ce643a2fa79e3cbc8",
+        "size_in_bytes": 24374
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiff2ps.html",
+        "path_type": "hardlink",
+        "sha256": "6a93ac1f8eeff0d1d5ab97950ad3243c103a13738db4271c0b7169eb754e004e",
+        "sha256_in_prefix": "6a93ac1f8eeff0d1d5ab97950ad3243c103a13738db4271c0b7169eb754e004e",
+        "size_in_bytes": 26569
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiff2rgba.html",
+        "path_type": "hardlink",
+        "sha256": "fba52efc1ae4c4689784de839533f1059f5b47f3f8ecf5a10eaf52de24013d38",
+        "sha256_in_prefix": "fba52efc1ae4c4689784de839533f1059f5b47f3f8ecf5a10eaf52de24013d38",
+        "size_in_bytes": 10173
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffcmp.html",
+        "path_type": "hardlink",
+        "sha256": "65e6ac7efdc61a0ee13819c1a04c8ebe84135f20fb036710fe37b7e8303b708d",
+        "sha256_in_prefix": "65e6ac7efdc61a0ee13819c1a04c8ebe84135f20fb036710fe37b7e8303b708d",
+        "size_in_bytes": 8899
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffcp.html",
+        "path_type": "hardlink",
+        "sha256": "6c453e8f18d57a9eb0a34c64e040db9f26432e1125bc831510c65d995cdb510a",
+        "sha256_in_prefix": "6c453e8f18d57a9eb0a34c64e040db9f26432e1125bc831510c65d995cdb510a",
+        "size_in_bytes": 24248
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffcrop.html",
+        "path_type": "hardlink",
+        "sha256": "5f030d17cc505a47dc8ef2af3a3c4de97b05efe32dfafe393c6aac3182656a52",
+        "sha256_in_prefix": "5f030d17cc505a47dc8ef2af3a3c4de97b05efe32dfafe393c6aac3182656a52",
+        "size_in_bytes": 52005
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffdither.html",
+        "path_type": "hardlink",
+        "sha256": "b75d5e73e44518a1e289cd9a4a68d81ff22fe99c21a79fbc4a4b176012c047f0",
+        "sha256_in_prefix": "b75d5e73e44518a1e289cd9a4a68d81ff22fe99c21a79fbc4a4b176012c047f0",
+        "size_in_bytes": 11354
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffdump.html",
+        "path_type": "hardlink",
+        "sha256": "060cd8d5d998db31f2e074932c4d83237a930cdd9ad8bb28fc9a2dace235abfd",
+        "sha256_in_prefix": "060cd8d5d998db31f2e074932c4d83237a930cdd9ad8bb28fc9a2dace235abfd",
+        "size_in_bytes": 8367
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffgt.html",
+        "path_type": "hardlink",
+        "sha256": "f99223cdae0afd9b332f084ee452f4ff251815235b6b955685e269dd954d93c5",
+        "sha256_in_prefix": "f99223cdae0afd9b332f084ee452f4ff251815235b6b955685e269dd954d93c5",
+        "size_in_bytes": 18383
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffinfo.html",
+        "path_type": "hardlink",
+        "sha256": "db1d239be9b7ea9baebd8ac4c0699826bc9fcecd39a0a75ef20774c0e37f1af8",
+        "sha256_in_prefix": "db1d239be9b7ea9baebd8ac4c0699826bc9fcecd39a0a75ef20774c0e37f1af8",
+        "size_in_bytes": 9548
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffmedian.html",
+        "path_type": "hardlink",
+        "sha256": "d66b507f3e21aad813e4ae002ab50006493c8cda10bf54c3efc5a1de896fc3df",
+        "sha256_in_prefix": "d66b507f3e21aad813e4ae002ab50006493c8cda10bf54c3efc5a1de896fc3df",
+        "size_in_bytes": 9703
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffset.html",
+        "path_type": "hardlink",
+        "sha256": "e8710a5d877e579d6a4e3f99ad59aca2ed7f75951a05fcb4d9ba40e70ad1e961",
+        "sha256_in_prefix": "e8710a5d877e579d6a4e3f99ad59aca2ed7f75951a05fcb4d9ba40e70ad1e961",
+        "size_in_bytes": 10639
+      },
+      {
+        "_path": "Library/share/doc/tiff/manual/html/tools/tiffsplit.html",
+        "path_type": "hardlink",
+        "sha256": "fe08f78e532a92ee7997c14f364b2309b176ce2fb4d1b1ef6808886f6f542490",
+        "sha256_in_prefix": "fe08f78e532a92ee7997c14f364b2309b176ce2fb4d1b1ef6808886f6f542490",
+        "size_in_bytes": 7441
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "libtiff==4.5.1=h44ae7cf_1",
+  "sha256": "a2115acb20eb2ef82ddedcfbba6d9436d11e69791d6c499b8c59a147690f14c7",
+  "size": 1077931,
+  "subdir": "win-64",
+  "timestamp": 1734425893000,
+  "url": "https://repo.anaconda.com/pkgs/main/win-64/libtiff-4.5.1-h44ae7cf_1.conda",
+  "version": "4.5.1"
+}

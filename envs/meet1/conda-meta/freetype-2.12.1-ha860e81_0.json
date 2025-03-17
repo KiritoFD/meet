@@ -1,0 +1,543 @@
+{
+  "build": "ha860e81_0",
+  "build_number": 0,
+  "channel": "https://repo.anaconda.com/pkgs/main/win-64",
+  "constrains": [],
+  "depends": [
+    "vc >=14.1,<15.0a0",
+    "vs2015_runtime >=14.16.27012,<15.0a0",
+    "zlib >=1.2.13,<1.3.0a0",
+    "libpng >=1.6.37,<1.7.0a0"
+  ],
+  "extracted_package_dir": "C:\\Users\\28961\\anaconda3\\pkgs\\freetype-2.12.1-ha860e81_0",
+  "files": [
+    "Library/bin/freetype.dll",
+    "Library/include/freetype/config/ftconfig.h",
+    "Library/include/freetype/config/ftheader.h",
+    "Library/include/freetype/config/ftmodule.h",
+    "Library/include/freetype/config/ftoption.h",
+    "Library/include/freetype/config/ftstdlib.h",
+    "Library/include/freetype/config/integer-types.h",
+    "Library/include/freetype/config/mac-support.h",
+    "Library/include/freetype/config/public-macros.h",
+    "Library/include/freetype/freetype.h",
+    "Library/include/freetype/ftadvanc.h",
+    "Library/include/freetype/ftbbox.h",
+    "Library/include/freetype/ftbdf.h",
+    "Library/include/freetype/ftbitmap.h",
+    "Library/include/freetype/ftbzip2.h",
+    "Library/include/freetype/ftcache.h",
+    "Library/include/freetype/ftchapters.h",
+    "Library/include/freetype/ftcid.h",
+    "Library/include/freetype/ftcolor.h",
+    "Library/include/freetype/ftdriver.h",
+    "Library/include/freetype/fterrdef.h",
+    "Library/include/freetype/fterrors.h",
+    "Library/include/freetype/ftfntfmt.h",
+    "Library/include/freetype/ftgasp.h",
+    "Library/include/freetype/ftglyph.h",
+    "Library/include/freetype/ftgxval.h",
+    "Library/include/freetype/ftgzip.h",
+    "Library/include/freetype/ftimage.h",
+    "Library/include/freetype/ftincrem.h",
+    "Library/include/freetype/ftlcdfil.h",
+    "Library/include/freetype/ftlist.h",
+    "Library/include/freetype/ftlogging.h",
+    "Library/include/freetype/ftlzw.h",
+    "Library/include/freetype/ftmac.h",
+    "Library/include/freetype/ftmm.h",
+    "Library/include/freetype/ftmodapi.h",
+    "Library/include/freetype/ftmoderr.h",
+    "Library/include/freetype/ftotval.h",
+    "Library/include/freetype/ftoutln.h",
+    "Library/include/freetype/ftparams.h",
+    "Library/include/freetype/ftpfr.h",
+    "Library/include/freetype/ftrender.h",
+    "Library/include/freetype/ftsizes.h",
+    "Library/include/freetype/ftsnames.h",
+    "Library/include/freetype/ftstroke.h",
+    "Library/include/freetype/ftsynth.h",
+    "Library/include/freetype/ftsystem.h",
+    "Library/include/freetype/fttrigon.h",
+    "Library/include/freetype/fttypes.h",
+    "Library/include/freetype/ftwinfnt.h",
+    "Library/include/freetype/otsvg.h",
+    "Library/include/freetype/t1tables.h",
+    "Library/include/freetype/ttnameid.h",
+    "Library/include/freetype/tttables.h",
+    "Library/include/freetype/tttags.h",
+    "Library/include/freetype2/dlg/dlg.h",
+    "Library/include/freetype2/dlg/output.h",
+    "Library/include/ft2build.h",
+    "Library/lib/cmake/freetype/freetype-config-release.cmake",
+    "Library/lib/cmake/freetype/freetype-config-version.cmake",
+    "Library/lib/cmake/freetype/freetype-config.cmake",
+    "Library/lib/freetype.lib",
+    "Library/lib/pkgconfig/freetype2.pc",
+    ".nonadmin"
+  ],
+  "fn": "freetype-2.12.1-ha860e81_0.conda",
+  "license": "GPL-2-only and LicenseRef-FreeType",
+  "link": {
+    "source": "C:\\Users\\28961\\anaconda3\\pkgs\\freetype-2.12.1-ha860e81_0",
+    "type": 1
+  },
+  "md5": "357321d4bf52689c19d295b08059d7da",
+  "name": "freetype",
+  "package_tarball_full_path": "C:\\Users\\28961\\anaconda3\\pkgs\\freetype-2.12.1-ha860e81_0.conda",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Library/bin/freetype.dll",
+        "path_type": "hardlink",
+        "sha256": "1168acdc85513c53b5f3d25bb98827a521a3a18735f42c3a4b88225a7a3ae09c",
+        "sha256_in_prefix": "1168acdc85513c53b5f3d25bb98827a521a3a18735f42c3a4b88225a7a3ae09c",
+        "size_in_bytes": 648704
+      },
+      {
+        "_path": "Library/include/freetype/config/ftconfig.h",
+        "path_type": "hardlink",
+        "sha256": "8789e0ff0a139595123cbf749601099930a9eeda51e8f91a5834a4b28ff0dd0d",
+        "sha256_in_prefix": "8789e0ff0a139595123cbf749601099930a9eeda51e8f91a5834a4b28ff0dd0d",
+        "size_in_bytes": 1665
+      },
+      {
+        "_path": "Library/include/freetype/config/ftheader.h",
+        "path_type": "hardlink",
+        "sha256": "12e5d4d8062d5bdc676af85528b980e8e377d82c16980d18e989631ac895a792",
+        "sha256_in_prefix": "12e5d4d8062d5bdc676af85528b980e8e377d82c16980d18e989631ac895a792",
+        "size_in_bytes": 23919
+      },
+      {
+        "_path": "Library/include/freetype/config/ftmodule.h",
+        "path_type": "hardlink",
+        "sha256": "61c76e01106e7b7c80f39f8d6fd479b5323b54d757c9a2cb66d07064ef616649",
+        "sha256_in_prefix": "61c76e01106e7b7c80f39f8d6fd479b5323b54d757c9a2cb66d07064ef616649",
+        "size_in_bytes": 1443
+      },
+      {
+        "_path": "Library/include/freetype/config/ftoption.h",
+        "path_type": "hardlink",
+        "sha256": "eb6adfa0fc2fcd12cb7fab1259c1ce4df33cf7b37d4c973c9ede695b205e9476",
+        "sha256_in_prefix": "eb6adfa0fc2fcd12cb7fab1259c1ce4df33cf7b37d4c973c9ede695b205e9476",
+        "size_in_bytes": 41344
+      },
+      {
+        "_path": "Library/include/freetype/config/ftstdlib.h",
+        "path_type": "hardlink",
+        "sha256": "d786cac2ccf0f24ac60f49b1e4637a2a84cf91248f202cfb0d31907ac25cab5a",
+        "sha256_in_prefix": "d786cac2ccf0f24ac60f49b1e4637a2a84cf91248f202cfb0d31907ac25cab5a",
+        "size_in_bytes": 4568
+      },
+      {
+        "_path": "Library/include/freetype/config/integer-types.h",
+        "path_type": "hardlink",
+        "sha256": "29cb02bb00405cca51a1683a5e4b5268b0b0e40af7f10c5f3a1ff4fdb9ff2451",
+        "sha256_in_prefix": "29cb02bb00405cca51a1683a5e4b5268b0b0e40af7f10c5f3a1ff4fdb9ff2451",
+        "size_in_bytes": 7072
+      },
+      {
+        "_path": "Library/include/freetype/config/mac-support.h",
+        "path_type": "hardlink",
+        "sha256": "699864f6b763e42723b8695e0b1d934ef5c3e6ab1066c69eae9a69a6331b9f44",
+        "sha256_in_prefix": "699864f6b763e42723b8695e0b1d934ef5c3e6ab1066c69eae9a69a6331b9f44",
+        "size_in_bytes": 1597
+      },
+      {
+        "_path": "Library/include/freetype/config/public-macros.h",
+        "path_type": "hardlink",
+        "sha256": "dea76eb0300adffa347f622dfbb13e02e430922ae484196b4e489efdc46478d9",
+        "sha256_in_prefix": "dea76eb0300adffa347f622dfbb13e02e430922ae484196b4e489efdc46478d9",
+        "size_in_bytes": 4207
+      },
+      {
+        "_path": "Library/include/freetype/freetype.h",
+        "path_type": "hardlink",
+        "sha256": "2ea3a624f713a48690ff59a9f30587fd3cb015a5ca2d8efbcb52abf74be97aa1",
+        "sha256_in_prefix": "2ea3a624f713a48690ff59a9f30587fd3cb015a5ca2d8efbcb52abf74be97aa1",
+        "size_in_bytes": 172351
+      },
+      {
+        "_path": "Library/include/freetype/ftadvanc.h",
+        "path_type": "hardlink",
+        "sha256": "ae3b014a5013a281e10788303d26df80beff226ed4d265897225f1fa8cf23fd2",
+        "sha256_in_prefix": "ae3b014a5013a281e10788303d26df80beff226ed4d265897225f1fa8cf23fd2",
+        "size_in_bytes": 5470
+      },
+      {
+        "_path": "Library/include/freetype/ftbbox.h",
+        "path_type": "hardlink",
+        "sha256": "2b826963ab50fe2e740ff1f6162d98a199e8ab1286a691232e1b3bd068f162a9",
+        "sha256_in_prefix": "2b826963ab50fe2e740ff1f6162d98a199e8ab1286a691232e1b3bd068f162a9",
+        "size_in_bytes": 2638
+      },
+      {
+        "_path": "Library/include/freetype/ftbdf.h",
+        "path_type": "hardlink",
+        "sha256": "83b9d87884300b24a822a0c91d025a964044fe7e297954a94e355fea07f8646e",
+        "sha256_in_prefix": "83b9d87884300b24a822a0c91d025a964044fe7e297954a94e355fea07f8646e",
+        "size_in_bytes": 5322
+      },
+      {
+        "_path": "Library/include/freetype/ftbitmap.h",
+        "path_type": "hardlink",
+        "sha256": "a32cc9957e9148d62ba4fd668c6d1ee276a08b2c5356bf05554b7e36645f1342",
+        "sha256_in_prefix": "a32cc9957e9148d62ba4fd668c6d1ee276a08b2c5356bf05554b7e36645f1342",
+        "size_in_bytes": 9051
+      },
+      {
+        "_path": "Library/include/freetype/ftbzip2.h",
+        "path_type": "hardlink",
+        "sha256": "4476a66f46dc5ba49a9a81561fefd588230d056199aee581b3823e822976c7f8",
+        "sha256_in_prefix": "4476a66f46dc5ba49a9a81561fefd588230d056199aee581b3823e822976c7f8",
+        "size_in_bytes": 2786
+      },
+      {
+        "_path": "Library/include/freetype/ftcache.h",
+        "path_type": "hardlink",
+        "sha256": "fa887da3d62867df81d1a0d7df7328bc34705aa7b6a795fba2981b273238500b",
+        "sha256_in_prefix": "fa887da3d62867df81d1a0d7df7328bc34705aa7b6a795fba2981b273238500b",
+        "size_in_bytes": 33862
+      },
+      {
+        "_path": "Library/include/freetype/ftchapters.h",
+        "path_type": "hardlink",
+        "sha256": "30383e30df3f517639683487a37cda3686f54ad24c47e30d598f83d1d5fa9a41",
+        "sha256_in_prefix": "30383e30df3f517639683487a37cda3686f54ad24c47e30d598f83d1d5fa9a41",
+        "size_in_bytes": 2586
+      },
+      {
+        "_path": "Library/include/freetype/ftcid.h",
+        "path_type": "hardlink",
+        "sha256": "002d423c139ca482518e2df6a1f151cb428e10d1734f9ed9735ec8a219aca61f",
+        "sha256_in_prefix": "002d423c139ca482518e2df6a1f151cb428e10d1734f9ed9735ec8a219aca61f",
+        "size_in_bytes": 4022
+      },
+      {
+        "_path": "Library/include/freetype/ftcolor.h",
+        "path_type": "hardlink",
+        "sha256": "4f092b52bdbb2fde92885a6432e5d061e0681ad066a4559cbee1533c75b5917f",
+        "sha256_in_prefix": "4f092b52bdbb2fde92885a6432e5d061e0681ad066a4559cbee1533c75b5917f",
+        "size_in_bytes": 54065
+      },
+      {
+        "_path": "Library/include/freetype/ftdriver.h",
+        "path_type": "hardlink",
+        "sha256": "d9f23c70d0bdc9ccbd99d98c7059917b22ca0c575399cdfb40665ae2f969a8c3",
+        "sha256_in_prefix": "d9f23c70d0bdc9ccbd99d98c7059917b22ca0c575399cdfb40665ae2f969a8c3",
+        "size_in_bytes": 47793
+      },
+      {
+        "_path": "Library/include/freetype/fterrdef.h",
+        "path_type": "hardlink",
+        "sha256": "4f7c3d66d6ce969a17d208f1ed638468bf7e23d2723bc983d7963dc0d657b98d",
+        "sha256_in_prefix": "4f7c3d66d6ce969a17d208f1ed638468bf7e23d2723bc983d7963dc0d657b98d",
+        "size_in_bytes": 12559
+      },
+      {
+        "_path": "Library/include/freetype/fterrors.h",
+        "path_type": "hardlink",
+        "sha256": "ca2d50d746375c03bc9b831685c237b635ad25100a1888583cf995967c23a6b7",
+        "sha256_in_prefix": "ca2d50d746375c03bc9b831685c237b635ad25100a1888583cf995967c23a6b7",
+        "size_in_bytes": 9300
+      },
+      {
+        "_path": "Library/include/freetype/ftfntfmt.h",
+        "path_type": "hardlink",
+        "sha256": "039d5a1fdc15319ee8bbbba4022dedb68a3ecfea4384f0509c7bb2bd7cb20dd2",
+        "sha256_in_prefix": "039d5a1fdc15319ee8bbbba4022dedb68a3ecfea4384f0509c7bb2bd7cb20dd2",
+        "size_in_bytes": 2213
+      },
+      {
+        "_path": "Library/include/freetype/ftgasp.h",
+        "path_type": "hardlink",
+        "sha256": "df67cbae989d8f6ea2329cc90e14ec0371de90b4e2ca5f6300f9a6969f095b10",
+        "sha256_in_prefix": "df67cbae989d8f6ea2329cc90e14ec0371de90b4e2ca5f6300f9a6969f095b10",
+        "size_in_bytes": 4138
+      },
+      {
+        "_path": "Library/include/freetype/ftglyph.h",
+        "path_type": "hardlink",
+        "sha256": "203921197d36fa6be825625f515b5c9dadc7ce3cb1b5635974afa5de405932ad",
+        "sha256_in_prefix": "203921197d36fa6be825625f515b5c9dadc7ce3cb1b5635974afa5de405932ad",
+        "size_in_bytes": 20869
+      },
+      {
+        "_path": "Library/include/freetype/ftgxval.h",
+        "path_type": "hardlink",
+        "sha256": "b401c0c252d461e2ea7bce384f26ac12e0c34ccfd93fb75d528173cc9b53badb",
+        "sha256_in_prefix": "b401c0c252d461e2ea7bce384f26ac12e0c34ccfd93fb75d528173cc9b53badb",
+        "size_in_bytes": 10625
+      },
+      {
+        "_path": "Library/include/freetype/ftgzip.h",
+        "path_type": "hardlink",
+        "sha256": "45fe7d2084419bd361486137c4488ec2202f37253f5ef54b1a4e9baa5d2c2ec2",
+        "sha256_in_prefix": "45fe7d2084419bd361486137c4488ec2202f37253f5ef54b1a4e9baa5d2c2ec2",
+        "size_in_bytes": 4211
+      },
+      {
+        "_path": "Library/include/freetype/ftimage.h",
+        "path_type": "hardlink",
+        "sha256": "a4e87fa40ab97a39a6f19154f92e3acc7d9c4a1a1a4b73f206023074e0444ed6",
+        "sha256_in_prefix": "a4e87fa40ab97a39a6f19154f92e3acc7d9c4a1a1a4b73f206023074e0444ed6",
+        "size_in_bytes": 41578
+      },
+      {
+        "_path": "Library/include/freetype/ftincrem.h",
+        "path_type": "hardlink",
+        "sha256": "0f9ddd5c2d21b64fb9d41d79f3442cdb3f0d6595b220f1d4b50f3d710a3a94e1",
+        "sha256_in_prefix": "0f9ddd5c2d21b64fb9d41d79f3442cdb3f0d6595b220f1d4b50f3d710a3a94e1",
+        "size_in_bytes": 10696
+      },
+      {
+        "_path": "Library/include/freetype/ftlcdfil.h",
+        "path_type": "hardlink",
+        "sha256": "69f71a688f07572fe18fd4d79aa9369b806d46b4ad9bf73c59a1308755831661",
+        "sha256_in_prefix": "69f71a688f07572fe18fd4d79aa9369b806d46b4ad9bf73c59a1308755831661",
+        "size_in_bytes": 11750
+      },
+      {
+        "_path": "Library/include/freetype/ftlist.h",
+        "path_type": "hardlink",
+        "sha256": "1adc6f21fab91153d9d9757a80df928afc9085c837722cabe072a2e78fdf279c",
+        "sha256_in_prefix": "1adc6f21fab91153d9d9757a80df928afc9085c837722cabe072a2e78fdf279c",
+        "size_in_bytes": 7100
+      },
+      {
+        "_path": "Library/include/freetype/ftlogging.h",
+        "path_type": "hardlink",
+        "sha256": "6a31bb3e59ccbdb5978ff0cfe1a21d96c24e93cdc9ede9b6b24bed5466886de4",
+        "sha256_in_prefix": "6a31bb3e59ccbdb5978ff0cfe1a21d96c24e93cdc9ede9b6b24bed5466886de4",
+        "size_in_bytes": 4129
+      },
+      {
+        "_path": "Library/include/freetype/ftlzw.h",
+        "path_type": "hardlink",
+        "sha256": "c12f0759fb8767f68aba39264c798986c4f7323392f102bee517895ba83808eb",
+        "sha256_in_prefix": "c12f0759fb8767f68aba39264c798986c4f7323392f102bee517895ba83808eb",
+        "size_in_bytes": 2768
+      },
+      {
+        "_path": "Library/include/freetype/ftmac.h",
+        "path_type": "hardlink",
+        "sha256": "47235930cc91eeafd8a807f785b3d3109df9c9d56c88ae317eb277becc19ee36",
+        "sha256_in_prefix": "47235930cc91eeafd8a807f785b3d3109df9c9d56c88ae317eb277becc19ee36",
+        "size_in_bytes": 7771
+      },
+      {
+        "_path": "Library/include/freetype/ftmm.h",
+        "path_type": "hardlink",
+        "sha256": "c38dcd6ccef1ad2a9286515c545c063b5b1d2f700266bb186000f3d35ede6113",
+        "sha256_in_prefix": "c38dcd6ccef1ad2a9286515c545c063b5b1d2f700266bb186000f3d35ede6113",
+        "size_in_bytes": 21920
+      },
+      {
+        "_path": "Library/include/freetype/ftmodapi.h",
+        "path_type": "hardlink",
+        "sha256": "693c9efe7531d867f977b0ad3e77dd189c3973f9fff8b8c5cd646fd9fef2e18a",
+        "sha256_in_prefix": "693c9efe7531d867f977b0ad3e77dd189c3973f9fff8b8c5cd646fd9fef2e18a",
+        "size_in_bytes": 22544
+      },
+      {
+        "_path": "Library/include/freetype/ftmoderr.h",
+        "path_type": "hardlink",
+        "sha256": "73a6a5d6e333307403fc66fa3262424dd9ef70820aa63bc127abe52aa4bf8a36",
+        "sha256_in_prefix": "73a6a5d6e333307403fc66fa3262424dd9ef70820aa63bc127abe52aa4bf8a36",
+        "size_in_bytes": 6675
+      },
+      {
+        "_path": "Library/include/freetype/ftotval.h",
+        "path_type": "hardlink",
+        "sha256": "a220f6564fafecf340676527a7a8fdabcd7fc35ed480bd4e641195dfd3be61f9",
+        "sha256_in_prefix": "a220f6564fafecf340676527a7a8fdabcd7fc35ed480bd4e641195dfd3be61f9",
+        "size_in_bytes": 5346
+      },
+      {
+        "_path": "Library/include/freetype/ftoutln.h",
+        "path_type": "hardlink",
+        "sha256": "8edbb0be84273cd6f183f51ebaef803b64a78f0b8941fa6863363a981e8a7a18",
+        "sha256_in_prefix": "8edbb0be84273cd6f183f51ebaef803b64a78f0b8941fa6863363a981e8a7a18",
+        "size_in_bytes": 17402
+      },
+      {
+        "_path": "Library/include/freetype/ftparams.h",
+        "path_type": "hardlink",
+        "sha256": "ffd4ec8ebaf1a6e3d797e2ef6b462b7b244a42fb90d4616db2a797c5a7995492",
+        "sha256_in_prefix": "ffd4ec8ebaf1a6e3d797e2ef6b462b7b244a42fb90d4616db2a797c5a7995492",
+        "size_in_bytes": 6041
+      },
+      {
+        "_path": "Library/include/freetype/ftpfr.h",
+        "path_type": "hardlink",
+        "sha256": "dcc22a7f0754a8d496d0b085891102f9c283e74839828b81a9bf8a8a7c4f30c8",
+        "sha256_in_prefix": "dcc22a7f0754a8d496d0b085891102f9c283e74839828b81a9bf8a8a7c4f30c8",
+        "size_in_bytes": 4910
+      },
+      {
+        "_path": "Library/include/freetype/ftrender.h",
+        "path_type": "hardlink",
+        "sha256": "e42527cca3074c31ec62a47faf2bebc0041678f4f3b26ca6759e75e4db19f0ec",
+        "sha256_in_prefix": "e42527cca3074c31ec62a47faf2bebc0041678f4f3b26ca6759e75e4db19f0ec",
+        "size_in_bytes": 6625
+      },
+      {
+        "_path": "Library/include/freetype/ftsizes.h",
+        "path_type": "hardlink",
+        "sha256": "2f4e785dd66ffbfd8db7231679f8dc6bba50f32d709eb69aee8d68bd27c6caf1",
+        "sha256_in_prefix": "2f4e785dd66ffbfd8db7231679f8dc6bba50f32d709eb69aee8d68bd27c6caf1",
+        "size_in_bytes": 4288
+      },
+      {
+        "_path": "Library/include/freetype/ftsnames.h",
+        "path_type": "hardlink",
+        "sha256": "bd9eece45de248d618b6b9004321daec12a4cbdcb74731e6ae87865cbd09def3",
+        "sha256_in_prefix": "bd9eece45de248d618b6b9004321daec12a4cbdcb74731e6ae87865cbd09def3",
+        "size_in_bytes": 7730
+      },
+      {
+        "_path": "Library/include/freetype/ftstroke.h",
+        "path_type": "hardlink",
+        "sha256": "ac0481088f45d110ce14337146f198ec5c74d98f6b8de567d016cc7381b04da7",
+        "sha256_in_prefix": "ac0481088f45d110ce14337146f198ec5c74d98f6b8de567d016cc7381b04da7",
+        "size_in_bytes": 21773
+      },
+      {
+        "_path": "Library/include/freetype/ftsynth.h",
+        "path_type": "hardlink",
+        "sha256": "f7caf217c2f09e7a4e4fcf5ab27ff5e79056ae9dee823ea0c6d5b445c7837ebd",
+        "sha256_in_prefix": "f7caf217c2f09e7a4e4fcf5ab27ff5e79056ae9dee823ea0c6d5b445c7837ebd",
+        "size_in_bytes": 3362
+      },
+      {
+        "_path": "Library/include/freetype/ftsystem.h",
+        "path_type": "hardlink",
+        "sha256": "9195cb33ba24dd8d16a633c7ca135e734ed9fa01124b8cad4e26aa74a4f36a6c",
+        "sha256_in_prefix": "9195cb33ba24dd8d16a633c7ca135e734ed9fa01124b8cad4e26aa74a4f36a6c",
+        "size_in_bytes": 8518
+      },
+      {
+        "_path": "Library/include/freetype/fttrigon.h",
+        "path_type": "hardlink",
+        "sha256": "4e773f1685e421a5ee3215b74fcf8dd44a601c0755fe1d7fa4b5ea922fce1eca",
+        "sha256_in_prefix": "4e773f1685e421a5ee3215b74fcf8dd44a601c0755fe1d7fa4b5ea922fce1eca",
+        "size_in_bytes": 7411
+      },
+      {
+        "_path": "Library/include/freetype/fttypes.h",
+        "path_type": "hardlink",
+        "sha256": "f08504b88a054f9a32fff401f3b54acef5639ef52a78ee0049c366875fd6827f",
+        "sha256_in_prefix": "f08504b88a054f9a32fff401f3b54acef5639ef52a78ee0049c366875fd6827f",
+        "size_in_bytes": 14549
+      },
+      {
+        "_path": "Library/include/freetype/ftwinfnt.h",
+        "path_type": "hardlink",
+        "sha256": "1a29ecc14ec29727228bd1c449d8832477c13878d2fd66ad41bf4da94dae59a9",
+        "sha256_in_prefix": "1a29ecc14ec29727228bd1c449d8832477c13878d2fd66ad41bf4da94dae59a9",
+        "size_in_bytes": 7965
+      },
+      {
+        "_path": "Library/include/freetype/otsvg.h",
+        "path_type": "hardlink",
+        "sha256": "19d82ed72d103c8bfee370e1b0386ccb418b259a8de32b43c695e73936e7ad98",
+        "sha256_in_prefix": "19d82ed72d103c8bfee370e1b0386ccb418b259a8de32b43c695e73936e7ad98",
+        "size_in_bytes": 10452
+      },
+      {
+        "_path": "Library/include/freetype/t1tables.h",
+        "path_type": "hardlink",
+        "sha256": "8aff5dffe74c0022c149105b7c262e69d558c00acdabdfe69bec0d2473304f27",
+        "sha256_in_prefix": "8aff5dffe74c0022c149105b7c262e69d558c00acdabdfe69bec0d2473304f27",
+        "size_in_bytes": 23188
+      },
+      {
+        "_path": "Library/include/freetype/ttnameid.h",
+        "path_type": "hardlink",
+        "sha256": "a804e5f79c102911730413c8af5cea6d0f2978767121e30766bcb0832ebdf163",
+        "sha256_in_prefix": "a804e5f79c102911730413c8af5cea6d0f2978767121e30766bcb0832ebdf163",
+        "size_in_bytes": 58769
+      },
+      {
+        "_path": "Library/include/freetype/tttables.h",
+        "path_type": "hardlink",
+        "sha256": "b5555233424ac03d75a94955e44146805f8c03a53ee3319778e40ae104a4164f",
+        "sha256_in_prefix": "b5555233424ac03d75a94955e44146805f8c03a53ee3319778e40ae104a4164f",
+        "size_in_bytes": 25231
+      },
+      {
+        "_path": "Library/include/freetype/tttags.h",
+        "path_type": "hardlink",
+        "sha256": "7964845e541e055e8bd0020445647a1ad70a30829df102a3080e5be3351fb539",
+        "sha256_in_prefix": "7964845e541e055e8bd0020445647a1ad70a30829df102a3080e5be3351fb539",
+        "size_in_bytes": 5145
+      },
+      {
+        "_path": "Library/include/freetype2/dlg/dlg.h",
+        "path_type": "hardlink",
+        "sha256": "afc644e2f5c95811337de3c91c2cfb541a572eeeb6731456a9eb800ab8530010",
+        "sha256_in_prefix": "afc644e2f5c95811337de3c91c2cfb541a572eeeb6731456a9eb800ab8530010",
+        "size_in_bytes": 10834
+      },
+      {
+        "_path": "Library/include/freetype2/dlg/output.h",
+        "path_type": "hardlink",
+        "sha256": "d659aad12eea8c26d317ad2601bb9d2ceabff1f7dcb0fbf8ab3038f6d1c457d1",
+        "sha256_in_prefix": "d659aad12eea8c26d317ad2601bb9d2ceabff1f7dcb0fbf8ab3038f6d1c457d1",
+        "size_in_bytes": 7229
+      },
+      {
+        "_path": "Library/include/ft2build.h",
+        "path_type": "hardlink",
+        "sha256": "4d3989a49f1dfce31138c7d2855bf120e1819f0ae969c7be6387025c5bd7f1e5",
+        "sha256_in_prefix": "4d3989a49f1dfce31138c7d2855bf120e1819f0ae969c7be6387025c5bd7f1e5",
+        "size_in_bytes": 990
+      },
+      {
+        "_path": "Library/lib/cmake/freetype/freetype-config-release.cmake",
+        "path_type": "hardlink",
+        "sha256": "f1878b36faf97489cdeabe2de4c3b849de69487a0c0f0afda66c4b1ad44f003f",
+        "sha256_in_prefix": "f1878b36faf97489cdeabe2de4c3b849de69487a0c0f0afda66c4b1ad44f003f",
+        "size_in_bytes": 872
+      },
+      {
+        "_path": "Library/lib/cmake/freetype/freetype-config-version.cmake",
+        "path_type": "hardlink",
+        "sha256": "2c1c13c5de334ce4d2906992e147b4de7b89674f5890291c6fc5149e9b96cba2",
+        "sha256_in_prefix": "2c1c13c5de334ce4d2906992e147b4de7b89674f5890291c6fc5149e9b96cba2",
+        "size_in_bytes": 2951
+      },
+      {
+        "_path": "Library/lib/cmake/freetype/freetype-config.cmake",
+        "path_type": "hardlink",
+        "sha256": "3c6410fa3b3f7a7d49120946457c90410f0713e51ec57a30a9e66bc7f53d4108",
+        "sha256_in_prefix": "3c6410fa3b3f7a7d49120946457c90410f0713e51ec57a30a9e66bc7f53d4108",
+        "size_in_bytes": 3340
+      },
+      {
+        "_path": "Library/lib/freetype.lib",
+        "path_type": "hardlink",
+        "sha256": "98492077454d25563a06129f59e0e18c560f564b56d3572fc16efa901d315f18",
+        "sha256_in_prefix": "98492077454d25563a06129f59e0e18c560f564b56d3572fc16efa901d315f18",
+        "size_in_bytes": 48880
+      },
+      {
+        "_path": "Library/lib/pkgconfig/freetype2.pc",
+        "file_mode": "text",
+        "path_type": "hardlink",
+        "prefix_placeholder": "C:/b/abs_f0fz6xub77/croot/freetype_1666798246276/_h_env",
+        "sha256": "e4be28da32248c8b938545756acd025bac96770d8b27b6f6e226cff6f5faa900",
+        "sha256_in_prefix": "679a192f43a960c2397211acaefdea302d94808b0d1f2e2bc4ec34d4ea32e2cf",
+        "size_in_bytes": 399
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "freetype==2.12.1=ha860e81_0",
+  "sha256": "cdcfec619bf3eba161aca4a752e0a57acd5444e1f551565fcb11f46c33d7218d",
+  "size": 501369,
+  "subdir": "win-64",
+  "timestamp": 1666798364000,
+  "url": "https://repo.anaconda.com/pkgs/main/win-64/freetype-2.12.1-ha860e81_0.conda",
+  "version": "2.12.1"
+}
